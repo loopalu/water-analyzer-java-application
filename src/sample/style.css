@@ -22,8 +22,17 @@
 .chart
 {
     -fx-background-color: "white";
+    -fx-grid-lines-visible: True;
 }
 
 .chart-plot-background {
     -fx-background-color:transparent;
+}
+
+#start {
+    -fx-background-color: "#92f442";
+}
+
+#stop {
+    -fx-background-color: "#ff3a3a";
 }

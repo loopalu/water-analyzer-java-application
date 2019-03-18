@@ -74,10 +74,10 @@
         <Button mnemonicParsing="false" prefHeight="27.0" prefWidth="80.0" text="1 min" textAlignment="CENTER" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowIndex="8" GridPane.valignment="CENTER" />
         <Button mnemonicParsing="false" prefHeight="27.0" prefWidth="80.0" text="30 sec" textAlignment="CENTER" GridPane.columnIndex="4" GridPane.halignment="CENTER" GridPane.rowIndex="8" GridPane.valignment="CENTER" />
         <Button mnemonicParsing="false" prefHeight="27.0" prefWidth="80.0" text="3 min" textAlignment="CENTER" GridPane.halignment="CENTER" GridPane.rowIndex="9" GridPane.valignment="CENTER" />
-        <Button mnemonicParsing="false" prefHeight="27.0" prefWidth="80.0" text="Stop" textAlignment="CENTER" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="11" GridPane.valignment="CENTER" />
+        <Button fx:id="stop" mnemonicParsing="false" prefHeight="27.0" prefWidth="80.0" text="Stop" textAlignment="CENTER" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="11" GridPane.valignment="CENTER" />
         <Button mnemonicParsing="false" prefHeight="27.0" prefWidth="80.0" text="Clear" textAlignment="CENTER" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="11" GridPane.valignment="CENTER" />
-        <Button mnemonicParsing="false" prefHeight="27.0" prefWidth="80.0" text="Start" textAlignment="CENTER" GridPane.halignment="CENTER" GridPane.rowIndex="11" GridPane.valignment="CENTER" />
-        <Button mnemonicParsing="false" prefHeight="26.0" prefWidth="164.0" text="Save result" textAlignment="CENTER" GridPane.columnIndex="1" GridPane.rowIndex="12" />
+        <Button fx:id="start" mnemonicParsing="false" prefHeight="27.0" prefWidth="80.0" text="Start" textAlignment="CENTER" GridPane.halignment="CENTER" GridPane.rowIndex="11" GridPane.valignment="CENTER" />
+        <Button mnemonicParsing="false" prefHeight="27.0" prefWidth="80.0" text="Save result" textAlignment="CENTER" GridPane.columnIndex="1" GridPane.rowIndex="12" />
         <Text strokeType="OUTSIDE" strokeWidth="0.0" text="HV switch" textAlignment="CENTER" wrappingWidth="100.53668212890625" GridPane.rowIndex="14">
           <font>
             <Font name="System Bold" size="17.0" />
@@ -98,14 +98,12 @@
         <Button mnemonicParsing="false" prefHeight="27.0" prefWidth="80.0" text="Send" textAlignment="CENTER" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowIndex="15" GridPane.valignment="CENTER" />
       </children>
     </GridPane>
-      <LineChart>
+      <LineChart fx:id="linechart">
         <xAxis>
           <CategoryAxis fx:id="xtelg" side="BOTTOM" />
-          <NumberAxis side="BOTTOM" />
         </xAxis>
         <yAxis>
-          <CategoryAxis fx:id="ytelg" side="LEFT" />
-          <NumberAxis side="LEFT" />
+          <NumberAxis fx:id="ytelg" side="LEFT" />
         </yAxis>
       </LineChart>
   </children>
