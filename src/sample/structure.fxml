@@ -112,7 +112,7 @@
             <Text strokeType="OUTSIDE" strokeWidth="0.0" text="BGE" textAlignment="CENTER" wrappingWidth="206.93670272827148" GridPane.rowIndex="4" />
             <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Kapillaar" textAlignment="CENTER" wrappingWidth="206.9367332458496" GridPane.rowIndex="5" />
             <Text strokeType="OUTSIDE" strokeWidth="0.0" text="User" textAlignment="CENTER" wrappingWidth="205.33669662475586" />
-            <ChoiceBox prefHeight="26.0" prefWidth="430.0" GridPane.columnIndex="1" />
+            <ChoiceBox fx:id="userbox" prefHeight="26.0" prefWidth="430.0" GridPane.columnIndex="1" />
             <ComboBox prefHeight="26.0" prefWidth="429.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
             <ComboBox prefHeight="26.0" prefWidth="429.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
             <ComboBox prefHeight="26.0" prefWidth="430.0" GridPane.columnIndex="1" GridPane.rowIndex="4" />

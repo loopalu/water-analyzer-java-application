@@ -12,6 +12,7 @@ import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
@@ -25,6 +26,7 @@ import java.util.Random;
 public class Main extends Application {
     private String currentTime;
     private String currentFrequency;
+    private String currentUser;
 
     @Override
     public void start(Stage stage) throws Exception{
@@ -39,8 +41,22 @@ public class Main extends Application {
         makeFrequencyButtons(scene);
         makeTimeButtons(scene);
         makeChart(scene);
+        makeComboBoxes(scene);
 
         stage.show();
+    }
+
+    private void makeComboBoxes(Scene scene) {
+        ChoiceBox cb = (ChoiceBox) scene.lookup("#userbox");
+        cb.getItems().addAll("Regular user", "Scientist", "Administrator");
+        cb.getSelectionModel().selectFirst();
+        cb.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
+                currentUser = (String) cb.getItems().get((Integer) number2);
+                System.out.println(currentUser);
+            }
+        });
     }
 
     private void makeTimeButtons(Scene scene) {
