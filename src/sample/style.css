@@ -36,3 +36,11 @@
 #stop {
     -fx-background-color: "#ff3a3a";
 }
+
+.toggle-button {
+    -fx-pref-width: 80px;
+}
+
+#hbox {
+    -fx-alignment: CENTER;
+}
