@@ -39,7 +39,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Main extends Application {
+public class MainBackup extends Application {
     private static final int MAX_DATA_POINTS = 50;
     private String currentTime;
     private String currentFrequency;
@@ -54,11 +54,9 @@ public class Main extends Application {
     private XYChart.Series series1;
     private int xSeriesData = 0;
     private NumberAxis xAxis = new NumberAxis();
-    //final NumberAxis yAxis = new NumberAxis(5000000, 7000000, 2000);
     final NumberAxis yAxis = new NumberAxis();
     private ExecutorService executor;
     private AddToQueue addToQueue;
-    //final LineChart<Number,Number> lineChart = new LineChart<Number,Number>(xAxis,yAxis);
     HashMap<Integer, String> testData = new HashMap<>();
     private int lowest = Integer.MAX_VALUE;
     int i = 0;
@@ -77,7 +75,6 @@ public class Main extends Application {
         stage.setResizable(false);
         makeFrequencyButtons(scene);
         makeTimeButtons(scene);
-        //makeChart(scene);
         makeMovingChart(scene);
         makeComboBoxes(scene);
         makeComboBox(scene);
@@ -551,46 +548,11 @@ public class Main extends Application {
         grid.getChildren().addAll(box1, box2, box3, box4, box5, box6, box7, box8, box9, box10);
     }
 
-    private void makeChart(Scene scene) {
-        NumberAxis xAxis = new NumberAxis();
-        xAxis.setLabel("Time (s)");
-        NumberAxis yAxis = new NumberAxis();
-        yAxis.setLabel("Conductivity");
-        LineChart lineChart = new LineChart(xAxis,yAxis);
-        Random random = new Random();
-
-
-        XYChart.Series<Number, Number> series = new XYChart.Series<>();
-
-        for (int i = 0; i < 100; i++) {
-            series.getData().add(new XYChart.Data<>(i, random.nextInt(4000)+1000));
-        }
-        lineChart.setLegendVisible(false);
-        lineChart.setCreateSymbols(false);
-        lineChart.getData().add(series);
-        GridPane.setConstraints(lineChart, 0, 1);
-        GridPane mainPane = (GridPane) scene.lookup("#mainGridPane");
-        mainPane.getChildren().add(lineChart);
-    } //vana chart, mis ei liigu
-
     private void makeMovingChart(Scene scene) {
-//        xAxis = new NumberAxis(0,MAX_DATA_POINTS,MAX_DATA_POINTS/10);
-
-
-
         NumberAxis yAxis = new NumberAxis();
         yAxis.setAutoRanging(true);
         yAxis.setForceZeroInRange(false);
 
-        //-- Chart
-//        final LineChart<Number, Number> sc = new LineChart<Number, Number>(xAxis, yAxis) {
-//            // Override to remove symbols on each data point
-//            @Override protected void dataItemAdded(Series<Number, Number> series, int itemIndex, Data<Number, Number> item) {}
-//        };
-//        sc.setAnimated(false);
-//        sc.setId("liveLineChart");
-
-        //-- Chart Series
         series1 = new XYChart.Series<Number, Number>();
         lineChart = new LineChart<Number,Number>(xAxis,yAxis);
         xAxis = new NumberAxis();
@@ -616,7 +578,6 @@ public class Main extends Application {
         GridPane.setConstraints(pane, 1, 0);
         GridPane mainPane = (GridPane) scene.lookup("#chartPane");
         mainPane.getChildren().add(pane);
-        //primaryStage.setScene(new Scene(lineChart));
     }
 
     private class AddToQueue implements Runnable {
@@ -652,14 +613,6 @@ public class Main extends Application {
             series1.getData().add(new AreaChart.Data(xSeriesData++, dataQ1.remove()));
             lineChart.setMinWidth(lineChart.getWidth()+20);
         }
-        // remove points to keep us at no more than MAX_DATA_POINTS
-//        if (series1.getData().size() > MAX_DATA_POINTS) {
-//            series1.getData().remove(0, series1.getData().size() - MAX_DATA_POINTS);
-//        }
-        // update
-//        xAxis.setLowerBound(xSeriesData-MAX_DATA_POINTS);
-        //xAxis.setUpperBound(xSeriesData+20);
-        //yAxis.setLowerBound(lowest);
     }
 
 
