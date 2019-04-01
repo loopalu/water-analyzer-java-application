@@ -37,7 +37,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Main extends Application {
+public class MainBackup extends Application {
     private String currentTime;
     private String currentFrequency;
     private String currentUser;
@@ -610,6 +610,13 @@ public class Main extends Application {
     private void addDataToSeries() {
         if (dataQ1.isEmpty()) {
             return;
+        }
+        while (counter < 100) {
+            if (dataQ1.isEmpty()) {
+                return;
+            }
+            dataQ1.remove();
+            this.counter += 1;
         }
         series1.getData().add(new AreaChart.Data(xSeriesData++, dataQ1.remove()));
         lineChart.setMinWidth(lineChart.getWidth()+20);

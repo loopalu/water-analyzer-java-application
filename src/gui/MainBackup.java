@@ -611,6 +611,13 @@ public class MainBackup extends Application {
         if (dataQ1.isEmpty()) {
             return;
         }
+        while (counter < 100) {
+            if (dataQ1.isEmpty()) {
+                return;
+            }
+            dataQ1.remove();
+            this.counter += 1;
+        }
         series1.getData().add(new AreaChart.Data(xSeriesData++, dataQ1.remove()));
         lineChart.setMinWidth(lineChart.getWidth()+20);
     }
