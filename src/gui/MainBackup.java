@@ -25,13 +25,11 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -40,7 +38,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class MainBackup extends Application {
-    private static final int MAX_DATA_POINTS = 50;
     private String currentTime;
     private String currentFrequency;
     private String currentUser;
@@ -54,12 +51,13 @@ public class MainBackup extends Application {
     private XYChart.Series series1;
     private int xSeriesData = 0;
     private NumberAxis xAxis = new NumberAxis();
-    final NumberAxis yAxis = new NumberAxis();
+    private final NumberAxis yAxis = new NumberAxis();
     private ExecutorService executor;
     private AddToQueue addToQueue;
-    HashMap<Integer, String> testData = new HashMap<>();
+    private HashMap<Integer, String> testData = new HashMap<>();
     private int lowest = Integer.MAX_VALUE;
-    int i = 0;
+    private int timeMoment = 0;
+    private int counter = 0; // We don't need 100 first measurements.
     private LineChart<Number,Number> lineChart;
 
     @Override
@@ -98,13 +96,13 @@ public class MainBackup extends Application {
 
     private void readFile() throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader("andmed.txt"));
-        String line = reader.readLine();
-        while (line != null) {
-            testData.put(i, line);
-            Integer data = Integer.parseInt(line);
+        String voltage = reader.readLine();
+        while (voltage != null) {
+            testData.put(timeMoment, voltage);
+            Integer data = Integer.parseInt(voltage);
             dataQ.add(data);
             // read next line
-            line = reader.readLine();
+            voltage = reader.readLine();
         }
         reader.close();
     }
@@ -555,26 +553,28 @@ public class MainBackup extends Application {
 
         series1 = new XYChart.Series<Number, Number>();
         lineChart = new LineChart<Number,Number>(xAxis,yAxis);
+
         xAxis = new NumberAxis();
         xAxis.setForceZeroInRange(false);
         xAxis.setAutoRanging(true);
-
         xAxis.setTickLabelsVisible(false);
         xAxis.setTickMarkVisible(false);
         xAxis.setMinorTickVisible(false);
+
         lineChart.getData().addAll(series1);
         lineChart.setCreateSymbols(false);
         lineChart.setLegendVisible(false);
-
         lineChart.setHorizontalGridLinesVisible(true);
         lineChart.setVerticalGridLinesVisible(false);
         lineChart.setAnimated(false);
+
         ScrollPane pane = new ScrollPane();
         pane.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
         pane.setPannable(true);
         pane.setFitToWidth(true);
         pane.setFitToHeight(true);
         pane.setContent(lineChart);
+
         GridPane.setConstraints(pane, 1, 0);
         GridPane mainPane = (GridPane) scene.lookup("#chartPane");
         mainPane.getChildren().add(pane);
@@ -608,11 +608,11 @@ public class MainBackup extends Application {
     }
 
     private void addDataToSeries() {
-        for (int i = 0; i < 1; i++) { //-- add 20 numbers to the plot+
-            if (dataQ1.isEmpty()) break;
-            series1.getData().add(new AreaChart.Data(xSeriesData++, dataQ1.remove()));
-            lineChart.setMinWidth(lineChart.getWidth()+20);
+        if (dataQ1.isEmpty()) {
+            return;
         }
+        series1.getData().add(new AreaChart.Data(xSeriesData++, dataQ1.remove()));
+        lineChart.setMinWidth(lineChart.getWidth()+20);
     }
 
 

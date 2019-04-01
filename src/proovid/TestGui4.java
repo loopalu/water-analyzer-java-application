@@ -1,4 +1,4 @@
-package gui;
+package proovid;
 
 import java.util.Set;
 import javafx.application.Application;

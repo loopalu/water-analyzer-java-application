@@ -1,23 +1,6 @@
 package gui;
 
-import com.sun.javafx.scene.control.skin.ComboBoxListViewSkin;
-import javafx.application.Application;
-import javafx.application.Platform;
-import javafx.beans.Observable;
 import javafx.beans.property.*;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
-import javafx.scene.Scene;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Control;
-import javafx.scene.control.ListView;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.HBox;
-import javafx.stage.Stage;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class HideableItem<T> {
     private final ObjectProperty<T> object = new SimpleObjectProperty<>();
