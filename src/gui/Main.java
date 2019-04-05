@@ -37,7 +37,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class MainBackup extends Application {
+public class Main extends Application {
     private String currentTime;
     private String currentFrequency;
     private String currentUser;
@@ -588,7 +588,7 @@ public class MainBackup extends Application {
                 //dataQ1.add(Math.random());
                 dataQ1.add(dataQ.remove());
 
-                Thread.sleep(100);
+                Thread.sleep(1);
                 executor.execute(this);
 
             } catch (InterruptedException ex) {

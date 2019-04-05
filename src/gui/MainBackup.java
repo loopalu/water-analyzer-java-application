@@ -574,6 +574,7 @@ public class MainBackup extends Application {
         pane.setFitToWidth(true);
         pane.setFitToHeight(true);
         pane.setContent(lineChart);
+        pane.hvalueProperty().bind(lineChart.widthProperty()); //puts scrollbar to the end of graph
 
         GridPane.setConstraints(pane, 1, 0);
         GridPane mainPane = (GridPane) scene.lookup("#chartPane");
@@ -588,7 +589,7 @@ public class MainBackup extends Application {
                 //dataQ1.add(Math.random());
                 dataQ1.add(dataQ.remove());
 
-                Thread.sleep(100);
+                Thread.sleep(1);
                 executor.execute(this);
 
             } catch (InterruptedException ex) {
