@@ -105,7 +105,7 @@ public class ArduinoReader implements SerialPortEventListener {
                 String inputLine=input.readLine();
                 if (inputLine.contains("C4D")) {
                     String dataOut = inputLine.split(" ")[1];  //Muidu on kujul C4D 3181869 11 2 127
-                    this.data.push(dataOut);
+                    this.data.push(inputLine);
                     //System.out.println(dataOut);
                 }
             } catch (Exception e) {

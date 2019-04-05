@@ -61,6 +61,7 @@ public class Main extends Application {
     private int counter = 0; // We don't need 100 first measurements.
     private LineChart<Number,Number> lineChart;
     Stack<String> arduinoData;
+    Scene scene;
 
     @Override
     public void start(Stage stage) throws Exception{
@@ -70,7 +71,7 @@ public class Main extends Application {
         root.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
 
         stage.setTitle("Water Analyzer");
-        Scene scene = new Scene(root, 1500, Screen.getPrimary().getVisualBounds().getHeight()*0.9);
+        scene = new Scene(root, 1500, Screen.getPrimary().getVisualBounds().getHeight()*0.9);
         stage.setScene(scene);
         stage.setResizable(false);
         makeFrequencyButtons(scene);
@@ -630,8 +631,11 @@ public class Main extends Application {
             return;
         }
         //System.out.println(arduinoData.pop());
-        Number measurement = Integer.parseInt(arduinoData.pop());
+        String androidData = arduinoData.pop();
+        Number measurement = Integer.parseInt(androidData.split(" ")[1]);
         series1.getData().add(new AreaChart.Data(xSeriesData++, measurement));
+        TextField textField = (TextField) scene.lookup("#androidData");
+        textField.setText(androidData);
         lineChart.setMinWidth(lineChart.getWidth()+20);
     }
 

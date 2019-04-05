@@ -129,11 +129,10 @@
           <RowConstraints maxHeight="255.60001220703123" minHeight="10.0" prefHeight="42.79996337890623" vgrow="SOMETIMES" />
         </rowConstraints>
          <children>
-            <TextField prefHeight="86.0" prefWidth="948.0" text="Time (ms)" GridPane.columnIndex="1"
-                       GridPane.rowIndex="1" editable="false" mouseTransparent="true" alignment="CENTER"/>
-            <TextField minWidth="480.0" prefHeight="46.0" rotate="-90.0" text="Conductivity" translateX="-218.0"
-                       editable="false" mouseTransparent="true" alignment="CENTER"/>
+            <TextField alignment="CENTER" editable="false" mouseTransparent="true" prefHeight="86.0" prefWidth="948.0" text="Time (ms)" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <TextField alignment="CENTER" editable="false" minWidth="480.0" mouseTransparent="true" prefHeight="46.0" rotate="-90.0" text="Conductivity" translateX="-218.0" />
          </children>
       </GridPane>
+      <TextField id="androidData" alignment="CENTER" prefHeight="26.0" prefWidth="578.0" text="qewqweqe" GridPane.rowIndex="2" />
   </children>
 </GridPane>
