@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Stack;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -59,10 +60,11 @@ public class Main extends Application {
     private int timeMoment = 0;
     private int counter = 0; // We don't need 100 first measurements.
     private LineChart<Number,Number> lineChart;
+    Stack<String> arduinoData;
 
     @Override
     public void start(Stage stage) throws Exception{
-        readFile();
+        //readFile();
 
         Parent root = FXMLLoader.load(getClass().getResource("structure.fxml"));
         root.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
@@ -80,6 +82,10 @@ public class Main extends Application {
         textArea.setPrefWidth(Screen.getPrimary().getVisualBounds().getWidth()/5);
 
         stage.show();
+
+        ArduinoReader reader = new ArduinoReader();
+        reader.initialize();
+        arduinoData = reader.getData();
 
         executor = Executors.newCachedThreadPool(new ThreadFactory() {
             @Override public Thread newThread(Runnable r) {
@@ -592,7 +598,7 @@ public class Main extends Application {
                 executor.execute(this);
 
             } catch (InterruptedException ex) {
-                Logger.getLogger(MainBackup.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
@@ -608,17 +614,24 @@ public class Main extends Application {
     }
 
     private void addDataToSeries() {
-        if (dataQ1.isEmpty()) {
+//        if (dataQ1.isEmpty()) {
+//            return;
+//        }
+        //SEE OSA TULEB ÄRA MUUTA KUI LISADA HIGH VOLTAGE OSA!!!
+//        while (counter < 100) {
+//            if (dataQ1.isEmpty()) {
+//                return;
+//            }
+//            dataQ1.remove();
+//            this.counter += 1;
+//        }
+
+        if (arduinoData.isEmpty()) {
             return;
         }
-        while (counter < 100) {
-            if (dataQ1.isEmpty()) {
-                return;
-            }
-            dataQ1.remove();
-            this.counter += 1;
-        }
-        series1.getData().add(new AreaChart.Data(xSeriesData++, dataQ1.remove()));
+        //System.out.println(arduinoData.pop());
+        Number measurement = Integer.parseInt(arduinoData.pop());
+        series1.getData().add(new AreaChart.Data(xSeriesData++, measurement));
         lineChart.setMinWidth(lineChart.getWidth()+20);
     }
 

@@ -1,20 +1,18 @@
 package gui;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import gnu.io.CommPortIdentifier;
 import gnu.io.SerialPort;
 import gnu.io.SerialPortEvent;
 import gnu.io.SerialPortEventListener;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.Enumeration;
-import java.util.Stack;
 
 
-public class ArduinoReader implements SerialPortEventListener {
-    private SerialPort serialPort;
-    private Stack<String> data = new Stack<>();
+public class ArduinoReaderBackup implements SerialPortEventListener {
+    SerialPort serialPort;
     /** The port we're normally going to use. */
     private static final String PORT_NAMES[] = {
             "/dev/tty.usbserial-A9007UX1", // Mac OS X
@@ -34,10 +32,6 @@ public class ArduinoReader implements SerialPortEventListener {
     private static final int TIME_OUT = 200;
     /** Default bits per second for COM port. */
     private static final int DATA_RATE = 115200; //EI MUUDA SEDA !!!!!!
-
-    public Stack<String> getData() {
-        return data;
-    }
 
     public void initialize() {
         // the next line is for Raspberry Pi and
@@ -105,8 +99,7 @@ public class ArduinoReader implements SerialPortEventListener {
                 String inputLine=input.readLine();
                 if (inputLine.contains("C4D")) {
                     String dataOut = inputLine.split(" ")[1];  //Muidu on kujul C4D 3181869 11 2 127
-                    this.data.push(dataOut);
-                    //System.out.println(dataOut);
+                    System.out.println(dataOut);
                 }
             } catch (Exception e) {
                 System.err.println(e.toString());
@@ -116,7 +109,7 @@ public class ArduinoReader implements SerialPortEventListener {
     }
 
     public static void main(String[] args) throws Exception {
-        ArduinoReader main = new ArduinoReader();
+        ArduinoReaderBackup main = new ArduinoReaderBackup();
         main.initialize();
         Thread t=new Thread() {
             public void run() {

@@ -2,16 +2,17 @@ package gui;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.util.Stack;
 
 public class Test {
     public static void main(String[] args) {
-        System.out.println((int)'ए');
-        String s = "एक गाव में एक किसान";
-        try {
-            String out = new String(s.getBytes("Windows-1252"), StandardCharsets.UTF_8);
-            System.out.println(out);
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+        ArduinoReader reader = new ArduinoReader();
+        reader.initialize();
+        Stack<String> arduinoData = reader.getData();
+        while (true) {
+            if (!arduinoData.isEmpty()) {
+                System.out.println(arduinoData.pop());
+            }
         }
     }
 }
