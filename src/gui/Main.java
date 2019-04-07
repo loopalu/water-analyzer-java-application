@@ -24,13 +24,11 @@ import javafx.scene.control.*;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.stage.FileChooser;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
@@ -57,7 +55,7 @@ public class Main extends Application {
     private final NumberAxis yAxis = new NumberAxis();
     private ExecutorService executor;
     private AddToQueue addToQueue;
-    private HashMap<Integer, String> testData = new HashMap<>();
+    private ArrayList testData = new ArrayList();
     private int lowest = Integer.MAX_VALUE;
     private int timeMoment = 0;
     private int counter = 0; // We don't need 100 first measurements.
@@ -68,6 +66,8 @@ public class Main extends Application {
     private OutputStream outputStream;
     private double zoom = 1;
     private boolean isStarted = false;
+    private boolean isHighVoltage = false;
+    private String highVoltage = "h";
 
 
     @Override
@@ -84,7 +84,7 @@ public class Main extends Application {
         stage.setResizable(false);
         makeFrequencyButtons(scene);
         makeTimeButtons(scene);
-        makeStartStopButtons(scene);
+        makeStartStopButtons(scene, stage);
         makeMovingChart(scene);
         makeComboBoxes(scene);
         makeComboBox(scene);
@@ -115,7 +115,7 @@ public class Main extends Application {
         BufferedReader reader = new BufferedReader(new FileReader("andmed.txt"));
         String voltage = reader.readLine();
         while (voltage != null) {
-            testData.put(timeMoment, voltage);
+            testData.add(voltage);
             Integer data = Integer.parseInt(voltage);
             dataQ.add(data);
             // read next line
@@ -623,7 +623,7 @@ public class Main extends Application {
         grid.getChildren().addAll(box1, box2, box3, box4, box5, box6, box7, box8, box9, box10);
     }
 
-    private void makeStartStopButtons(Scene scene) {
+    private void makeStartStopButtons(Scene scene, Stage stage) {
         Button startButton = new Button("Start");
         Button stopButton = new Button("Stop");
         Button clearButton = new Button("Clear");
@@ -646,12 +646,54 @@ public class Main extends Application {
             @Override
             public void handle(ActionEvent event) {
                 System.out.println("clear");
+                makeMovingChart(scene); //Ei tööta päris õigesti.
             }
         });
         saveButton.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 System.out.println("save");
+                FileChooser fileChooser = new FileChooser();
+
+                //Set extension filter for text files
+                FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("TXT files (*.txt)", "*.txt");
+                fileChooser.getExtensionFilters().add(extFilter);
+
+                //Show save file dialog
+                File file = fileChooser.showSaveDialog(stage);
+
+                if (file != null) {
+                    saveTextToFile(file);
+                }
+            }
+        });
+        Button onOff = (Button) scene.lookup("#onOff");
+        onOff.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                if (isHighVoltage) {
+                    isHighVoltage = false;
+                    onOff.setStyle("-fx-background-color: red;");
+                    onOff.setText("OFF");
+                    highVoltage = "h";
+                    //Androidi kood
+//                    try {
+//                        outputStream.write(highVoltage.getBytes());
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+                } else {
+                    isHighVoltage = true;
+                    onOff.setStyle("-fx-background-color: lawngreen;");
+                    onOff.setText("ON");
+                    highVoltage = "H";
+                    //Androidi kood
+//                    try {
+//                        outputStream.write(highVoltage.getBytes());
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+                }
             }
         });
         HBox box1 = new HBox(startButton);
@@ -668,6 +710,23 @@ public class Main extends Application {
         GridPane.setConstraints(box4,3,11);
         GridPane grid = (GridPane) scene.lookup("#testSettings");
         grid.getChildren().addAll(box1, box2, box3, box4);
+    }
+
+    private void saveTextToFile(File file) {
+        try {
+            PrintWriter writer;
+            writer = new PrintWriter(file);
+            writer.println("C4d_2015-test");
+            writer.println("aeg, juhtivus");
+            for (int i = 0; i < testData.size(); i++) {
+                writer.println(" "+i+", "+testData.get(i));
+            }
+            System.out.println(testData.size());
+            System.out.println("done");
+            writer.close();
+        } catch (IOException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     private void makeMovingChart(Scene scene) {
