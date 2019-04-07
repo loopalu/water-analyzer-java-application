@@ -1,6 +1,7 @@
 package gui;
 
 import com.sun.javafx.scene.control.skin.ComboBoxListViewSkin;
+import gnu.io.SerialPort;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -27,6 +28,7 @@ import javafx.stage.Stage;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,9 +40,10 @@ import java.util.concurrent.ThreadFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class MainBackup extends Application {
+public class MainBackupReadData extends Application {
     private String currentTime;
     private String currentFrequency;
+    private String[] androidFrequency;
     private String currentUser;
     private String currentMethod;
     private ArrayList<String> currentAnalytes = new ArrayList<>();
@@ -60,17 +63,21 @@ public class MainBackup extends Application {
     private int timeMoment = 0;
     private int counter = 0; // We don't need 100 first measurements.
     private LineChart<Number,Number> lineChart;
-    Stack<String> arduinoData;
+    private Stack<String> arduinoData;
+    private Scene scene;
+    private SerialPort serialPort;
+    private OutputStream outputStream;
 
     @Override
     public void start(Stage stage) throws Exception{
-        //readFile();
+        //JÄRGMINE ON FAILIST LUGEMISE KOOD
+        readFile();
 
         Parent root = FXMLLoader.load(getClass().getResource("structure.fxml"));
         root.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
 
         stage.setTitle("Water Analyzer");
-        Scene scene = new Scene(root, 1500, Screen.getPrimary().getVisualBounds().getHeight()*0.9);
+        scene = new Scene(root, 1500, Screen.getPrimary().getVisualBounds().getHeight()*0.9);
         stage.setScene(scene);
         stage.setResizable(false);
         makeFrequencyButtons(scene);
@@ -82,10 +89,11 @@ public class MainBackup extends Application {
         textArea.setPrefWidth(Screen.getPrimary().getVisualBounds().getWidth()/5);
 
         stage.show();
-
-        ArduinoReader reader = new ArduinoReader();
-        reader.initialize();
-        arduinoData = reader.getData();
+        //JÄRGMINE ON ARDUINO KOOD
+//        ArduinoReader reader = new ArduinoReader();
+//        reader.initialize();
+//        arduinoData = reader.getData();
+//        serialPort = reader.getSerialPort();
 
         executor = Executors.newCachedThreadPool(new ThreadFactory() {
             @Override public Thread newThread(Runnable r) {
@@ -480,16 +488,16 @@ public class MainBackup extends Application {
     }
 
     private void makeFrequencyButtons(Scene scene) {
-        ToggleButton button1 = new ToggleButton("2 MHz");
-        final ToggleButton button2 = new ToggleButton("1.6 MHz");
-        final ToggleButton button3 = new ToggleButton("1.3 MHz");
-        final ToggleButton button4 = new ToggleButton("1 MHz");
-        final ToggleButton button5 = new ToggleButton("880 kHz");
-        final ToggleButton button6 = new ToggleButton("800 kHz");
-        final ToggleButton button7 = new ToggleButton("660 kHz");
-        final ToggleButton button8 = new ToggleButton("500 kHz");
-        final ToggleButton button9 = new ToggleButton("400 kHz");
-        final ToggleButton button10 = new ToggleButton("300 kHz");
+        final ToggleButton button1 = new ToggleButton("2 MHz"); //2 MHz
+        final ToggleButton button2 = new ToggleButton("1.6 MHz"); //1.6 MHz
+        final ToggleButton button3 = new ToggleButton("1.3 MHz"); //1.3 MHz
+        final ToggleButton button4 = new ToggleButton("1 MHz"); //1 MHz
+        final ToggleButton button5 = new ToggleButton("880 kHz"); //880 kHz
+        final ToggleButton button6 = new ToggleButton("800 kHz"); //800 kHz
+        final ToggleButton button7 = new ToggleButton("660 kHz"); //660 kHz
+        final ToggleButton button8 = new ToggleButton("500 kHz"); //500 kHz
+        final ToggleButton button9 = new ToggleButton("400 kHz"); // 400 kHz
+        final ToggleButton button10 = new ToggleButton("300 kHz"); // 300 kHz
         HBox box1 = new HBox(button1);
         box1.setId("hbox");
         HBox box2 = new HBox(button2);
@@ -526,16 +534,52 @@ public class MainBackup extends Application {
             @Override public void changed(ObservableValue<? extends Toggle> observable, Toggle oldValue, Toggle selectedToggle) {
                 if(selectedToggle!=null) {
                     currentFrequency = ((ToggleButton) selectedToggle).getText();
-                    System.out.println(currentFrequency);
-                    //label.setText(((ToggleButton) selectedToggle).getText());
+                    switch (currentFrequency) {
+                        case "2 MHz":
+                            androidFrequency = new String[]{"Q", "0"};
+                            break;
+                        case "1.6 MHz":
+                            androidFrequency = new String[]{"Q", "1"};
+                            break;
+                        case "1.3 MHz":
+                            androidFrequency = new String[]{"Q", "2"};
+                            break;
+                        case "1 MHz":
+                            androidFrequency = new String[]{"Q", "3"};
+                            break;
+                        case "880 kHz":
+                            androidFrequency = new String[]{"Q", "4"};
+                            break;
+                        case "800 kHz":
+                            androidFrequency = new String[]{"Q", "5"};
+                            break;
+                        case "660 kHz":
+                            androidFrequency = new String[]{"Q", "6"};
+                            break;
+                        case "500 kHz": //vb koodis on 500 enne 660. Kas peabki?????
+                            androidFrequency = new String[]{"Q", "7"};
+                            break;
+                        case "400 kHz":
+                            androidFrequency = new String[]{"Q", "8"};
+                            break;
+                        case "300 kHz":
+                            androidFrequency = new String[]{"Q", "9"};
+                            break;
+                    }
+                    //JÄRGMINE ON ARDUINO KOOD
+//                    try {
+//                        outputStream = serialPort.getOutputStream();
+//                        outputStream.write(to_byte(androidFrequency)); //KAS TÖÖTAB ?????
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+                    System.out.println(androidFrequency[1]);
                 }
                 else {
-                    //label.setText("...");
                 }
             }
         });
         // select the first button to start with
-        //group.selectToggle(tb1);
         // add buttons and label to grid and set their positions
         GridPane.setConstraints(box1,0,2);
         GridPane.setConstraints(box2,1,2);
@@ -552,20 +596,29 @@ public class MainBackup extends Application {
         grid.getChildren().addAll(box1, box2, box3, box4, box5, box6, box7, box8, box9, box10);
     }
 
+    private byte[] to_byte(String[] strs) {
+        byte[] bytes=new byte[strs.length];
+        for (int i=0; i<strs.length; i++) {
+            bytes[i]=Byte.parseByte(strs[i]);
+        }
+        return bytes;
+    }
+
     private void makeMovingChart(Scene scene) {
         NumberAxis yAxis = new NumberAxis();
         yAxis.setAutoRanging(true);
         yAxis.setForceZeroInRange(false);
 
         series1 = new XYChart.Series<Number, Number>();
-        lineChart = new LineChart<Number,Number>(xAxis,yAxis);
+        //lineChart = new LineChart<Number,Number>(xAxis,yAxis); //Siis on palju laiemalt graafik
 
         xAxis = new NumberAxis();
         xAxis.setForceZeroInRange(false);
-        xAxis.setAutoRanging(true);
-        xAxis.setTickLabelsVisible(false);
-        xAxis.setTickMarkVisible(false);
+        xAxis.setAutoRanging(false); // Peab olema false. Muidu muudab ise graafiku laiust.
+        xAxis.setTickLabelsVisible(true);
+        xAxis.setTickMarkVisible(true);
         xAxis.setMinorTickVisible(false);
+        lineChart = new LineChart<Number,Number>(xAxis,yAxis); //Siis on palju kitsam graafik
 
         lineChart.getData().addAll(series1);
         lineChart.setCreateSymbols(false);
@@ -577,7 +630,7 @@ public class MainBackup extends Application {
         ScrollPane pane = new ScrollPane();
         pane.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
         pane.setPannable(true);
-        pane.setFitToWidth(true);
+        pane.setFitToWidth(false); //false teeb venimist vähemaks.
         pane.setFitToHeight(true);
         pane.setContent(lineChart);
 
@@ -598,7 +651,7 @@ public class MainBackup extends Application {
                 executor.execute(this);
 
             } catch (InterruptedException ex) {
-                Logger.getLogger(MainBackup.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(MainBackupReadData.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
@@ -614,9 +667,6 @@ public class MainBackup extends Application {
     }
 
     private void addDataToSeries() {
-//        if (dataQ1.isEmpty()) {
-//            return;
-//        }
         //SEE OSA TULEB ÄRA MUUTA KUI LISADA HIGH VOLTAGE OSA!!!
 //        while (counter < 100) {
 //            if (dataQ1.isEmpty()) {
@@ -625,14 +675,28 @@ public class MainBackup extends Application {
 //            dataQ1.remove();
 //            this.counter += 1;
 //        }
-
-        if (arduinoData.isEmpty()) {
+        //JÄRGMINE ON FAILIST LUGEMISE KOOD
+        if (dataQ1.isEmpty()) {
             return;
         }
-        //System.out.println(arduinoData.pop());
-        Number measurement = Integer.parseInt(arduinoData.pop());
-        series1.getData().add(new AreaChart.Data(xSeriesData++, measurement));
-        lineChart.setMinWidth(lineChart.getWidth()+20);
+        series1.getData().add(new AreaChart.Data(xSeriesData++, dataQ1.remove()));
+        lineChart.setMinWidth(lineChart.getWidth()+4);
+        xAxis.setUpperBound(xAxis.getUpperBound()+1);
+        //lineChart.setMinWidth(lineChart.getWidth()+1); //Ei veni, kui välja kommenteerida
+        //JÄRGMINE ON ARDUINO KOOD
+//        if (arduinoData.isEmpty()) {
+//            return;
+//        }
+//        String androidData = arduinoData.pop();
+//        counter += 1;
+//        if (counter > 10) {
+//            Number measurement = Integer.parseInt(androidData.split(" ")[1]);
+//            series1.getData().add(new AreaChart.Data(xSeriesData++, measurement));
+//            TextField textField = (TextField) scene.lookup("#androidData");
+//            textField.setText(androidData);
+//            lineChart.setMinWidth(lineChart.getWidth()+4);
+//            xAxis.setUpperBound(xAxis.getUpperBound()+1);
+//            }
     }
 
 

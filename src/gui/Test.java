@@ -6,13 +6,15 @@ import java.util.Stack;
 
 public class Test {
     public static void main(String[] args) {
-        ArduinoReader reader = new ArduinoReader();
-        reader.initialize();
-        Stack<String> arduinoData = reader.getData();
-        while (true) {
-            if (!arduinoData.isEmpty()) {
-                System.out.println(arduinoData.pop());
-            }
+        String[] output = {"Q", "0"};
+        System.out.println(to_byte(output));
+    }
+
+    private static byte[][] to_byte(String[] strings) {
+        byte[][] params = new byte[strings.length][];
+        for (int i=0;  i<params.length;  i++) {
+            params[i] = strings[i].getBytes();
         }
+        return params;
     }
 }

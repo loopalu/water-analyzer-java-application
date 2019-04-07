@@ -133,6 +133,6 @@
             <TextField alignment="CENTER" editable="false" minWidth="480.0" mouseTransparent="true" prefHeight="46.0" rotate="-90.0" text="Conductivity" translateX="-218.0" />
          </children>
       </GridPane>
-      <TextField id="androidData" alignment="CENTER" prefHeight="26.0" prefWidth="578.0" text="qewqweqe" GridPane.rowIndex="2" />
+      <TextField id="androidData" alignment="CENTER" prefHeight="26.0" prefWidth="578.0" GridPane.rowIndex="2" />
   </children>
 </GridPane>

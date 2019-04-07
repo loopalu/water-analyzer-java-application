@@ -35,8 +35,13 @@ public class ArduinoReader implements SerialPortEventListener {
     /** Default bits per second for COM port. */
     private static final int DATA_RATE = 115200; //EI MUUDA SEDA !!!!!!
 
+
     public Stack<String> getData() {
         return data;
+    }
+
+    public SerialPort getSerialPort() {
+        return serialPort;
     }
 
     public void initialize() {
