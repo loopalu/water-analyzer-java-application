@@ -47,6 +47,7 @@
         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
       </rowConstraints>
       <children>
         <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Set Frequency" textAlignment="CENTER" wrappingWidth="182.9366455078125" GridPane.rowIndex="1">
@@ -61,24 +62,24 @@
 
 
 
-        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="HV switch" textAlignment="CENTER" wrappingWidth="100.53668212890625" GridPane.rowIndex="14">
+        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="HV switch" textAlignment="CENTER" wrappingWidth="100.53668212890625" GridPane.rowIndex="15">
           <font>
             <Font name="System Bold" size="17.0" />
           </font></Text>
-        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Current" textAlignment="CENTER" wrappingWidth="90.93658447265625" GridPane.rowIndex="16">
+        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Current" textAlignment="CENTER" wrappingWidth="90.93658447265625" GridPane.rowIndex="17">
           <font>
             <Font name="System Bold" size="19.0" />
           </font></Text>
-        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="HV value % (0-100)" textAlignment="CENTER" wrappingWidth="180.5367488861084" GridPane.columnIndex="2" GridPane.rowIndex="14">
+        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="HV value % (0-100)" textAlignment="CENTER" wrappingWidth="180.5367488861084" GridPane.columnIndex="2" GridPane.rowIndex="15">
           <font>
             <Font name="System Bold" size="19.0" />
           </font></Text>
-        <Text strokeType="OUTSIDE" strokeWidth="0.0" text=" uA    HV " wrappingWidth="177.3366756439209" GridPane.columnIndex="2" GridPane.rowIndex="16">
+        <Text strokeType="OUTSIDE" strokeWidth="0.0" text=" uA    HV " wrappingWidth="177.3366756439209" GridPane.columnIndex="2" GridPane.rowIndex="17">
           <font>
             <Font name="System Bold" size="19.0" />
           </font></Text>
-        <TextArea prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="15" />
-        <Button mnemonicParsing="false" prefHeight="27.0" prefWidth="69.0" text="Send" textAlignment="CENTER" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowIndex="15" />
+        <TextArea prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="16" />
+        <Button mnemonicParsing="false" prefHeight="27.0" prefWidth="69.0" text="Send" textAlignment="CENTER" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowIndex="16" />
       </children>
     </GridPane>
       <GridPane fx:id="testOptions">

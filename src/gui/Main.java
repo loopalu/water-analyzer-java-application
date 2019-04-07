@@ -11,6 +11,8 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -65,6 +67,7 @@ public class Main extends Application {
     private SerialPort serialPort;
     private OutputStream outputStream;
     private double zoom = 1;
+    private boolean isStarted = false;
 
 
     @Override
@@ -81,6 +84,7 @@ public class Main extends Application {
         stage.setResizable(false);
         makeFrequencyButtons(scene);
         makeTimeButtons(scene);
+        makeStartStopButtons(scene);
         makeMovingChart(scene);
         makeComboBoxes(scene);
         makeComboBox(scene);
@@ -619,6 +623,53 @@ public class Main extends Application {
         grid.getChildren().addAll(box1, box2, box3, box4, box5, box6, box7, box8, box9, box10);
     }
 
+    private void makeStartStopButtons(Scene scene) {
+        Button startButton = new Button("Start");
+        Button stopButton = new Button("Stop");
+        Button clearButton = new Button("Clear");
+        Button saveButton = new Button("Save");
+        startButton.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                System.out.println("start");
+                isStarted = true;
+            }
+        });
+        stopButton.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                System.out.println("stop");
+                isStarted = false;
+            }
+        });
+        clearButton.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                System.out.println("clear");
+            }
+        });
+        saveButton.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                System.out.println("save");
+            }
+        });
+        HBox box1 = new HBox(startButton);
+        box1.setId("hbox");
+        HBox box2 = new HBox(stopButton);
+        box2.setId("hbox");
+        HBox box3 = new HBox(clearButton);
+        box3.setId("hbox");
+        HBox box4 = new HBox(saveButton);
+        box4.setId("hbox");
+        GridPane.setConstraints(box1,0,11);
+        GridPane.setConstraints(box2,1,11);
+        GridPane.setConstraints(box3,2,11);
+        GridPane.setConstraints(box4,3,11);
+        GridPane grid = (GridPane) scene.lookup("#testSettings");
+        grid.getChildren().addAll(box1, box2, box3, box4);
+    }
+
     private void makeMovingChart(Scene scene) {
         NumberAxis yAxis = new NumberAxis();
         yAxis.setAutoRanging(true);
@@ -694,29 +745,36 @@ public class Main extends Application {
             dataQ1.remove();
             this.counter += 1;
         }
-        if (dataQ1.isEmpty()) {
+        if (!dataQ1.isEmpty()) {
+            Number data = dataQ1.remove();
+            if (isStarted) {
+                series1.getData().add(new AreaChart.Data(xSeriesData++, data));
+                lineChart.setMinWidth(lineChart.getWidth()+4);
+                xAxis.setUpperBound(xAxis.getUpperBound()+1);
+            }
+        } else {
             return;
         }
-        series1.getData().add(new AreaChart.Data(xSeriesData++, dataQ1.remove()));
-        if (zoom == 1) {
-            lineChart.setMinWidth(lineChart.getWidth()+4);
-            xAxis.setUpperBound(xAxis.getUpperBound()+1);
-        } else if (zoom == 10) {
-            lineChart.setMinWidth(lineChart.getWidth()+4);
-            xAxis.setUpperBound(xAxis.getUpperBound()+1);
-        } else if (zoom == 100) {
-            lineChart.setMinWidth(lineChart.getWidth()+4);
-            xAxis.setUpperBound(xAxis.getUpperBound()+1);
-        } else if (zoom == 1000) {
-            lineChart.setMinWidth(lineChart.getWidth()+4);
-            xAxis.setUpperBound(xAxis.getUpperBound()+1);
-        } else if (zoom == 0.1) {
-            lineChart.setMinWidth(lineChart.getWidth()+4);
-            xAxis.setUpperBound(xAxis.getUpperBound()+1);
-        } else if (zoom == 0.01) {
-            lineChart.setMinWidth(lineChart.getWidth()+4);
-            xAxis.setUpperBound(xAxis.getUpperBound()+1);
-        }
+
+//        if (zoom == 1) {
+//            lineChart.setMinWidth(lineChart.getWidth()+4);
+//            xAxis.setUpperBound(xAxis.getUpperBound()+1);
+//        } else if (zoom == 10) {
+//            lineChart.setMinWidth(lineChart.getWidth()+4);
+//            xAxis.setUpperBound(xAxis.getUpperBound()+1);
+//        } else if (zoom == 100) {
+//            lineChart.setMinWidth(lineChart.getWidth()+4);
+//            xAxis.setUpperBound(xAxis.getUpperBound()+1);
+//        } else if (zoom == 1000) {
+//            lineChart.setMinWidth(lineChart.getWidth()+4);
+//            xAxis.setUpperBound(xAxis.getUpperBound()+1);
+//        } else if (zoom == 0.1) {
+//            lineChart.setMinWidth(lineChart.getWidth()+4);
+//            xAxis.setUpperBound(xAxis.getUpperBound()+1);
+//        } else if (zoom == 0.01) {
+//            lineChart.setMinWidth(lineChart.getWidth()+4);
+//            xAxis.setUpperBound(xAxis.getUpperBound()+1);
+//        }
         //lineChart.setMinWidth(lineChart.getWidth()+1); //Ei veni, kui välja kommenteerida
         //JÄRGMINE ON ARDUINO KOOD
 //        if (arduinoData.isEmpty()) {
@@ -725,13 +783,15 @@ public class Main extends Application {
 //        String androidData = arduinoData.pop();
 //        counter += 1;
 //        if (counter > 10) {
-//            Number measurement = Integer.parseInt(androidData.split(" ")[1]);
-//            series1.getData().add(new AreaChart.Data(xSeriesData++, measurement));
-//            TextField textField = (TextField) scene.lookup("#androidData");
-//            textField.setText(androidData);
-//            lineChart.setMinWidth(lineChart.getWidth()+4);
-//            xAxis.setUpperBound(xAxis.getUpperBound()+1);
+//            if (isStarted) {
+//                Number measurement = Integer.parseInt(androidData.split(" ")[1]);
+//                series1.getData().add(new AreaChart.Data(xSeriesData++, measurement));
+//                TextField textField = (TextField) scene.lookup("#androidData");
+//                textField.setText(androidData);
+//                lineChart.setMinWidth(lineChart.getWidth()+4);
+//                xAxis.setUpperBound(xAxis.getUpperBound()+1);
 //            }
+//        }
     }
 
 
