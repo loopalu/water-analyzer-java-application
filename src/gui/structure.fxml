@@ -101,7 +101,7 @@
             </HBox>
             <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="3" GridPane.rowIndex="16">
                <children>
-                  <TextField alignment="CENTER">
+                  <TextField id="percentageField" alignment="CENTER">
                      <font>
                         <Font size="15.0" />
                      </font>
@@ -119,7 +119,7 @@
             </HBox>
             <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="4" GridPane.rowIndex="16">
                <children>
-                  <Button mnemonicParsing="false" text="Send" />
+                  <Button id="sendPercentageButton" mnemonicParsing="false" text="Send" />
                </children>
             </HBox>
       </children>

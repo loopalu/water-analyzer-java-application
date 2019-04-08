@@ -647,7 +647,7 @@ public class Main extends Application {
             public void handle(ActionEvent event) {
                 System.out.println("clear");
                 xSeriesData = 0;
-                makeMovingChart(scene); //Ei tööta päris õigesti.
+                makeMovingChart(scene);
             }
         });
         saveButton.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
@@ -695,6 +695,45 @@ public class Main extends Application {
 //                        e.printStackTrace();
 //                    }
                 }
+            }
+        });
+        Button sendPercentageButton = (Button) scene.lookup("#sendPercentageButton");
+        sendPercentageButton.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                System.out.println("send");
+                TextField field = (TextField) scene.lookup("#percentageField");
+                field.setOnMouseClicked(event1 -> {
+                    field.setStyle("-fx-text-inner-color: black;");
+                    field.clear();
+                });
+                String fieldData = field.getText();
+                try {
+                    int out = Integer.parseInt(fieldData);
+                    if (out < 0 || out > 100) {
+                        field.setStyle("-fx-text-inner-color: red;");
+                        field.setText("ERROR");
+                    } else {
+                        String outData = "v" + (int) (127 - out * 1.27);
+                        //Androidi kood
+//                        try {
+//                            outputStream.write(outData.getBytes());
+//                        } catch (IOException e) {
+//                            e.printStackTrace();
+//                        }
+                        System.out.println(outData);
+                    }
+                } catch (NumberFormatException ex) {
+                    field.setStyle("-fx-text-inner-color: red;");
+                    field.setText("ERROR");
+                }
+                //String out = "v" + fieldData;
+                //Androidi kood
+//                try {
+//                    outputStream.write(out.getBytes());
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
             }
         });
         HBox box1 = new HBox(startButton);
