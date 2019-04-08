@@ -646,6 +646,7 @@ public class Main extends Application {
             @Override
             public void handle(ActionEvent event) {
                 System.out.println("clear");
+                xSeriesData = 0;
                 makeMovingChart(scene); //Ei tööta päris õigesti.
             }
         });
