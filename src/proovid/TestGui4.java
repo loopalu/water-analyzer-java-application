@@ -104,8 +104,8 @@ public class TestGui4 extends Application {
                     xAxis.setLowerBound(newXlower);
                     xAxis.setUpperBound(newXupper);
 
-                    DoubleProperty p1 = xAxis.scaleXProperty();
-                    DoubleProperty p2 = xAxis.translateXProperty();
+                    //DoubleProperty p1 = xAxis.scaleXProperty();
+                    //DoubleProperty p2 = xAxis.translateXProperty();
 
                     double horizontalValueRange = xAxis.getUpperBound() - xAxis.getLowerBound();
                     double horizontalWidthPixels = xAxis.getWidth();

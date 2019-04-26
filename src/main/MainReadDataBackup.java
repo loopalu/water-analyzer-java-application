@@ -1,4 +1,4 @@
-package gui;
+package main;
 
 import com.sun.javafx.scene.control.skin.ComboBoxListViewSkin;
 import javafx.animation.AnimationTimer;
@@ -10,37 +10,42 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.chart.AreaChart;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.PixelReader;
+import javafx.scene.image.PixelWriter;
+import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import javax.imageio.ImageIO;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class MainBackupArduino extends Application {
+public class MainReadDataBackup extends Application {
     private String currentTime;
     private String currentFrequency;
+    private String[] androidFrequency;
     private String currentUser;
     private String currentMethod;
     private ArrayList<String> currentAnalytes = new ArrayList<>();
@@ -50,7 +55,7 @@ public class MainBackupArduino extends Application {
     private ConcurrentLinkedQueue<Number> dataQ = new ConcurrentLinkedQueue<Number>();
     private ConcurrentLinkedQueue<Number> dataQ1 = new ConcurrentLinkedQueue<Number>();
     private XYChart.Series series1;
-    private int xSeriesData = 0;
+    private double xSeriesData = 0;
     private NumberAxis xAxis = new NumberAxis();
     private final NumberAxis yAxis = new NumberAxis();
     private ExecutorService executor;
@@ -60,12 +65,19 @@ public class MainBackupArduino extends Application {
     private int timeMoment = 0;
     private int counter = 0; // We don't need 100 first measurements.
     private LineChart<Number,Number> lineChart;
-    Stack<String> arduinoData;
-    Scene scene;
+    private Stack<String> arduinoData;
+    private Scene scene;
+    private OutputStream outputStream;
+    final ObservableList<XYChart.Data> seriesData = FXCollections.observableArrayList();
+    private XYChart.Series series;
+    private double dataStep = 1;
+    private double dataWidth = 4;
+    private int tickUnit = 60;
 
     @Override
     public void start(Stage stage) throws Exception{
-        //readFile();
+        //JÄRGMINE ON FAILIST LUGEMISE KOOD
+        readFile();
 
         Parent root = FXMLLoader.load(getClass().getResource("structure.fxml"));
         root.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
@@ -83,10 +95,11 @@ public class MainBackupArduino extends Application {
         textArea.setPrefWidth(Screen.getPrimary().getVisualBounds().getWidth()/5);
 
         stage.show();
-
-        ArduinoReader reader = new ArduinoReader();
-        reader.initialize();
-        arduinoData = reader.getData();
+        //JÄRGMINE ON ARDUINO KOOD
+//        ArduinoReader reader = new ArduinoReader();
+//        reader.initialize();
+//        arduinoData = reader.getData();
+//        serialPort = reader.getSerialPort();
 
         executor = Executors.newCachedThreadPool(new ThreadFactory() {
             @Override public Thread newThread(Runnable r) {
@@ -102,7 +115,7 @@ public class MainBackupArduino extends Application {
     }
 
     private void readFile() throws IOException {
-        BufferedReader reader = new BufferedReader(new FileReader("andmed.txt"));
+        BufferedReader reader = new BufferedReader(new FileReader("300.txt"));
         String voltage = reader.readLine();
         while (voltage != null) {
             testData.put(timeMoment, voltage);
@@ -457,7 +470,38 @@ public class MainBackupArduino extends Application {
             @Override public void changed(ObservableValue<? extends Toggle> observable, Toggle oldValue, Toggle selectedToggle) {
                 if(selectedToggle!=null) {
                     currentTime = ((ToggleButton) selectedToggle).getText();
-                    System.out.println(currentTime);
+                    switch (currentTime) {
+                        case "10 min": // 6000 punkti 1200ste vahedega
+                            dataStep = 2;
+                            dataWidth = 8;
+                            break;
+                        case "5 min": // 2400 punkti 480ste vahedega
+                            dataStep = 1;
+                            dataWidth = 4;
+                            break;
+                        case "3 min": // 2000 punkti 400ste vahedega
+                            dataStep = 0.5;
+                            dataWidth = 2;
+                            break;
+                        case "2 min": // 1200 punkti 240ste vahedega
+                            dataStep = 0.25;
+                            dataWidth = 1;
+                            break;
+                        case "1 min": // 600 punkti 120ste vahedega
+                            dataStep = 0.1;
+                            dataWidth = 0.4;
+                            break;
+                        case "30 sec": // 300 punkti 60ste vahedega  Default start
+                            dataStep = 0.01;
+                            dataWidth = 0.04;
+                            xAxis.setTickUnit(60.0);
+                            break;
+                    }
+                    System.out.println(lineChart.widthProperty());
+//                    xAxis.setUpperBound(xAxis.getUpperBound() * zoom);
+//                    xAxis.setLowerBound(xAxis.getLowerBound() * zoom);
+//                    xAxis.setTickUnit(xAxis.getTickUnit() * zoom);
+//                    System.out.println(currentTime);
                     //label.setText(((ToggleButton) selectedToggle).getText());
                 }
                 else {
@@ -481,16 +525,16 @@ public class MainBackupArduino extends Application {
     }
 
     private void makeFrequencyButtons(Scene scene) {
-        ToggleButton button1 = new ToggleButton("2 MHz");
-        final ToggleButton button2 = new ToggleButton("1.6 MHz");
-        final ToggleButton button3 = new ToggleButton("1.3 MHz");
-        final ToggleButton button4 = new ToggleButton("1 MHz");
-        final ToggleButton button5 = new ToggleButton("880 kHz");
-        final ToggleButton button6 = new ToggleButton("800 kHz");
-        final ToggleButton button7 = new ToggleButton("660 kHz");
-        final ToggleButton button8 = new ToggleButton("500 kHz");
-        final ToggleButton button9 = new ToggleButton("400 kHz");
-        final ToggleButton button10 = new ToggleButton("300 kHz");
+        final ToggleButton button1 = new ToggleButton("2 MHz"); //2 MHz
+        final ToggleButton button2 = new ToggleButton("1.6 MHz"); //1.6 MHz
+        final ToggleButton button3 = new ToggleButton("1.3 MHz"); //1.3 MHz
+        final ToggleButton button4 = new ToggleButton("1 MHz"); //1 MHz  Default frequency
+        final ToggleButton button5 = new ToggleButton("880 kHz"); //880 kHz
+        final ToggleButton button6 = new ToggleButton("800 kHz"); //800 kHz
+        final ToggleButton button7 = new ToggleButton("660 kHz"); //660 kHz
+        final ToggleButton button8 = new ToggleButton("500 kHz"); //500 kHz
+        final ToggleButton button9 = new ToggleButton("400 kHz"); // 400 kHz
+        final ToggleButton button10 = new ToggleButton("300 kHz"); // 300 kHz
         HBox box1 = new HBox(button1);
         box1.setId("hbox");
         HBox box2 = new HBox(button2);
@@ -527,16 +571,52 @@ public class MainBackupArduino extends Application {
             @Override public void changed(ObservableValue<? extends Toggle> observable, Toggle oldValue, Toggle selectedToggle) {
                 if(selectedToggle!=null) {
                     currentFrequency = ((ToggleButton) selectedToggle).getText();
-                    System.out.println(currentFrequency);
-                    //label.setText(((ToggleButton) selectedToggle).getText());
+                    switch (currentFrequency) {
+                        case "2 MHz":
+                            androidFrequency = new String[]{"Q", "0"};
+                            break;
+                        case "1.6 MHz":
+                            androidFrequency = new String[]{"Q", "1"};
+                            break;
+                        case "1.3 MHz":
+                            androidFrequency = new String[]{"Q", "2"};
+                            break;
+                        case "1 MHz":
+                            androidFrequency = new String[]{"Q", "3"};
+                            break;
+                        case "880 kHz":
+                            androidFrequency = new String[]{"Q", "4"};
+                            break;
+                        case "800 kHz":
+                            androidFrequency = new String[]{"Q", "5"};
+                            break;
+                        case "660 kHz":
+                            androidFrequency = new String[]{"Q", "6"};
+                            break;
+                        case "500 kHz": //vb koodis on 500 enne 660. Kas peabki?????
+                            androidFrequency = new String[]{"Q", "7"};
+                            break;
+                        case "400 kHz":
+                            androidFrequency = new String[]{"Q", "8"};
+                            break;
+                        case "300 kHz":
+                            androidFrequency = new String[]{"Q", "9"};
+                            break;
+                    }
+                    //JÄRGMINE ON ARDUINO KOOD
+//                    try {
+//                        outputStream = serialPort.getOutputStream();
+//                        outputStream.write(to_byte(androidFrequency)); //KAS TÖÖTAB ?????
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+                    System.out.println(androidFrequency[1]);
                 }
                 else {
-                    //label.setText("...");
                 }
             }
         });
         // select the first button to start with
-        //group.selectToggle(tb1);
         // add buttons and label to grid and set their positions
         GridPane.setConstraints(box1,0,2);
         GridPane.setConstraints(box2,1,2);
@@ -553,22 +633,33 @@ public class MainBackupArduino extends Application {
         grid.getChildren().addAll(box1, box2, box3, box4, box5, box6, box7, box8, box9, box10);
     }
 
+    private byte[] to_byte(String[] strs) {
+        byte[] bytes=new byte[strs.length];
+        for (int i=0; i<strs.length; i++) {
+            bytes[i]=Byte.parseByte(strs[i]);
+        }
+        return bytes;
+    }
+
     private void makeMovingChart(Scene scene) {
         NumberAxis yAxis = new NumberAxis();
         yAxis.setAutoRanging(true);
         yAxis.setForceZeroInRange(false);
 
         series1 = new XYChart.Series<Number, Number>();
-        lineChart = new LineChart<Number,Number>(xAxis,yAxis);
+        //lineChart = new LineChart<Number,Number>(xAxis,yAxis); //Siis on palju laiemalt graafik
 
         xAxis = new NumberAxis();
         xAxis.setForceZeroInRange(false);
-        xAxis.setAutoRanging(true);
-        xAxis.setTickLabelsVisible(false);
-        xAxis.setTickMarkVisible(false);
-        xAxis.setMinorTickVisible(false);
+        xAxis.setAutoRanging(false); // Peab olema false. Muidu muudab ise graafiku laiust.
+        xAxis.setTickLabelsVisible(true);
+        xAxis.setTickMarkVisible(true);
+        xAxis.setMinorTickVisible(true);
+        xAxis.setTickUnit(60.0);
+        lineChart = new LineChart<Number,Number>(xAxis,yAxis); //Siis on palju kitsam graafik
+        series = new XYChart.Series(seriesData);
 
-        lineChart.getData().addAll(series1);
+        lineChart.getData().addAll(series);
         lineChart.setCreateSymbols(false);
         lineChart.setLegendVisible(false);
         lineChart.setHorizontalGridLinesVisible(true);
@@ -578,7 +669,7 @@ public class MainBackupArduino extends Application {
         ScrollPane pane = new ScrollPane();
         pane.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
         pane.setPannable(true);
-        pane.setFitToWidth(true);
+        pane.setFitToWidth(false); //false teeb venimist vähemaks.
         pane.setFitToHeight(true);
         pane.setContent(lineChart);
 
@@ -599,7 +690,7 @@ public class MainBackupArduino extends Application {
                 executor.execute(this);
 
             } catch (InterruptedException ex) {
-                Logger.getLogger(MainBackupArduino.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(MainReadDataBackup.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
@@ -623,26 +714,90 @@ public class MainBackupArduino extends Application {
 //            dataQ1.remove();
 //            this.counter += 1;
 //        }
-
-        if (arduinoData.isEmpty()) {
+        //JÄRGMINE ON FAILIST LUGEMISE KOOD
+        if (dataQ1.isEmpty()) {
             return;
         }
-        //System.out.println(arduinoData.pop());
-        String androidData = arduinoData.pop();
-        counter += 1;
-        if (counter > 10) {
-            Number measurement = Integer.parseInt(androidData.split(" ")[1]);
-            series1.getData().add(new AreaChart.Data(xSeriesData++, measurement));
-            TextField textField = (TextField) scene.lookup("#androidData");
-            textField.setText(androidData);
-            lineChart.setMinWidth(lineChart.getWidth()+20);
-        }
+        xSeriesData += dataStep;
+        series.getData().add(new AreaChart.Data(xSeriesData, dataQ1.remove()));
+        lineChart.setMinWidth(lineChart.getWidth()+dataWidth);
+        xAxis.setUpperBound(xAxis.getUpperBound()+dataStep);
+//        if (dataQ1.isEmpty()) {
+//            exportPng(lineChart, "chart.png");
+//        }
+        //lineChart.setMinWidth(lineChart.getWidth()+1); //Ei veni, kui välja kommenteerida
+        //JÄRGMINE ON ARDUINO KOOD
+//        if (arduinoData.isEmpty()) {
+//            return;
+//        }
+//        String androidData = arduinoData.pop();
+//        counter += 1;
+//        if (counter > 10) {
+//            Number measurement = Integer.parseInt(androidData.split(" ")[1]);
+//            series1.getData().add(new AreaChart.Data(xSeriesData++, measurement));
+//            TextField textField = (TextField) scene.lookup("#androidData");
+//            textField.setText(androidData);
+//            lineChart.setMinWidth(lineChart.getWidth()+4);
+//            xAxis.setUpperBound(xAxis.getUpperBound()+1);
+//            }
     }
 
 
     @SuppressWarnings("unchecked")
     public static void main(String[] args) {
         launch(args);
+    }
+
+    private void exportPng(final Node node, final String filePath) {
+
+        final int w = (int) node.getLayoutBounds().getWidth();
+        final int h = (int) node.getLayoutBounds().getHeight();
+        final WritableImage full = new WritableImage(w, h);
+
+        // defines the number of tiles to export (use higher value for bigger resolution)
+        final int size = 1;
+        final int tileWidth = w / size;
+        final int tileHeight = h / size;
+
+        System.out.println("Exporting node (building " + (size * size) + " tiles)");
+
+        try {
+            for (int row = 0; row < size; ++row) {
+
+                final int x = row * tileWidth;
+                System.out.println("1 done");
+                final int y = row * tileHeight;
+                System.out.println("2 done");
+                final SnapshotParameters params = new SnapshotParameters();
+                System.out.println("3 done");
+                params.setViewport(new Rectangle2D(x, y, tileWidth, tileHeight));
+                System.out.println("4 done");
+
+                final CompletableFuture<Image> future = new CompletableFuture<>();
+                System.out.println("5 done");
+
+                // keeps fx application thread unblocked
+                Platform.runLater(() -> future.complete(node.snapshot(params, null)));
+                System.out.println("6 done");
+                PixelWriter pixelWriter = full.getPixelWriter();
+                System.out.println("7 done");
+                Image image = future.get();
+                System.out.println("8 done");
+                PixelReader pixelReader = image.getPixelReader();
+                System.out.println("9 done");
+                pixelWriter.setPixels(x, y, tileWidth, tileHeight, pixelReader, 0, 0);
+                System.out.println("10 done");
+            }
+
+            System.out.println("Exporting node (saving to file)");
+
+            ImageIO.write(SwingFXUtils.fromFXImage(full, null), "png", new File(filePath));
+
+            System.out.println("Exporting node (finished)");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }

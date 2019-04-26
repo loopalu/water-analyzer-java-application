@@ -1,16 +1,14 @@
-package gui;
+package main;
 
-import com.sun.javafx.scene.control.skin.ComboBoxListViewSkin;
-import gnu.io.SerialPort;
+//import gnu.io.SerialPort;
+
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
-import javafx.application.Platform;
-import javafx.beans.Observable;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
@@ -21,15 +19,23 @@ import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import jssc.SerialPort;
+import jssc.SerialPortException;
+import org.controlsfx.control.CheckComboBox;
+import org.controlsfx.control.textfield.TextFields;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Stack;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -43,37 +49,37 @@ public class Main extends Application {
     private String androidFrequency;
     private String currentUser;
     private String currentMethod;
-    private ArrayList<String> currentAnalytes = new ArrayList<>();
+    private String currentCapillaryTotal;
+    private String currentCapillaryEffective;
+    private ObservableList<String> currentAnalytes = FXCollections.observableArrayList();
     private String currentMatrix;
     private String currentBGE;
-    private String currentKapilaar;
+    private String currentCapillary;
     private ConcurrentLinkedQueue<Number> dataQ = new ConcurrentLinkedQueue<Number>();
     private ConcurrentLinkedQueue<Number> dataQ1 = new ConcurrentLinkedQueue<Number>();
     private XYChart.Series series1;
-    private int xSeriesData = 0;
+    private double xSeriesData = 0;
     private NumberAxis xAxis = new NumberAxis();
     private final NumberAxis yAxis = new NumberAxis();
     private ExecutorService executor;
     private AddToQueue addToQueue;
     private ArrayList testData = new ArrayList();
-    private int lowest = Integer.MAX_VALUE;
-    private int timeMoment = 0;
     private int counter = 0; // We don't need 100 first measurements.
     private LineChart<Number,Number> lineChart;
     private Stack<String> arduinoData;
     private Scene scene;
     private SerialPort serialPort;
-    private OutputStream outputStream;
-    private double zoom = 1;
     private boolean isStarted = false;
     private boolean isHighVoltage = false;
     private String highVoltage = "h";
+    private double upperBound = 600.0;
+    private XYChart.Series series;
+    final ObservableList<XYChart.Data> seriesData = FXCollections.observableArrayList();
 
 
     @Override
     public void start(Stage stage) throws Exception{
         //JÄRGMINE ON FAILIST LUGEMISE KOOD
-        readFile();
 
         Parent root = FXMLLoader.load(getClass().getResource("structure.fxml"));
         root.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
@@ -93,10 +99,10 @@ public class Main extends Application {
 
         stage.show();
         //JÄRGMINE ON ARDUINO KOOD
-//        ArduinoReader reader = new ArduinoReader();
-//        reader.initialize();
-//        arduinoData = reader.getData();
-//        serialPort = reader.getSerialPort();
+        ArduinoReader reader = new ArduinoReader();
+        reader.initialize();
+        arduinoData = reader.getData();
+        serialPort = reader.getSerialPort();
 
         executor = Executors.newCachedThreadPool(new ThreadFactory() {
             @Override public Thread newThread(Runnable r) {
@@ -126,6 +132,8 @@ public class Main extends Application {
 
     private void makeComboBox(Scene scene) {
         List<String> countries = new ArrayList<>();
+        List<String> elements = new ArrayList<>();
+        List<String> matrixes = new ArrayList<>();
 
         countries.add("Afghanistan");
         countries.add("Albania");
@@ -325,113 +333,159 @@ public class Main extends Application {
         countries.add("Zambia");
         countries.add("Zimbabwe");
 
-        ComboBox<HideableItem<String>> comboBox1 = createComboBoxWithAutoCompletionSupport(countries);
-        comboBox1.setPrefWidth(Screen.getPrimary().getVisualBounds().getWidth()/4.5);
+        elements.add("Na");
+        elements.add("K");
+        elements.add("Li");
+        elements.add("NH4");
+        elements.add("Ba");
+        elements.add("Mg");
+        elements.add("Mn");
+        elements.add("Fe2+");
+        elements.add("Br");
+        elements.add("Cl");
+        elements.add("SO4");
+        elements.add("SO3");
+        elements.add("NO3");
+        elements.add("NO2");
+        elements.add("F");
+        elements.add("PO4");
+        elements.add("Thiamine");
+        elements.add("Nicotinic acid");
+        elements.add("Nicotinamide");
+        elements.add("Pyridoxide");
+        elements.add("Ascorbic acid");
+        elements.add("GABA");
+        elements.add("Arginine");
+        elements.add("Lysine");
+        elements.add("Valine");
+        elements.add("Serine");
+        elements.add("Glycine");
+        elements.add("Phenylalanine");
 
-        ComboBox<HideableItem<String>> comboBox2 = createComboBoxWithAutoCompletionSupport(countries);
-        comboBox2.setPrefWidth(Screen.getPrimary().getVisualBounds().getWidth()/4.5);
+        matrixes.add("soil");
+        matrixes.add("sand");
+        matrixes.add("rocks");
+        matrixes.add("tap water");
+        matrixes.add("rain water");
+        matrixes.add("spring water");
+        matrixes.add("aquarium water");
+        matrixes.add("sea water");
+        matrixes.add("salted water");
+        matrixes.add("canalization water");
+        matrixes.add("salvia");
+        matrixes.add("blood");
+        matrixes.add("urine");
+        matrixes.add("plant extract");
+        matrixes.add("juice");
+        matrixes.add("drink");
 
-        ComboBox<HideableItem<String>> comboBox3 = createComboBoxWithAutoCompletionSupport(countries);
-        comboBox3.setPrefWidth(Screen.getPrimary().getVisualBounds().getWidth()/4.5);
+        ComboBox comboBox1 = (ComboBox) scene.lookup("#comboBox1");
+        ComboBox comboBox2 = (ComboBox) scene.lookup("#comboBox2");
+        ComboBox comboBox3 = (ComboBox) scene.lookup("#comboBox3");
+        CheckComboBox<String> checkComboBox = new CheckComboBox();
+        HBox elementsHBox = (HBox) scene.lookup("#elementsHBox");
+        checkComboBox.getItems().addAll(elements);
 
-        ComboBox<HideableItem<String>> comboBox4 = createComboBoxWithAutoCompletionSupport(countries);
-        comboBox4.setPrefWidth(Screen.getPrimary().getVisualBounds().getWidth()/4.5);
-
-        GridPane.setConstraints(comboBox1,1,1);
-        GridPane.setConstraints(comboBox2,1,3);
-        GridPane.setConstraints(comboBox3,1,4);
-        GridPane.setConstraints(comboBox4,1,5);
-        GridPane gridPane = (GridPane) scene.lookup("#testOptions");
-        gridPane.getChildren().addAll(comboBox1, comboBox2, comboBox3, comboBox4);
-    }
-
-    private static <T> ComboBox<HideableItem<T>> createComboBoxWithAutoCompletionSupport(List<T> items) {
-        ObservableList<HideableItem<T>> hideableHideableItems = FXCollections.observableArrayList(hideableItem -> new Observable[]{
-                hideableItem.hiddenProperty()
-        });
-
-        items.forEach(item -> {
-            HideableItem<T> hideableItem = new HideableItem<>(item);
-            hideableHideableItems.add(hideableItem);
-        });
-
-        FilteredList<HideableItem<T>> filteredHideableItems = new FilteredList<>(hideableHideableItems, t -> !t.isHidden());
-
-        ComboBox<HideableItem<T>> comboBox = new ComboBox<>();
-        comboBox.setItems(filteredHideableItems);
-
-        @SuppressWarnings("unchecked")
-        HideableItem<T>[] selectedItem = (HideableItem<T>[]) new HideableItem[1];
-
-        comboBox.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
-            if(!comboBox.isShowing()) return;
-
-            comboBox.setEditable(true);
-            comboBox.getEditor().clear();
-        });
-
-        comboBox.showingProperty().addListener((observable, oldValue, newValue) -> {
-            if(newValue) {
-                @SuppressWarnings("unchecked")
-                ListView<HideableItem> lv = ((ComboBoxListViewSkin<HideableItem>) comboBox.getSkin()).getListView();
-
-                Platform.runLater(() -> {
-                    if(selectedItem[0] == null) {
-                        double cellHeight = ((Control) lv.lookup(".list-cell")).getHeight();
-                        lv.setFixedCellSize(cellHeight);
-                    }
-                });
-
-                lv.scrollTo(comboBox.getValue());
-            } else {
-                HideableItem<T> value = comboBox.getValue();
-                if(value != null) selectedItem[0] = value;
-
-                comboBox.setEditable(false);
-
-                Platform.runLater(() -> {
-                    comboBox.getSelectionModel().select(selectedItem[0]);
-                    comboBox.setValue(selectedItem[0]);
-                });
+        checkComboBox.getCheckModel().getCheckedItems().addListener(new ListChangeListener<String>() {
+            public void onChanged(ListChangeListener.Change<? extends String> c) {
+                checkComboBox.getCheckModel().getCheckedItems();
+                currentAnalytes = checkComboBox.getCheckModel().getCheckedItems();
+                System.out.println(checkComboBox.getCheckModel().getCheckedItems());
             }
         });
 
-        comboBox.setOnHidden(event -> hideableHideableItems.forEach(item -> item.setHidden(false)));
 
-        comboBox.getEditor().textProperty().addListener((obs, oldValue, newValue) -> {
-            if(!comboBox.isShowing()) return;
+        elementsHBox.getChildren().add(checkComboBox);
 
-            Platform.runLater(() -> {
-                if(comboBox.getSelectionModel().getSelectedItem() == null) {
-                    hideableHideableItems.forEach(item -> item.setHidden(!item.getObject().toString().toLowerCase().contains(newValue.toLowerCase())));
-                } else {
-                    boolean validText = false;
+        makeComboBoxEditable(comboBox1, countries);
+        makeComboBoxEditable(comboBox2, matrixes);
+        makeComboBoxEditable(comboBox3, countries);
 
-                    for(HideableItem hideableItem : hideableHideableItems) {
-                        if(hideableItem.getObject().toString().equals(newValue))
-                        {
-                            validText = true;
-                            break;
-                        }
-                    }
+    }
 
-                    if(!validText) comboBox.getSelectionModel().select(null);
-                }
-            });
+    private void makeComboBoxEditable(ComboBox comboBox, List<String> countries) {
+        comboBox.getItems().addAll(countries);
+
+        comboBox.setEditable(true);
+        comboBox.setMaxWidth(Double.MAX_VALUE);
+
+        comboBox.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                System.out.println(comboBox.getValue());
+                //Tried dispose method here but dint worked[![enter image description here][1]][1]
+            }
         });
 
-        return comboBox;
+        comboBox.getEditor().setOnKeyPressed(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent ke) {
+                KeyCode kc = ke.getCode();
+                if ((kc.isLetterKey())||kc.isArrowKey()||kc.equals(KeyCode.BACK_SPACE)) {
+                    TextFields.bindAutoCompletion(comboBox.getEditor(), comboBox.getItems());
+                }
+            }
+        });
+        comboBox.getEditor().setOnKeyReleased(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                System.out.println(comboBox.getEditor().getText());
+            }
+        });
+        comboBox.getEditor().setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                System.out.println(comboBox.getEditor().getText());
+            }
+        });
     }
 
     private void makeComboBoxes(Scene scene) {
-        ChoiceBox cb = (ChoiceBox) scene.lookup("#userbox");
-        cb.getItems().addAll("Regular user", "Scientist", "Administrator");
-        cb.getSelectionModel().selectFirst();
-        cb.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+        ChoiceBox userBox = (ChoiceBox) scene.lookup("#userbox");
+        userBox.getItems().addAll("Regular user", "Scientist", "Administrator");
+        userBox.getSelectionModel().selectFirst();
+        userBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
-                currentUser = (String) cb.getItems().get((Integer) number2);
+                currentUser = (String) userBox.getItems().get((Integer) number2);
                 System.out.println(currentUser);
+            }
+        });
+
+        ChoiceBox capillaryBox = (ChoiceBox) scene.lookup("#capillaryBox");
+        capillaryBox.getItems().addAll("10", "25", "50", "75", "150", "350");
+        capillaryBox.getSelectionModel().selectFirst();
+        capillaryBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
+                currentCapillary = (String) capillaryBox.getItems().get((Integer) number2);
+                System.out.println(currentCapillary);
+            }
+        });
+
+        ChoiceBox capillaryTotalBox = (ChoiceBox) scene.lookup("#capillaryTotalBox");
+        for (int i = 4; i < 16; i++) {
+            capillaryTotalBox.getItems().add((String.valueOf(i*5)));
+        }
+        capillaryTotalBox.getSelectionModel().selectFirst();
+        capillaryTotalBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
+                currentCapillaryTotal = (String) capillaryTotalBox.getItems().get((Integer) number2);
+                System.out.println(currentCapillaryTotal);
+            }
+        });
+
+        ChoiceBox capillaryEffectiveBox = (ChoiceBox) scene.lookup("#capillaryEffectiveBox");
+        for (int i = 2; i < 13; i++) {
+            capillaryEffectiveBox.getItems().add((String.valueOf(i*5)));
+        }
+        capillaryEffectiveBox.getSelectionModel().selectFirst();
+        capillaryEffectiveBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
+                currentCapillaryEffective = (String) capillaryEffectiveBox.getItems().get((Integer) number2);
+                System.out.println(currentCapillaryEffective);
             }
         });
     }
@@ -467,32 +521,57 @@ public class Main extends Application {
             @Override public void changed(ObservableValue<? extends Toggle> observable, Toggle oldValue, Toggle selectedToggle) {
                 if(selectedToggle!=null) {
                     currentTime = ((ToggleButton) selectedToggle).getText();
+                    double oldUpperBound = upperBound;
                     switch (currentTime) {
-                        case "10 min":
-                            zoom = 1;
+                        case "10 min": // 6000 punkti 1200ste vahedega
+                            oldUpperBound = upperBound;
+                            upperBound = 12000;
+                            System.out.println(oldUpperBound + " " + upperBound);
+                            xAxis.setUpperBound(testData.size());
+                            xAxis.setLowerBound(testData.size() - upperBound);
+                            xAxis.setTickUnit(upperBound/5);
                             break;
-                        case "5 min":
-                            zoom = 10;
+                        case "5 min": // 3000 punkti 500ste vahedega
+                            oldUpperBound = upperBound;
+                            upperBound = 6000;
+                            System.out.println(oldUpperBound + " " + upperBound);
+                            xAxis.setUpperBound(testData.size());
+                            xAxis.setLowerBound(testData.size() - upperBound);
+                            xAxis.setTickUnit(upperBound/5);
                             break;
-                        case "3 min":
-                            zoom = 100;
+                        case "3 min": // 1800 punkti 360ste vahedega
+                            oldUpperBound = upperBound;
+                            upperBound = 3600;
+                            System.out.println(oldUpperBound + " " + upperBound);
+                            xAxis.setUpperBound(testData.size());
+                            xAxis.setLowerBound(testData.size() - upperBound);
+                            xAxis.setTickUnit(upperBound/5);
                             break;
-                        case "2 min":
-                            zoom = 1000;
+                        case "2 min": // 1200 punkti 240ste vahedega
+                            oldUpperBound = upperBound;
+                            upperBound = 2400;
+                            System.out.println(oldUpperBound + " " + upperBound);
+                            xAxis.setUpperBound(testData.size());
+                            xAxis.setLowerBound(testData.size() - upperBound);
+                            xAxis.setTickUnit(upperBound/5);
                             break;
-                        case "1 min":
-                            zoom = 0.1;
+                        case "1 min": // 600 punkti 120ste vahedega
+                            oldUpperBound = upperBound;
+                            upperBound = 1200;
+                            System.out.println(oldUpperBound + " " + upperBound);
+                            xAxis.setUpperBound(testData.size());
+                            xAxis.setLowerBound(testData.size() - upperBound);
+                            xAxis.setTickUnit(upperBound/5);
                             break;
-                        case "30 sec":
-                            zoom = 0.01;
+                        case "30 sec": // 300 punkti 60ste vahedega  Default start
+                            oldUpperBound = upperBound;
+                            upperBound = 600;
+                            System.out.println(oldUpperBound + " " + upperBound);
+                            xAxis.setUpperBound(testData.size());
+                            xAxis.setLowerBound(testData.size() - upperBound);
+                            xAxis.setTickUnit(upperBound/5);
                             break;
                     }
-                    System.out.println(lineChart.widthProperty());
-//                    xAxis.setUpperBound(xAxis.getUpperBound() * zoom);
-//                    xAxis.setLowerBound(xAxis.getLowerBound() * zoom);
-//                    xAxis.setTickUnit(xAxis.getTickUnit() * zoom);
-//                    System.out.println(currentTime);
-                    //label.setText(((ToggleButton) selectedToggle).getText());
                 }
                 else {
                     //label.setText("...");
@@ -500,7 +579,7 @@ public class Main extends Application {
             }
         });
         // select the first button to start with
-        //group.selectToggle(tb1);
+        group.selectToggle(button6);
         // add buttons and label to grid and set their positions
         GridPane.setConstraints(box1,0,8);
         GridPane.setConstraints(box2,1,8);
@@ -563,49 +642,50 @@ public class Main extends Application {
                     currentFrequency = ((ToggleButton) selectedToggle).getText();
                     switch (currentFrequency) {
                         case "2 MHz":
-                            androidFrequency = "Q9";
+                            androidFrequency = "G9\n";
                             break;
                         case "1.6 MHz":
-                            androidFrequency = "Q7";
+                            androidFrequency = "G7\n";
                             break;
                         case "1.3 MHz":
-                            androidFrequency = "Q8";
+                            androidFrequency = "G8\n";
                             break;
                         case "1 MHz":
-                            androidFrequency = "Q0";
+                            androidFrequency = "G0\n";
                             break;
                         case "880 kHz":
-                            androidFrequency = "Q1";
+                            androidFrequency = "G1\n";
                             break;
                         case "800 kHz":
-                            androidFrequency = "Q2";
+                            androidFrequency = "G2\n";
                             break;
                         case "660 kHz":
-                            androidFrequency = "Q3";
+                            androidFrequency = "G3\n";
                             break;
                         case "500 kHz":
-                            androidFrequency = "Q4";
+                            androidFrequency = "G4\n";
                             break;
                         case "400 kHz":
-                            androidFrequency = "Q5";
+                            androidFrequency = "G5\n";
                             break;
                         case "300 kHz":
-                            androidFrequency = "Q6";
+                            androidFrequency = "G6\n";
                             break;
                     }
                     //JÄRGMINE ON ARDUINO KOOD
-//                    try {
-//                        outputStream = serialPort.getOutputStream();
-//                        outputStream.write(androidFrequency.getBytes()); //KAS TÖÖTAB ?????
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
+                    try {
+                        serialPort.writeString(androidFrequency);
+                    } catch (SerialPortException e) {
+                        e.printStackTrace();
+                    }
+                    System.out.println(series.getData().size());
                     System.out.println(androidFrequency);
                 }
                 else {
                 }
             }
         });
+        group.selectToggle(button4);
         // select the first button to start with
         // add buttons and label to grid and set their positions
         GridPane.setConstraints(box1,0,2);
@@ -646,8 +726,11 @@ public class Main extends Application {
             @Override
             public void handle(ActionEvent event) {
                 System.out.println("clear");
+                testData = new ArrayList();
+                series.getData().clear();
                 xSeriesData = 0;
-                makeMovingChart(scene);
+                xAxis.setLowerBound(0);
+                xAxis.setUpperBound(upperBound);
             }
         });
         saveButton.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
@@ -676,24 +759,24 @@ public class Main extends Application {
                     isHighVoltage = false;
                     onOff.setStyle("-fx-background-color: red;");
                     onOff.setText("OFF");
-                    highVoltage = "h";
-                    //Androidi kood
-//                    try {
-//                        outputStream.write(highVoltage.getBytes());
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
+                    highVoltage = "h\n";
+                    //Arduino kood
+                    try {
+                        serialPort.writeString(highVoltage);
+                    } catch (SerialPortException e) {
+                        e.printStackTrace();
+                    }
                 } else {
                     isHighVoltage = true;
                     onOff.setStyle("-fx-background-color: lawngreen;");
                     onOff.setText("ON");
-                    highVoltage = "H";
-                    //Androidi kood
-//                    try {
-//                        outputStream.write(highVoltage.getBytes());
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
+                    highVoltage = "H\n";
+                    //Arduino kood
+                    try {
+                        serialPort.writeString(highVoltage);
+                    } catch (SerialPortException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });
@@ -714,26 +797,20 @@ public class Main extends Application {
                         field.setStyle("-fx-text-inner-color: red;");
                         field.setText("ERROR");
                     } else {
-                        String outData = "v" + (int) (127 - out * 1.27);
-                        //Androidi kood
-//                        try {
-//                            outputStream.write(outData.getBytes());
-//                        } catch (IOException e) {
-//                            e.printStackTrace();
-//                        }
+                        String outData = "v" + (int) (127 - out * 1.27)+"\n";
+                        //Arduino kood
+                        try {
+                            serialPort.writeString(outData);
+                            //outputStream.write(outData.getBytes());
+                        } catch (SerialPortException e) {
+                            e.printStackTrace();
+                        }
                         System.out.println(outData);
                     }
                 } catch (NumberFormatException ex) {
                     field.setStyle("-fx-text-inner-color: red;");
                     field.setText("ERROR");
                 }
-                //String out = "v" + fieldData;
-                //Androidi kood
-//                try {
-//                    outputStream.write(out.getBytes());
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
             }
         });
         HBox box1 = new HBox(startButton);
@@ -775,36 +852,27 @@ public class Main extends Application {
         yAxis.setForceZeroInRange(false);
 
         series1 = new XYChart.Series<Number, Number>();
-        //lineChart = new LineChart<Number,Number>(xAxis,yAxis); //Siis on palju laiemalt graafik
 
-        xAxis = new NumberAxis();
+        xAxis = new NumberAxis(0, upperBound, 1);
         xAxis.setForceZeroInRange(false);
         xAxis.setAutoRanging(false); // Peab olema false. Muidu muudab ise graafiku laiust.
         xAxis.setTickLabelsVisible(true);
         xAxis.setTickMarkVisible(true);
         xAxis.setMinorTickVisible(false);
-        xAxis.setTickUnit(100); // See on ühe mõõtmisühiku suurus. Sellest ei sõltu graafiku kitsus.
-        xAxis.setMinorTickLength(1000000);
-
+        xAxis.setTickUnit(upperBound/5);
         lineChart = new LineChart<Number,Number>(xAxis,yAxis); //Siis on palju kitsam graafik
+        series = new XYChart.Series(seriesData);
 
-        lineChart.getData().addAll(series1);
+        lineChart.getData().addAll(series);
         lineChart.setCreateSymbols(false);
         lineChart.setLegendVisible(false);
         lineChart.setHorizontalGridLinesVisible(true);
-        lineChart.setVerticalGridLinesVisible(false);
+        lineChart.setVerticalGridLinesVisible(true);
         lineChart.setAnimated(false);
 
-        ScrollPane pane = new ScrollPane();
-        pane.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
-        pane.setPannable(true);
-        pane.setFitToWidth(false); //false teeb venimist vähemaks.
-        pane.setFitToHeight(true);
-        pane.setContent(lineChart);
-
-        GridPane.setConstraints(pane, 1, 0);
+        GridPane.setConstraints(lineChart, 1, 0);
         GridPane mainPane = (GridPane) scene.lookup("#chartPane");
-        mainPane.getChildren().add(pane);
+        mainPane.getChildren().add(lineChart);
     }
 
     private class AddToQueue implements Runnable {
@@ -835,62 +903,34 @@ public class Main extends Application {
     }
 
     private void addDataToSeries() {
-        //SEE OSA TULEB ÄRA MUUTA KUI LISADA HIGH VOLTAGE OSA!!!
-        //JÄRGMINE ON FAILIST LUGEMISE KOOD
-        while (counter < 20) { // Enne 20 tekib imelik piik. Seda pole vaja lugeda.
-            if (dataQ1.isEmpty()) {
-                return;
-            }
-            dataQ1.remove();
-            this.counter += 1;
-        }
-        if (!dataQ1.isEmpty()) {
-            Number data = dataQ1.remove();
-            if (isStarted) {
-                series1.getData().add(new AreaChart.Data(xSeriesData++, data));
-                lineChart.setMinWidth(lineChart.getWidth()+4);
-                xAxis.setUpperBound(xAxis.getUpperBound()+1);
-            }
-        } else {
+        //JÄRGMINE ON ARDUINO KOOD
+        if (arduinoData.isEmpty()) {
             return;
         }
+        String androidData = arduinoData.pop();
+        Number measurement = Integer.parseInt(androidData.split(" ")[1]);
+        long current = Long.parseLong(androidData.split(" ")[2]);
+        if (current > 2147483647L) {
+            current = current - 4294967295L;
+        }
+        TextField currentField = (TextField) scene.lookup("#currentAmper");
+        currentField.setText(String.valueOf(Math.round(current/256.0)));
+        double voltagePercent = Double.parseDouble(androidData.split(" ")[4]);
+        TextField percentageField = (TextField) scene.lookup("#voltagePercentBox");
+        percentageField.setText(String.valueOf(Math.round((127.0-voltagePercent)/1.27)));
+        //counter += 1;
+        TextField textField = (TextField) scene.lookup("#androidData");
+        if (androidData.length() - androidData.replace("C", "").length() == 1) {
+            textField.setText(androidData);
+        }
+        if (isStarted) {
 
-//        if (zoom == 1) {
-//            lineChart.setMinWidth(lineChart.getWidth()+4);
-//            xAxis.setUpperBound(xAxis.getUpperBound()+1);
-//        } else if (zoom == 10) {
-//            lineChart.setMinWidth(lineChart.getWidth()+4);
-//            xAxis.setUpperBound(xAxis.getUpperBound()+1);
-//        } else if (zoom == 100) {
-//            lineChart.setMinWidth(lineChart.getWidth()+4);
-//            xAxis.setUpperBound(xAxis.getUpperBound()+1);
-//        } else if (zoom == 1000) {
-//            lineChart.setMinWidth(lineChart.getWidth()+4);
-//            xAxis.setUpperBound(xAxis.getUpperBound()+1);
-//        } else if (zoom == 0.1) {
-//            lineChart.setMinWidth(lineChart.getWidth()+4);
-//            xAxis.setUpperBound(xAxis.getUpperBound()+1);
-//        } else if (zoom == 0.01) {
-//            lineChart.setMinWidth(lineChart.getWidth()+4);
-//            xAxis.setUpperBound(xAxis.getUpperBound()+1);
-//        }
-        //lineChart.setMinWidth(lineChart.getWidth()+1); //Ei veni, kui välja kommenteerida
-        //JÄRGMINE ON ARDUINO KOOD
-//        if (arduinoData.isEmpty()) {
-//            return;
-//        }
-//        String androidData = arduinoData.pop();
-//        counter += 1;
-//        if (counter > 10) {
-//            if (isStarted) {
-//                Number measurement = Integer.parseInt(androidData.split(" ")[1]);
-//                series1.getData().add(new AreaChart.Data(xSeriesData++, measurement));
-//                TextField textField = (TextField) scene.lookup("#androidData");
-//                textField.setText(androidData);
-//                lineChart.setMinWidth(lineChart.getWidth()+4);
-//                xAxis.setUpperBound(xAxis.getUpperBound()+1);
-//            }
-//        }
+            series.getData().add(new AreaChart.Data(xSeriesData++, measurement));
+            testData.add(measurement);
+
+            xAxis.setLowerBound(xAxis.getLowerBound() + 1);
+            xAxis.setUpperBound(xAxis.getUpperBound() + 1);
+        }
     }
 
 

@@ -1,7 +1,6 @@
-package gui;
+package main;
 
 import com.sun.javafx.scene.control.skin.ComboBoxListViewSkin;
-import gnu.io.SerialPort;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -11,36 +10,45 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.chart.AreaChart;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.PixelReader;
+import javafx.scene.image.PixelWriter;
+import javafx.scene.image.WritableImage;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import org.controlsfx.control.CheckComboBox;
+import org.controlsfx.control.textfield.TextFields;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.OutputStream;
+import javax.imageio.ImageIO;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class MainBackupReadData extends Application {
+public class MainReadData extends Application {
     private String currentTime;
     private String currentFrequency;
     private String[] androidFrequency;
@@ -53,7 +61,7 @@ public class MainBackupReadData extends Application {
     private ConcurrentLinkedQueue<Number> dataQ = new ConcurrentLinkedQueue<Number>();
     private ConcurrentLinkedQueue<Number> dataQ1 = new ConcurrentLinkedQueue<Number>();
     private XYChart.Series series1;
-    private int xSeriesData = 0;
+    private double xSeriesData = 0;
     private NumberAxis xAxis = new NumberAxis();
     private final NumberAxis yAxis = new NumberAxis();
     private ExecutorService executor;
@@ -65,8 +73,10 @@ public class MainBackupReadData extends Application {
     private LineChart<Number,Number> lineChart;
     private Stack<String> arduinoData;
     private Scene scene;
-    private SerialPort serialPort;
     private OutputStream outputStream;
+    final ObservableList<XYChart.Data> seriesData = FXCollections.observableArrayList();
+    private XYChart.Series series;
+    private int upperBound = 300;
 
     @Override
     public void start(Stage stage) throws Exception{
@@ -89,11 +99,6 @@ public class MainBackupReadData extends Application {
         textArea.setPrefWidth(Screen.getPrimary().getVisualBounds().getWidth()/5);
 
         stage.show();
-        //JÄRGMINE ON ARDUINO KOOD
-//        ArduinoReader reader = new ArduinoReader();
-//        reader.initialize();
-//        arduinoData = reader.getData();
-//        serialPort = reader.getSerialPort();
 
         executor = Executors.newCachedThreadPool(new ThreadFactory() {
             @Override public Thread newThread(Runnable r) {
@@ -123,6 +128,8 @@ public class MainBackupReadData extends Application {
 
     private void makeComboBox(Scene scene) {
         List<String> countries = new ArrayList<>();
+        List<String> elements = new ArrayList<>();
+        List<String> matrixes = new ArrayList<>();
 
         countries.add("Afghanistan");
         countries.add("Albania");
@@ -322,102 +329,116 @@ public class MainBackupReadData extends Application {
         countries.add("Zambia");
         countries.add("Zimbabwe");
 
-        ComboBox<HideableItem<String>> comboBox1 = createComboBoxWithAutoCompletionSupport(countries);
-        comboBox1.setPrefWidth(Screen.getPrimary().getVisualBounds().getWidth()/4.5);
+        elements.add("Na");
+        elements.add("K");
+        elements.add("Li");
+        elements.add("NH4");
+        elements.add("Ba");
+        elements.add("Mg");
+        elements.add("Mn");
+        elements.add("Fe2+");
+        elements.add("Br");
+        elements.add("Cl");
+        elements.add("SO4");
+        elements.add("SO3");
+        elements.add("NO3");
+        elements.add("NO2");
+        elements.add("F");
+        elements.add("PO4");
+        elements.add("Thiamine");
+        elements.add("Nicotinic acid");
+        elements.add("Nicotinamide");
+        elements.add("Pyridoxide");
+        elements.add("Ascorbic acid");
+        elements.add("GABA");
+        elements.add("Arginine");
+        elements.add("Lysine");
+        elements.add("Valine");
+        elements.add("Serine");
+        elements.add("Glycine");
+        elements.add("Phenylalanine");
 
-        ComboBox<HideableItem<String>> comboBox2 = createComboBoxWithAutoCompletionSupport(countries);
-        comboBox2.setPrefWidth(Screen.getPrimary().getVisualBounds().getWidth()/4.5);
+        matrixes.add("soil");
+        matrixes.add("sand");
+        matrixes.add("rocks");
+        matrixes.add("tap water");
+        matrixes.add("rain water");
+        matrixes.add("spring water");
+        matrixes.add("aquarium water");
+        matrixes.add("sea water");
+        matrixes.add("salted water");
+        matrixes.add("canalization water");
+        matrixes.add("salvia");
+        matrixes.add("blood");
+        matrixes.add("urine");
+        matrixes.add("plant extract");
+        matrixes.add("juice");
+        matrixes.add("drink");
 
-        ComboBox<HideableItem<String>> comboBox3 = createComboBoxWithAutoCompletionSupport(countries);
-        comboBox3.setPrefWidth(Screen.getPrimary().getVisualBounds().getWidth()/4.5);
 
-        ComboBox<HideableItem<String>> comboBox4 = createComboBoxWithAutoCompletionSupport(countries);
-        comboBox4.setPrefWidth(Screen.getPrimary().getVisualBounds().getWidth()/4.5);
 
-        GridPane.setConstraints(comboBox1,1,1);
-        GridPane.setConstraints(comboBox2,1,3);
-        GridPane.setConstraints(comboBox3,1,4);
-        GridPane.setConstraints(comboBox4,1,5);
-        GridPane gridPane = (GridPane) scene.lookup("#testOptions");
-        gridPane.getChildren().addAll(comboBox1, comboBox2, comboBox3, comboBox4);
+
+
+        ComboBox comboBox1 = (ComboBox) scene.lookup("#comboBox1");
+        ComboBox comboBox2 = (ComboBox) scene.lookup("#comboBox2");
+        ComboBox comboBox3 = (ComboBox) scene.lookup("#comboBox3");
+        ComboBox comboBox4 = (ComboBox) scene.lookup("#comboBox4");
+        CheckComboBox<String> checkComboBox = new CheckComboBox();
+        HBox elementsHBox = (HBox) scene.lookup("#elementsHBox");
+        checkComboBox.getItems().addAll(elements);
+        elementsHBox.getChildren().add(checkComboBox);
+
+        //comboBox.setEditable(true);
+
+        makeComboBoxEditable(comboBox1, countries);
+        makeComboBoxEditable(comboBox2, matrixes);
+        makeComboBoxEditable(comboBox3, countries);
+        makeComboBoxEditable(comboBox4, countries);
+
+
+//        GridPane.setConstraints(comboBox1,1,1);
+//        GridPane.setConstraints(comboBox2,1,3);
+//        GridPane.setConstraints(comboBox3,1,4);
+//        GridPane.setConstraints(comboBox4,1,5);
+//        GridPane gridPane = (GridPane) scene.lookup("#testOptions");
+//        gridPane.getChildren().addAll(comboBox1, comboBox2, comboBox3, comboBox4);
     }
 
-    private static <T> ComboBox<HideableItem<T>> createComboBoxWithAutoCompletionSupport(List<T> items) {
-        ObservableList<HideableItem<T>> hideableHideableItems = FXCollections.observableArrayList(hideableItem -> new Observable[]{
-                hideableItem.hiddenProperty()
-        });
+    private void makeComboBoxEditable(ComboBox comboBox, List<String> countries) {
+        comboBox.getItems().addAll(countries);
 
-        items.forEach(item -> {
-            HideableItem<T> hideableItem = new HideableItem<>(item);
-            hideableHideableItems.add(hideableItem);
-        });
+        comboBox.setEditable(true);
+        comboBox.setMaxWidth(Double.MAX_VALUE);
 
-        FilteredList<HideableItem<T>> filteredHideableItems = new FilteredList<>(hideableHideableItems, t -> !t.isHidden());
-
-        ComboBox<HideableItem<T>> comboBox = new ComboBox<>();
-        comboBox.setItems(filteredHideableItems);
-
-        @SuppressWarnings("unchecked")
-        HideableItem<T>[] selectedItem = (HideableItem<T>[]) new HideableItem[1];
-
-        comboBox.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
-            if(!comboBox.isShowing()) return;
-
-            comboBox.setEditable(true);
-            comboBox.getEditor().clear();
-        });
-
-        comboBox.showingProperty().addListener((observable, oldValue, newValue) -> {
-            if(newValue) {
-                @SuppressWarnings("unchecked")
-                ListView<HideableItem> lv = ((ComboBoxListViewSkin<HideableItem>) comboBox.getSkin()).getListView();
-
-                Platform.runLater(() -> {
-                    if(selectedItem[0] == null) {
-                        double cellHeight = ((Control) lv.lookup(".list-cell")).getHeight();
-                        lv.setFixedCellSize(cellHeight);
-                    }
-                });
-
-                lv.scrollTo(comboBox.getValue());
-            } else {
-                HideableItem<T> value = comboBox.getValue();
-                if(value != null) selectedItem[0] = value;
-
-                comboBox.setEditable(false);
-
-                Platform.runLater(() -> {
-                    comboBox.getSelectionModel().select(selectedItem[0]);
-                    comboBox.setValue(selectedItem[0]);
-                });
+        comboBox.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                System.out.println(comboBox.getValue());
+                //Tried dispose method here but dint worked[![enter image description here][1]][1]
             }
         });
 
-        comboBox.setOnHidden(event -> hideableHideableItems.forEach(item -> item.setHidden(false)));
-
-        comboBox.getEditor().textProperty().addListener((obs, oldValue, newValue) -> {
-            if(!comboBox.isShowing()) return;
-
-            Platform.runLater(() -> {
-                if(comboBox.getSelectionModel().getSelectedItem() == null) {
-                    hideableHideableItems.forEach(item -> item.setHidden(!item.getObject().toString().toLowerCase().contains(newValue.toLowerCase())));
-                } else {
-                    boolean validText = false;
-
-                    for(HideableItem hideableItem : hideableHideableItems) {
-                        if(hideableItem.getObject().toString().equals(newValue))
-                        {
-                            validText = true;
-                            break;
-                        }
-                    }
-
-                    if(!validText) comboBox.getSelectionModel().select(null);
+        comboBox.getEditor().setOnKeyPressed(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent ke) {
+                KeyCode kc = ke.getCode();
+                if ((kc.isLetterKey())||kc.isArrowKey()||kc.equals(KeyCode.BACK_SPACE)) {
+                    TextFields.bindAutoCompletion(comboBox.getEditor(), comboBox.getItems());
                 }
-            });
+            }
         });
-
-        return comboBox;
+        comboBox.getEditor().setOnKeyReleased(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                System.out.println(comboBox.getEditor().getText());
+            }
+        });
+        comboBox.getEditor().setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                System.out.println(comboBox.getEditor().getText());
+            }
+        });
     }
 
     private void makeComboBoxes(Scene scene) {
@@ -464,7 +485,43 @@ public class MainBackupReadData extends Application {
             @Override public void changed(ObservableValue<? extends Toggle> observable, Toggle oldValue, Toggle selectedToggle) {
                 if(selectedToggle!=null) {
                     currentTime = ((ToggleButton) selectedToggle).getText();
-                    System.out.println(currentTime);
+                    switch (currentTime) {
+                        case "10 min": // 6000 punkti 1200ste vahedega
+                            upperBound = 6000;
+                            xAxis.setUpperBound(xAxis.getLowerBound() + upperBound);
+                            xAxis.setTickUnit((upperBound-1)/5);
+                            break;
+                        case "5 min": // 3000 punkti 500ste vahedega
+                            upperBound = 3000;
+                            xAxis.setUpperBound(xAxis.getLowerBound() + upperBound);
+                            xAxis.setTickUnit((upperBound-1)/5);
+                            break;
+                        case "3 min": // 1800 punkti 360ste vahedega
+                            upperBound = 1800;
+                            xAxis.setUpperBound(xAxis.getLowerBound() + upperBound);
+                            xAxis.setTickUnit((upperBound-1)/5);
+                            break;
+                        case "2 min": // 1200 punkti 240ste vahedega
+                            upperBound = 1200;
+                            xAxis.setUpperBound(xAxis.getLowerBound() + upperBound);
+                            xAxis.setTickUnit((upperBound-1)/5);
+                            break;
+                        case "1 min": // 600 punkti 120ste vahedega
+                            upperBound = 600;
+                            xAxis.setUpperBound(xAxis.getLowerBound() + upperBound);
+                            xAxis.setTickUnit((upperBound-1)/5);
+                            break;
+                        case "30 sec": // 300 punkti 60ste vahedega  Default start
+                            upperBound = 300;
+                            xAxis.setUpperBound(xAxis.getLowerBound() + upperBound);
+                            xAxis.setTickUnit((upperBound-1)/5);
+                            break;
+                    }
+                    System.out.println(lineChart.widthProperty());
+//                    xAxis.setUpperBound(xAxis.getUpperBound() * zoom);
+//                    xAxis.setLowerBound(xAxis.getLowerBound() * zoom);
+//                    xAxis.setTickUnit(xAxis.getTickUnit() * zoom);
+//                    System.out.println(currentTime);
                     //label.setText(((ToggleButton) selectedToggle).getText());
                 }
                 else {
@@ -491,7 +548,7 @@ public class MainBackupReadData extends Application {
         final ToggleButton button1 = new ToggleButton("2 MHz"); //2 MHz
         final ToggleButton button2 = new ToggleButton("1.6 MHz"); //1.6 MHz
         final ToggleButton button3 = new ToggleButton("1.3 MHz"); //1.3 MHz
-        final ToggleButton button4 = new ToggleButton("1 MHz"); //1 MHz
+        final ToggleButton button4 = new ToggleButton("1 MHz"); //1 MHz  Default frequency
         final ToggleButton button5 = new ToggleButton("880 kHz"); //880 kHz
         final ToggleButton button6 = new ToggleButton("800 kHz"); //800 kHz
         final ToggleButton button7 = new ToggleButton("660 kHz"); //660 kHz
@@ -596,47 +653,38 @@ public class MainBackupReadData extends Application {
         grid.getChildren().addAll(box1, box2, box3, box4, box5, box6, box7, box8, box9, box10);
     }
 
-    private byte[] to_byte(String[] strs) {
-        byte[] bytes=new byte[strs.length];
-        for (int i=0; i<strs.length; i++) {
-            bytes[i]=Byte.parseByte(strs[i]);
-        }
-        return bytes;
-    }
-
     private void makeMovingChart(Scene scene) {
         NumberAxis yAxis = new NumberAxis();
         yAxis.setAutoRanging(true);
         yAxis.setForceZeroInRange(false);
 
-        series1 = new XYChart.Series<Number, Number>();
-        //lineChart = new LineChart<Number,Number>(xAxis,yAxis); //Siis on palju laiemalt graafik
-
-        xAxis = new NumberAxis();
+        xAxis = new NumberAxis(0, upperBound, 1);
         xAxis.setForceZeroInRange(false);
         xAxis.setAutoRanging(false); // Peab olema false. Muidu muudab ise graafiku laiust.
         xAxis.setTickLabelsVisible(true);
         xAxis.setTickMarkVisible(true);
         xAxis.setMinorTickVisible(false);
-        lineChart = new LineChart<Number,Number>(xAxis,yAxis); //Siis on palju kitsam graafik
+        xAxis.setTickUnit((upperBound-1)/5);
+        lineChart = new LineChart<>(xAxis, yAxis); //Siis on palju kitsam graafik
+        series = new XYChart.Series(seriesData);
 
-        lineChart.getData().addAll(series1);
+        lineChart.getData().addAll(series);
         lineChart.setCreateSymbols(false);
         lineChart.setLegendVisible(false);
         lineChart.setHorizontalGridLinesVisible(true);
-        lineChart.setVerticalGridLinesVisible(false);
+        lineChart.setVerticalGridLinesVisible(true);
         lineChart.setAnimated(false);
 
-        ScrollPane pane = new ScrollPane();
-        pane.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
-        pane.setPannable(true);
-        pane.setFitToWidth(false); //false teeb venimist vähemaks.
-        pane.setFitToHeight(true);
-        pane.setContent(lineChart);
+//        ScrollPane pane = new ScrollPane();
+//        pane.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+//        pane.setPannable(true);
+//        pane.setFitToWidth(false); //false teeb venimist vähemaks.
+//        pane.setFitToHeight(true);
+//        pane.setContent(lineChart);
 
-        GridPane.setConstraints(pane, 1, 0);
+        GridPane.setConstraints(lineChart, 1, 0);
         GridPane mainPane = (GridPane) scene.lookup("#chartPane");
-        mainPane.getChildren().add(pane);
+        mainPane.getChildren().add(lineChart);
     }
 
     private class AddToQueue implements Runnable {
@@ -651,7 +699,7 @@ public class MainBackupReadData extends Application {
                 executor.execute(this);
 
             } catch (InterruptedException ex) {
-                Logger.getLogger(MainBackupReadData.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(MainReadData.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
@@ -667,42 +715,77 @@ public class MainBackupReadData extends Application {
     }
 
     private void addDataToSeries() {
-        //SEE OSA TULEB ÄRA MUUTA KUI LISADA HIGH VOLTAGE OSA!!!
-//        while (counter < 100) {
-//            if (dataQ1.isEmpty()) {
-//                return;
-//            }
-//            dataQ1.remove();
-//            this.counter += 1;
-//        }
         //JÄRGMINE ON FAILIST LUGEMISE KOOD
         if (dataQ1.isEmpty()) {
             return;
         }
-        series1.getData().add(new AreaChart.Data(xSeriesData++, dataQ1.remove()));
-        lineChart.setMinWidth(lineChart.getWidth()+4);
-        xAxis.setUpperBound(xAxis.getUpperBound()+1);
-        //lineChart.setMinWidth(lineChart.getWidth()+1); //Ei veni, kui välja kommenteerida
-        //JÄRGMINE ON ARDUINO KOOD
-//        if (arduinoData.isEmpty()) {
-//            return;
-//        }
-//        String androidData = arduinoData.pop();
-//        counter += 1;
-//        if (counter > 10) {
-//            Number measurement = Integer.parseInt(androidData.split(" ")[1]);
-//            series1.getData().add(new AreaChart.Data(xSeriesData++, measurement));
-//            TextField textField = (TextField) scene.lookup("#androidData");
-//            textField.setText(androidData);
-//            lineChart.setMinWidth(lineChart.getWidth()+4);
-//            xAxis.setUpperBound(xAxis.getUpperBound()+1);
-//            }
+        series.getData().add(new AreaChart.Data(xSeriesData++, dataQ1.remove()));
+        if (series.getData().size() > (upperBound + 1)) {
+            series.getData().remove(0);
+        }
+        // every hour after 24 move range 1 hour
+        if (series.getData().size() > upperBound) {
+            xAxis.setLowerBound(xAxis.getLowerBound() + 1);
+            xAxis.setUpperBound(xAxis.getUpperBound() + 1);
+        }
     }
 
 
     @SuppressWarnings("unchecked")
     public static void main(String[] args) {
         launch(args);
+    }
+
+    private void exportPng(final Node node, final String filePath) {
+
+        final int w = (int) node.getLayoutBounds().getWidth();
+        final int h = (int) node.getLayoutBounds().getHeight();
+        final WritableImage full = new WritableImage(w, h);
+
+        // defines the number of tiles to export (use higher value for bigger resolution)
+        final int size = 1;
+        final int tileWidth = w / size;
+        final int tileHeight = h / size;
+
+        System.out.println("Exporting node (building " + (size * size) + " tiles)");
+
+        try {
+            for (int row = 0; row < size; ++row) {
+
+                final int x = row * tileWidth;
+                System.out.println("1 done");
+                final int y = row * tileHeight;
+                System.out.println("2 done");
+                final SnapshotParameters params = new SnapshotParameters();
+                System.out.println("3 done");
+                params.setViewport(new Rectangle2D(x, y, tileWidth, tileHeight));
+                System.out.println("4 done");
+
+                final CompletableFuture<Image> future = new CompletableFuture<>();
+                System.out.println("5 done");
+
+                // keeps fx application thread unblocked
+                Platform.runLater(() -> future.complete(node.snapshot(params, null)));
+                System.out.println("6 done");
+                PixelWriter pixelWriter = full.getPixelWriter();
+                System.out.println("7 done");
+                Image image = future.get();
+                System.out.println("8 done");
+                PixelReader pixelReader = image.getPixelReader();
+                System.out.println("9 done");
+                pixelWriter.setPixels(x, y, tileWidth, tileHeight, pixelReader, 0, 0);
+                System.out.println("10 done");
+            }
+
+            System.out.println("Exporting node (saving to file)");
+
+            ImageIO.write(SwingFXUtils.fromFXImage(full, null), "png", new File(filePath));
+
+            System.out.println("Exporting node (finished)");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }
