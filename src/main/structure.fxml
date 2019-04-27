@@ -149,8 +149,8 @@
             <Text strokeType="OUTSIDE" strokeWidth="0.0" text="User" textAlignment="CENTER" wrappingWidth="205.33669662475586" />
             <ChoiceBox fx:id="userbox" prefHeight="26.0" prefWidth="430.0" GridPane.columnIndex="1" />
              <ChoiceBox fx:id="capillaryBox" prefHeight="26.0" prefWidth="430.0" GridPane.columnIndex="1" GridPane.rowIndex="5" />
-             <ChoiceBox fx:id="capillaryTotalBox" prefHeight="26.0" prefWidth="430.0" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
-             <ChoiceBox fx:id="capillaryEffectiveBox" prefHeight="26.0" prefWidth="430.0" GridPane.columnIndex="1" GridPane.rowIndex="7"/>
+             <ChoiceBox fx:id="capillaryTotalBox" prefHeight="26.0" prefWidth="430.0" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+             <ChoiceBox fx:id="capillaryEffectiveBox" prefHeight="26.0" prefWidth="430.0" GridPane.columnIndex="1" GridPane.rowIndex="7" />
             <HBox prefHeight="33.0" prefWidth="707.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
                <children>
                   <ComboBox fx:id="comboBox1" prefHeight="26.0" prefWidth="430.0" />
@@ -162,13 +162,13 @@
                  </children>
              </HBox>
              <HBox prefHeight="33.0" prefWidth="707.0" GridPane.columnIndex="1" GridPane.rowIndex="4">
-                 <children>
-                     <ComboBox fx:id="comboBox3" prefHeight="26.0" prefWidth="430.0" />
-                 </children>
+               <children>
+                  <Button fx:id="bgeButton" mnemonicParsing="false" prefHeight="26.0" minWidth="430.0" text="Click to set BGE" />
+               </children>
              </HBox>
             <HBox fx:id="elementsHBox" prefHeight="33.0" prefWidth="707.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-            <Text strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER" text="Total length of capillary" wrappingWidth="218.13671493530273" GridPane.rowIndex="6" />
-            <Text strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER" text="Effective length of capillary" wrappingWidth="216.53673934936523" GridPane.rowIndex="7" />
+            <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Total length of capillary" textAlignment="CENTER" wrappingWidth="218.13671493530273" GridPane.rowIndex="6" />
+            <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Effective length of capillary" textAlignment="CENTER" wrappingWidth="216.53673934936523" GridPane.rowIndex="7" />
          </children>
       </GridPane>
       <GridPane GridPane.columnIndex="1">

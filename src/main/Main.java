@@ -1,7 +1,5 @@
 package main;
 
-//import gnu.io.SerialPort;
-
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
@@ -131,207 +129,9 @@ public class Main extends Application {
     }
 
     private void makeComboBox(Scene scene) {
-        List<String> countries = new ArrayList<>();
         List<String> elements = new ArrayList<>();
         List<String> matrixes = new ArrayList<>();
-
-        countries.add("Afghanistan");
-        countries.add("Albania");
-        countries.add("Algeria");
-        countries.add("Andorra");
-        countries.add("Angola");
-        countries.add("Antigua and Barbuda");
-        countries.add("Argentina");
-        countries.add("Armenia");
-        countries.add("Australia");
-        countries.add("Austria");
-        countries.add("Azerbaijan");
-        countries.add("Bahamas");
-        countries.add("Bahrain");
-        countries.add("Bangladesh");
-        countries.add("Barbados");
-        countries.add("Belarus");
-        countries.add("Belgium");
-        countries.add("Belize");
-        countries.add("Benin");
-        countries.add("Bhutan");
-        countries.add("Bolivia");
-        countries.add("Bosnia and Herzegovina");
-        countries.add("Botswana");
-        countries.add("Brazil");
-        countries.add("Brunei");
-        countries.add("Bulgaria");
-        countries.add("Burkina Faso");
-        countries.add("Burundi");
-        countries.add("Cabo Verde");
-        countries.add("Cambodia");
-        countries.add("Cameroon");
-        countries.add("Canada");
-        countries.add("Central African Republic (CAR)");
-        countries.add("Chad");
-        countries.add("Chile");
-        countries.add("China");
-        countries.add("Colombia");
-        countries.add("Comoros");
-        countries.add("Democratic Republic of the Congo");
-        countries.add("Republic of the Congo");
-        countries.add("Costa Rica");
-        countries.add("Cote d'Ivoire");
-        countries.add("Croatia");
-        countries.add("Cuba");
-        countries.add("Cyprus");
-        countries.add("Czech Republic");
-        countries.add("Denmark");
-        countries.add("Djibouti");
-        countries.add("Dominica");
-        countries.add("Dominican Republic");
-        countries.add("Ecuador");
-        countries.add("Egypt");
-        countries.add("El Salvador");
-        countries.add("Equatorial Guinea");
-        countries.add("Eritrea");
-        countries.add("Estonia");
-        countries.add("Ethiopia");
-        countries.add("Fiji");
-        countries.add("Finland");
-        countries.add("France");
-        countries.add("Gabon");
-        countries.add("Gambia");
-        countries.add("Georgia");
-        countries.add("Germany");
-        countries.add("Ghana");
-        countries.add("Greece");
-        countries.add("Grenada");
-        countries.add("Guatemala");
-        countries.add("Guinea");
-        countries.add("Guinea-Bissau");
-        countries.add("Guyana");
-        countries.add("Haiti");
-        countries.add("Honduras");
-        countries.add("Hungary");
-        countries.add("Iceland");
-        countries.add("India");
-        countries.add("Indonesia");
-        countries.add("Iran");
-        countries.add("Iraq");
-        countries.add("Ireland");
-        countries.add("Israel");
-        countries.add("Italy");
-        countries.add("Jamaica");
-        countries.add("Japan");
-        countries.add("Jordan");
-        countries.add("Kazakhstan");
-        countries.add("Kenya");
-        countries.add("Kiribati");
-        countries.add("Kosovo");
-        countries.add("Kuwait");
-        countries.add("Kyrgyzstan");
-        countries.add("Laos");
-        countries.add("Latvia");
-        countries.add("Lebanon");
-        countries.add("Lesotho");
-        countries.add("Liberia");
-        countries.add("Libya");
-        countries.add("Liechtenstein");
-        countries.add("Lithuania");
-        countries.add("Luxembourg");
-        countries.add("Macedonia (FYROM)");
-        countries.add("Madagascar");
-        countries.add("Malawi");
-        countries.add("Malaysia");
-        countries.add("Maldives");
-        countries.add("Mali");
-        countries.add("Malta");
-        countries.add("Marshall Islands");
-        countries.add("Mauritania");
-        countries.add("Mauritius");
-        countries.add("Mexico");
-        countries.add("Micronesia");
-        countries.add("Moldova");
-        countries.add("Monaco");
-        countries.add("Mongolia");
-        countries.add("Montenegro");
-        countries.add("Morocco");
-        countries.add("Mozambique");
-        countries.add("Myanmar (Burma)");
-        countries.add("Namibia");
-        countries.add("Nauru");
-        countries.add("Nepal");
-        countries.add("Netherlands");
-        countries.add("New Zealand");
-        countries.add("Nicaragua");
-        countries.add("Niger");
-        countries.add("Nigeria");
-        countries.add("North Korea");
-        countries.add("Norway");
-        countries.add("Oman");
-        countries.add("Pakistan");
-        countries.add("Palau");
-        countries.add("Palestine");
-        countries.add("Panama");
-        countries.add("Papua New Guinea");
-        countries.add("Paraguay");
-        countries.add("Peru");
-        countries.add("Philippines");
-        countries.add("Poland");
-        countries.add("Portugal");
-        countries.add("Qatar");
-        countries.add("Romania");
-        countries.add("Russia");
-        countries.add("Rwanda");
-        countries.add("Saint Kitts and Nevis");
-        countries.add("Saint Lucia");
-        countries.add("Saint Vincent and the Grenadines");
-        countries.add("Samoa");
-        countries.add("San Marino");
-        countries.add("Sao Tome and Principe");
-        countries.add("Saudi Arabia");
-        countries.add("Senegal");
-        countries.add("Serbia");
-        countries.add("Seychelles");
-        countries.add("Sierra Leone");
-        countries.add("Singapore");
-        countries.add("Slovakia");
-        countries.add("Slovenia");
-        countries.add("Solomon Islands");
-        countries.add("Somalia");
-        countries.add("South Africa");
-        countries.add("South Korea");
-        countries.add("South Sudan");
-        countries.add("Spain");
-        countries.add("Sri Lanka");
-        countries.add("Sudan");
-        countries.add("Suriname");
-        countries.add("Swaziland");
-        countries.add("Sweden");
-        countries.add("Switzerland");
-        countries.add("Syria");
-        countries.add("Taiwan");
-        countries.add("Tajikistan");
-        countries.add("Tanzania");
-        countries.add("Thailand");
-        countries.add("Timor-Leste");
-        countries.add("Togo");
-        countries.add("Tonga");
-        countries.add("Trinidad and Tobago");
-        countries.add("Tunisia");
-        countries.add("Turkey");
-        countries.add("Turkmenistan");
-        countries.add("Tuvalu");
-        countries.add("Uganda");
-        countries.add("Ukraine");
-        countries.add("United Arab Emirates (UAE)");
-        countries.add("United Kingdom (UK)");
-        countries.add("United States of America (USA)");
-        countries.add("Uruguay");
-        countries.add("Uzbekistan");
-        countries.add("Vanuatu");
-        countries.add("Vatican City (Holy See)");
-        countries.add("Venezuela");
-        countries.add("Vietnam");
-        countries.add("Yemen");
-        countries.add("Zambia");
-        countries.add("Zimbabwe");
+        List<String> methods = new ArrayList<>();
 
         elements.add("Na");
         elements.add("K");
@@ -381,10 +181,11 @@ public class Main extends Application {
 
         ComboBox comboBox1 = (ComboBox) scene.lookup("#comboBox1");
         ComboBox comboBox2 = (ComboBox) scene.lookup("#comboBox2");
-        ComboBox comboBox3 = (ComboBox) scene.lookup("#comboBox3");
+        //ComboBox comboBox3 = (ComboBox) scene.lookup("#comboBox3");
         CheckComboBox<String> checkComboBox = new CheckComboBox();
         HBox elementsHBox = (HBox) scene.lookup("#elementsHBox");
         checkComboBox.getItems().addAll(elements);
+        checkComboBox.setStyle("-fx-min-width: 430.0");
 
         checkComboBox.getCheckModel().getCheckedItems().addListener(new ListChangeListener<String>() {
             public void onChanged(ListChangeListener.Change<? extends String> c) {
@@ -397,14 +198,14 @@ public class Main extends Application {
 
         elementsHBox.getChildren().add(checkComboBox);
 
-        makeComboBoxEditable(comboBox1, countries);
+        makeComboBoxEditable(comboBox1, methods);
         makeComboBoxEditable(comboBox2, matrixes);
-        makeComboBoxEditable(comboBox3, countries);
+        //makeComboBoxEditable(comboBox3, countries);
 
     }
 
-    private void makeComboBoxEditable(ComboBox comboBox, List<String> countries) {
-        comboBox.getItems().addAll(countries);
+    private void makeComboBoxEditable(ComboBox comboBox, List<String> dropDownList) {
+        comboBox.getItems().addAll(dropDownList);
 
         comboBox.setEditable(true);
         comboBox.setMaxWidth(Double.MAX_VALUE);
@@ -928,8 +729,11 @@ public class Main extends Application {
             series.getData().add(new AreaChart.Data(xSeriesData++, measurement));
             testData.add(measurement);
 
-            xAxis.setLowerBound(xAxis.getLowerBound() + 1);
-            xAxis.setUpperBound(xAxis.getUpperBound() + 1);
+//            xAxis.setLowerBound(xAxis.getLowerBound() + 1);
+//            xAxis.setUpperBound(xAxis.getUpperBound() + 1);
+            xAxis.setUpperBound(testData.size());
+            xAxis.setLowerBound(testData.size() - upperBound);
+            xAxis.setTickUnit(upperBound/5);
         }
     }
 

@@ -8,6 +8,7 @@ import javafx.beans.Observable;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.embed.swing.SwingFXUtils;
@@ -54,7 +55,6 @@ public class MainReadData extends Application {
     private String[] androidFrequency;
     private String currentUser;
     private String currentMethod;
-    private ArrayList<String> currentAnalytes = new ArrayList<>();
     private String currentMatrix;
     private String currentBGE;
     private String currentKapilaar;
@@ -77,6 +77,11 @@ public class MainReadData extends Application {
     final ObservableList<XYChart.Data> seriesData = FXCollections.observableArrayList();
     private XYChart.Series series;
     private int upperBound = 300;
+    private String currentCapillary;
+    private String currentCapillaryTotal;
+    private String currentCapillaryEffective;
+    private ObservableList<String> currentAnalytes = FXCollections.observableArrayList();
+    private ArrayList testData1 = new ArrayList();
 
     @Override
     public void start(Stage stage) throws Exception{
@@ -127,207 +132,9 @@ public class MainReadData extends Application {
     }
 
     private void makeComboBox(Scene scene) {
-        List<String> countries = new ArrayList<>();
         List<String> elements = new ArrayList<>();
         List<String> matrixes = new ArrayList<>();
-
-        countries.add("Afghanistan");
-        countries.add("Albania");
-        countries.add("Algeria");
-        countries.add("Andorra");
-        countries.add("Angola");
-        countries.add("Antigua and Barbuda");
-        countries.add("Argentina");
-        countries.add("Armenia");
-        countries.add("Australia");
-        countries.add("Austria");
-        countries.add("Azerbaijan");
-        countries.add("Bahamas");
-        countries.add("Bahrain");
-        countries.add("Bangladesh");
-        countries.add("Barbados");
-        countries.add("Belarus");
-        countries.add("Belgium");
-        countries.add("Belize");
-        countries.add("Benin");
-        countries.add("Bhutan");
-        countries.add("Bolivia");
-        countries.add("Bosnia and Herzegovina");
-        countries.add("Botswana");
-        countries.add("Brazil");
-        countries.add("Brunei");
-        countries.add("Bulgaria");
-        countries.add("Burkina Faso");
-        countries.add("Burundi");
-        countries.add("Cabo Verde");
-        countries.add("Cambodia");
-        countries.add("Cameroon");
-        countries.add("Canada");
-        countries.add("Central African Republic (CAR)");
-        countries.add("Chad");
-        countries.add("Chile");
-        countries.add("China");
-        countries.add("Colombia");
-        countries.add("Comoros");
-        countries.add("Democratic Republic of the Congo");
-        countries.add("Republic of the Congo");
-        countries.add("Costa Rica");
-        countries.add("Cote d'Ivoire");
-        countries.add("Croatia");
-        countries.add("Cuba");
-        countries.add("Cyprus");
-        countries.add("Czech Republic");
-        countries.add("Denmark");
-        countries.add("Djibouti");
-        countries.add("Dominica");
-        countries.add("Dominican Republic");
-        countries.add("Ecuador");
-        countries.add("Egypt");
-        countries.add("El Salvador");
-        countries.add("Equatorial Guinea");
-        countries.add("Eritrea");
-        countries.add("Estonia");
-        countries.add("Ethiopia");
-        countries.add("Fiji");
-        countries.add("Finland");
-        countries.add("France");
-        countries.add("Gabon");
-        countries.add("Gambia");
-        countries.add("Georgia");
-        countries.add("Germany");
-        countries.add("Ghana");
-        countries.add("Greece");
-        countries.add("Grenada");
-        countries.add("Guatemala");
-        countries.add("Guinea");
-        countries.add("Guinea-Bissau");
-        countries.add("Guyana");
-        countries.add("Haiti");
-        countries.add("Honduras");
-        countries.add("Hungary");
-        countries.add("Iceland");
-        countries.add("India");
-        countries.add("Indonesia");
-        countries.add("Iran");
-        countries.add("Iraq");
-        countries.add("Ireland");
-        countries.add("Israel");
-        countries.add("Italy");
-        countries.add("Jamaica");
-        countries.add("Japan");
-        countries.add("Jordan");
-        countries.add("Kazakhstan");
-        countries.add("Kenya");
-        countries.add("Kiribati");
-        countries.add("Kosovo");
-        countries.add("Kuwait");
-        countries.add("Kyrgyzstan");
-        countries.add("Laos");
-        countries.add("Latvia");
-        countries.add("Lebanon");
-        countries.add("Lesotho");
-        countries.add("Liberia");
-        countries.add("Libya");
-        countries.add("Liechtenstein");
-        countries.add("Lithuania");
-        countries.add("Luxembourg");
-        countries.add("Macedonia (FYROM)");
-        countries.add("Madagascar");
-        countries.add("Malawi");
-        countries.add("Malaysia");
-        countries.add("Maldives");
-        countries.add("Mali");
-        countries.add("Malta");
-        countries.add("Marshall Islands");
-        countries.add("Mauritania");
-        countries.add("Mauritius");
-        countries.add("Mexico");
-        countries.add("Micronesia");
-        countries.add("Moldova");
-        countries.add("Monaco");
-        countries.add("Mongolia");
-        countries.add("Montenegro");
-        countries.add("Morocco");
-        countries.add("Mozambique");
-        countries.add("Myanmar (Burma)");
-        countries.add("Namibia");
-        countries.add("Nauru");
-        countries.add("Nepal");
-        countries.add("Netherlands");
-        countries.add("New Zealand");
-        countries.add("Nicaragua");
-        countries.add("Niger");
-        countries.add("Nigeria");
-        countries.add("North Korea");
-        countries.add("Norway");
-        countries.add("Oman");
-        countries.add("Pakistan");
-        countries.add("Palau");
-        countries.add("Palestine");
-        countries.add("Panama");
-        countries.add("Papua New Guinea");
-        countries.add("Paraguay");
-        countries.add("Peru");
-        countries.add("Philippines");
-        countries.add("Poland");
-        countries.add("Portugal");
-        countries.add("Qatar");
-        countries.add("Romania");
-        countries.add("Russia");
-        countries.add("Rwanda");
-        countries.add("Saint Kitts and Nevis");
-        countries.add("Saint Lucia");
-        countries.add("Saint Vincent and the Grenadines");
-        countries.add("Samoa");
-        countries.add("San Marino");
-        countries.add("Sao Tome and Principe");
-        countries.add("Saudi Arabia");
-        countries.add("Senegal");
-        countries.add("Serbia");
-        countries.add("Seychelles");
-        countries.add("Sierra Leone");
-        countries.add("Singapore");
-        countries.add("Slovakia");
-        countries.add("Slovenia");
-        countries.add("Solomon Islands");
-        countries.add("Somalia");
-        countries.add("South Africa");
-        countries.add("South Korea");
-        countries.add("South Sudan");
-        countries.add("Spain");
-        countries.add("Sri Lanka");
-        countries.add("Sudan");
-        countries.add("Suriname");
-        countries.add("Swaziland");
-        countries.add("Sweden");
-        countries.add("Switzerland");
-        countries.add("Syria");
-        countries.add("Taiwan");
-        countries.add("Tajikistan");
-        countries.add("Tanzania");
-        countries.add("Thailand");
-        countries.add("Timor-Leste");
-        countries.add("Togo");
-        countries.add("Tonga");
-        countries.add("Trinidad and Tobago");
-        countries.add("Tunisia");
-        countries.add("Turkey");
-        countries.add("Turkmenistan");
-        countries.add("Tuvalu");
-        countries.add("Uganda");
-        countries.add("Ukraine");
-        countries.add("United Arab Emirates (UAE)");
-        countries.add("United Kingdom (UK)");
-        countries.add("United States of America (USA)");
-        countries.add("Uruguay");
-        countries.add("Uzbekistan");
-        countries.add("Vanuatu");
-        countries.add("Vatican City (Holy See)");
-        countries.add("Venezuela");
-        countries.add("Vietnam");
-        countries.add("Yemen");
-        countries.add("Zambia");
-        countries.add("Zimbabwe");
+        List<String> methods = new ArrayList<>();
 
         elements.add("Na");
         elements.add("K");
@@ -375,37 +182,33 @@ public class MainReadData extends Application {
         matrixes.add("juice");
         matrixes.add("drink");
 
-
-
-
-
         ComboBox comboBox1 = (ComboBox) scene.lookup("#comboBox1");
         ComboBox comboBox2 = (ComboBox) scene.lookup("#comboBox2");
-        ComboBox comboBox3 = (ComboBox) scene.lookup("#comboBox3");
-        ComboBox comboBox4 = (ComboBox) scene.lookup("#comboBox4");
+        //ComboBox comboBox3 = (ComboBox) scene.lookup("#comboBox3");
         CheckComboBox<String> checkComboBox = new CheckComboBox();
         HBox elementsHBox = (HBox) scene.lookup("#elementsHBox");
         checkComboBox.getItems().addAll(elements);
+        checkComboBox.setStyle("-fx-min-width: 430.0");
+
+        checkComboBox.getCheckModel().getCheckedItems().addListener(new ListChangeListener<String>() {
+            public void onChanged(ListChangeListener.Change<? extends String> c) {
+                checkComboBox.getCheckModel().getCheckedItems();
+                currentAnalytes = checkComboBox.getCheckModel().getCheckedItems();
+                System.out.println(checkComboBox.getCheckModel().getCheckedItems());
+            }
+        });
+
+
         elementsHBox.getChildren().add(checkComboBox);
 
-        //comboBox.setEditable(true);
-
-        makeComboBoxEditable(comboBox1, countries);
+        makeComboBoxEditable(comboBox1, methods);
         makeComboBoxEditable(comboBox2, matrixes);
-        makeComboBoxEditable(comboBox3, countries);
-        makeComboBoxEditable(comboBox4, countries);
+        //makeComboBoxEditable(comboBox3, countries);
 
-
-//        GridPane.setConstraints(comboBox1,1,1);
-//        GridPane.setConstraints(comboBox2,1,3);
-//        GridPane.setConstraints(comboBox3,1,4);
-//        GridPane.setConstraints(comboBox4,1,5);
-//        GridPane gridPane = (GridPane) scene.lookup("#testOptions");
-//        gridPane.getChildren().addAll(comboBox1, comboBox2, comboBox3, comboBox4);
     }
 
-    private void makeComboBoxEditable(ComboBox comboBox, List<String> countries) {
-        comboBox.getItems().addAll(countries);
+    private void makeComboBoxEditable(ComboBox comboBox, List<String> dropDownList) {
+        comboBox.getItems().addAll(dropDownList);
 
         comboBox.setEditable(true);
         comboBox.setMaxWidth(Double.MAX_VALUE);
@@ -442,14 +245,51 @@ public class MainReadData extends Application {
     }
 
     private void makeComboBoxes(Scene scene) {
-        ChoiceBox cb = (ChoiceBox) scene.lookup("#userbox");
-        cb.getItems().addAll("Regular user", "Scientist", "Administrator");
-        cb.getSelectionModel().selectFirst();
-        cb.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+        ChoiceBox userBox = (ChoiceBox) scene.lookup("#userbox");
+        userBox.getItems().addAll("Regular user", "Scientist", "Administrator");
+        userBox.getSelectionModel().selectFirst();
+        userBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
-                currentUser = (String) cb.getItems().get((Integer) number2);
+                currentUser = (String) userBox.getItems().get((Integer) number2);
                 System.out.println(currentUser);
+            }
+        });
+
+        ChoiceBox capillaryBox = (ChoiceBox) scene.lookup("#capillaryBox");
+        capillaryBox.getItems().addAll("10", "25", "50", "75", "150", "350");
+        capillaryBox.getSelectionModel().selectFirst();
+        capillaryBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
+                currentCapillary = (String) capillaryBox.getItems().get((Integer) number2);
+                System.out.println(currentCapillary);
+            }
+        });
+
+        ChoiceBox capillaryTotalBox = (ChoiceBox) scene.lookup("#capillaryTotalBox");
+        for (int i = 4; i < 16; i++) {
+            capillaryTotalBox.getItems().add((String.valueOf(i*5)));
+        }
+        capillaryTotalBox.getSelectionModel().selectFirst();
+        capillaryTotalBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
+                currentCapillaryTotal = (String) capillaryTotalBox.getItems().get((Integer) number2);
+                System.out.println(currentCapillaryTotal);
+            }
+        });
+
+        ChoiceBox capillaryEffectiveBox = (ChoiceBox) scene.lookup("#capillaryEffectiveBox");
+        for (int i = 2; i < 13; i++) {
+            capillaryEffectiveBox.getItems().add((String.valueOf(i*5)));
+        }
+        capillaryEffectiveBox.getSelectionModel().selectFirst();
+        capillaryEffectiveBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
+                currentCapillaryEffective = (String) capillaryEffectiveBox.getItems().get((Integer) number2);
+                System.out.println(currentCapillaryEffective);
             }
         });
     }
@@ -485,44 +325,57 @@ public class MainReadData extends Application {
             @Override public void changed(ObservableValue<? extends Toggle> observable, Toggle oldValue, Toggle selectedToggle) {
                 if(selectedToggle!=null) {
                     currentTime = ((ToggleButton) selectedToggle).getText();
+                    double oldUpperBound = upperBound;
                     switch (currentTime) {
                         case "10 min": // 6000 punkti 1200ste vahedega
-                            upperBound = 6000;
-                            xAxis.setUpperBound(xAxis.getLowerBound() + upperBound);
-                            xAxis.setTickUnit((upperBound-1)/5);
+                            oldUpperBound = upperBound;
+                            upperBound = 12000;
+                            System.out.println(oldUpperBound + " " + upperBound);
+                            xAxis.setUpperBound(testData1.size());
+                            xAxis.setLowerBound(testData1.size() - upperBound);
+                            xAxis.setTickUnit(upperBound/5);
                             break;
                         case "5 min": // 3000 punkti 500ste vahedega
-                            upperBound = 3000;
-                            xAxis.setUpperBound(xAxis.getLowerBound() + upperBound);
-                            xAxis.setTickUnit((upperBound-1)/5);
+                            oldUpperBound = upperBound;
+                            upperBound = 6000;
+                            System.out.println(oldUpperBound + " " + upperBound);
+                            xAxis.setUpperBound(testData1.size());
+                            xAxis.setLowerBound(testData1.size() - upperBound);
+                            xAxis.setTickUnit(upperBound/5);
                             break;
                         case "3 min": // 1800 punkti 360ste vahedega
-                            upperBound = 1800;
-                            xAxis.setUpperBound(xAxis.getLowerBound() + upperBound);
-                            xAxis.setTickUnit((upperBound-1)/5);
+                            oldUpperBound = upperBound;
+                            upperBound = 3600;
+                            System.out.println(oldUpperBound + " " + upperBound);
+                            xAxis.setUpperBound(testData1.size());
+                            xAxis.setLowerBound(testData1.size() - upperBound);
+                            xAxis.setTickUnit(upperBound/5);
                             break;
                         case "2 min": // 1200 punkti 240ste vahedega
-                            upperBound = 1200;
-                            xAxis.setUpperBound(xAxis.getLowerBound() + upperBound);
-                            xAxis.setTickUnit((upperBound-1)/5);
+                            oldUpperBound = upperBound;
+                            upperBound = 2400;
+                            System.out.println(oldUpperBound + " " + upperBound);
+                            xAxis.setUpperBound(testData1.size());
+                            xAxis.setLowerBound(testData1.size() - upperBound);
+                            xAxis.setTickUnit(upperBound/5);
                             break;
                         case "1 min": // 600 punkti 120ste vahedega
-                            upperBound = 600;
-                            xAxis.setUpperBound(xAxis.getLowerBound() + upperBound);
-                            xAxis.setTickUnit((upperBound-1)/5);
+                            oldUpperBound = upperBound;
+                            upperBound = 1200;
+                            System.out.println(oldUpperBound + " " + upperBound);
+                            xAxis.setUpperBound(testData1.size());
+                            xAxis.setLowerBound(testData1.size() - upperBound);
+                            xAxis.setTickUnit(upperBound/5);
                             break;
                         case "30 sec": // 300 punkti 60ste vahedega  Default start
-                            upperBound = 300;
-                            xAxis.setUpperBound(xAxis.getLowerBound() + upperBound);
-                            xAxis.setTickUnit((upperBound-1)/5);
+                            oldUpperBound = upperBound;
+                            upperBound = 600;
+                            System.out.println(oldUpperBound + " " + upperBound);
+                            xAxis.setUpperBound(testData1.size());
+                            xAxis.setLowerBound(testData1.size() - upperBound);
+                            xAxis.setTickUnit(upperBound/5);
                             break;
                     }
-                    System.out.println(lineChart.widthProperty());
-//                    xAxis.setUpperBound(xAxis.getUpperBound() * zoom);
-//                    xAxis.setLowerBound(xAxis.getLowerBound() * zoom);
-//                    xAxis.setTickUnit(xAxis.getTickUnit() * zoom);
-//                    System.out.println(currentTime);
-                    //label.setText(((ToggleButton) selectedToggle).getText());
                 }
                 else {
                     //label.setText("...");
@@ -530,7 +383,7 @@ public class MainReadData extends Application {
             }
         });
         // select the first button to start with
-        //group.selectToggle(tb1);
+        group.selectToggle(button6);
         // add buttons and label to grid and set their positions
         GridPane.setConstraints(box1,0,8);
         GridPane.setConstraints(box2,1,8);
@@ -658,14 +511,16 @@ public class MainReadData extends Application {
         yAxis.setAutoRanging(true);
         yAxis.setForceZeroInRange(false);
 
+        series1 = new XYChart.Series<Number, Number>();
+
         xAxis = new NumberAxis(0, upperBound, 1);
         xAxis.setForceZeroInRange(false);
         xAxis.setAutoRanging(false); // Peab olema false. Muidu muudab ise graafiku laiust.
         xAxis.setTickLabelsVisible(true);
         xAxis.setTickMarkVisible(true);
         xAxis.setMinorTickVisible(false);
-        xAxis.setTickUnit((upperBound-1)/5);
-        lineChart = new LineChart<>(xAxis, yAxis); //Siis on palju kitsam graafik
+        xAxis.setTickUnit(upperBound/5);
+        lineChart = new LineChart<Number,Number>(xAxis,yAxis); //Siis on palju kitsam graafik
         series = new XYChart.Series(seriesData);
 
         lineChart.getData().addAll(series);
@@ -674,13 +529,6 @@ public class MainReadData extends Application {
         lineChart.setHorizontalGridLinesVisible(true);
         lineChart.setVerticalGridLinesVisible(true);
         lineChart.setAnimated(false);
-
-//        ScrollPane pane = new ScrollPane();
-//        pane.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
-//        pane.setPannable(true);
-//        pane.setFitToWidth(false); //false teeb venimist vähemaks.
-//        pane.setFitToHeight(true);
-//        pane.setContent(lineChart);
 
         GridPane.setConstraints(lineChart, 1, 0);
         GridPane mainPane = (GridPane) scene.lookup("#chartPane");
@@ -719,15 +567,15 @@ public class MainReadData extends Application {
         if (dataQ1.isEmpty()) {
             return;
         }
-        series.getData().add(new AreaChart.Data(xSeriesData++, dataQ1.remove()));
-        if (series.getData().size() > (upperBound + 1)) {
-            series.getData().remove(0);
-        }
-        // every hour after 24 move range 1 hour
-        if (series.getData().size() > upperBound) {
-            xAxis.setLowerBound(xAxis.getLowerBound() + 1);
-            xAxis.setUpperBound(xAxis.getUpperBound() + 1);
-        }
+        Number measurement = dataQ1.remove();
+        series.getData().add(new AreaChart.Data(xSeriesData++, measurement));
+        testData1.add(measurement);
+
+//        xAxis.setLowerBound(xAxis.getLowerBound() + 1);
+//        xAxis.setUpperBound(xAxis.getUpperBound() + 1);
+        xAxis.setUpperBound(testData1.size());
+        xAxis.setLowerBound(testData1.size() - upperBound);
+        xAxis.setTickUnit(upperBound/5);
     }
 
 
