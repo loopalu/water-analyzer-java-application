@@ -2,6 +2,7 @@ package main;
 
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -25,6 +26,7 @@ import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import jssc.SerialPort;
 import jssc.SerialPortException;
 import org.controlsfx.control.CheckComboBox;
@@ -77,6 +79,15 @@ public class Main extends Application {
 
     @Override
     public void start(Stage stage) throws Exception{
+
+        stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent t) {
+                Platform.exit();
+                System.exit(0);
+            }
+        });
+
         //JÄRGMINE ON FAILIST LUGEMISE KOOD
 
         Parent root = FXMLLoader.load(getClass().getResource("structure.fxml"));
