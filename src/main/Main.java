@@ -75,6 +75,7 @@ public class Main extends Application {
     private double upperBound = 600.0;
     private XYChart.Series series;
     final ObservableList<XYChart.Data> seriesData = FXCollections.observableArrayList();
+    private BGE bge;
 
 
     @Override
@@ -298,6 +299,16 @@ public class Main extends Application {
             public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
                 currentCapillaryEffective = (String) capillaryEffectiveBox.getItems().get((Integer) number2);
                 System.out.println(currentCapillaryEffective);
+            }
+        });
+
+        Button bgeButton = (Button) scene.lookup("#bgeButton");
+        bgeButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                final Stage bgeWindow = new Stage();
+                BGE bge = new BGE(currentAnalytes);
+                bge.start(bgeWindow);
             }
         });
     }
@@ -561,6 +572,13 @@ public class Main extends Application {
                 if (file != null) {
                     saveTextToFile(file);
                 }
+
+                TableView<Analyte> table = bge.getTable();
+                ObservableList<Analyte> observableList = table.getItems();
+                for (Analyte analyte: observableList) {
+                    System.out.println(analyte.getAnalyte() + " " + analyte.getConcentration());
+                }
+
                 ImageSaver.saveImage(testData);
             }
         });
@@ -673,7 +691,7 @@ public class Main extends Application {
         xAxis.setTickMarkVisible(true);
         xAxis.setMinorTickVisible(false);
         xAxis.setTickUnit(upperBound/5);
-        lineChart = new LineChart<Number,Number>(xAxis,yAxis); //Siis on palju kitsam graafik
+        lineChart = new LineChart<>(xAxis, yAxis); //Siis on palju kitsam graafik
         series = new XYChart.Series(seriesData);
 
         lineChart.getData().addAll(series);

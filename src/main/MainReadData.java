@@ -34,6 +34,7 @@ import javafx.scene.layout.HBox;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import jssc.SerialPortException;
 import org.controlsfx.control.CheckComboBox;
 import org.controlsfx.control.textfield.TextFields;
 
@@ -50,7 +51,7 @@ import java.util.logging.Logger;
 public class MainReadData extends Application {
     private String currentTime;
     private String currentFrequency;
-    private String[] androidFrequency;
+    private String androidFrequency;
     private String currentUser;
     private String currentMethod;
     private String currentMatrix;
@@ -79,6 +80,10 @@ public class MainReadData extends Application {
     private String currentCapillaryEffective;
     private ObservableList<String> currentAnalytes = FXCollections.observableArrayList();
     private ArrayList testData1 = new ArrayList();
+    private List<String> elements = new ArrayList<>();
+    private List<String> matrixes = new ArrayList<>();
+    private List<String> methods = new ArrayList<>();
+    private BGE bge;
 
     @Override
     public void start(Stage stage) throws Exception{
@@ -137,9 +142,6 @@ public class MainReadData extends Application {
     }
 
     private void makeComboBox(Scene scene) {
-        List<String> elements = new ArrayList<>();
-        List<String> matrixes = new ArrayList<>();
-        List<String> methods = new ArrayList<>();
 
         elements.add("Na");
         elements.add("K");
@@ -297,6 +299,17 @@ public class MainReadData extends Application {
                 System.out.println(currentCapillaryEffective);
             }
         });
+
+        Button bgeButton = (Button) scene.lookup("#bgeButton");
+        bgeButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                final Stage bgeWindow = new Stage();
+                bge = new BGE(currentAnalytes);
+                bge.start(bgeWindow);
+            }
+        });
+
     }
 
     private void makeTimeButtons(Scene scene) {
@@ -406,7 +419,7 @@ public class MainReadData extends Application {
         final ToggleButton button1 = new ToggleButton("2 MHz"); //2 MHz
         final ToggleButton button2 = new ToggleButton("1.6 MHz"); //1.6 MHz
         final ToggleButton button3 = new ToggleButton("1.3 MHz"); //1.3 MHz
-        final ToggleButton button4 = new ToggleButton("1 MHz"); //1 MHz  Default frequency
+        final ToggleButton button4 = new ToggleButton("1 MHz"); //1 MHz
         final ToggleButton button5 = new ToggleButton("880 kHz"); //880 kHz
         final ToggleButton button6 = new ToggleButton("800 kHz"); //800 kHz
         final ToggleButton button7 = new ToggleButton("660 kHz"); //660 kHz
@@ -451,49 +464,50 @@ public class MainReadData extends Application {
                     currentFrequency = ((ToggleButton) selectedToggle).getText();
                     switch (currentFrequency) {
                         case "2 MHz":
-                            androidFrequency = new String[]{"Q", "0"};
+                            androidFrequency = "G9\n";
                             break;
                         case "1.6 MHz":
-                            androidFrequency = new String[]{"Q", "1"};
+                            androidFrequency = "G7\n";
                             break;
                         case "1.3 MHz":
-                            androidFrequency = new String[]{"Q", "2"};
+                            androidFrequency = "G8\n";
                             break;
                         case "1 MHz":
-                            androidFrequency = new String[]{"Q", "3"};
+                            androidFrequency = "G0\n";
                             break;
                         case "880 kHz":
-                            androidFrequency = new String[]{"Q", "4"};
+                            androidFrequency = "G1\n";
                             break;
                         case "800 kHz":
-                            androidFrequency = new String[]{"Q", "5"};
+                            androidFrequency = "G2\n";
                             break;
                         case "660 kHz":
-                            androidFrequency = new String[]{"Q", "6"};
+                            androidFrequency = "G3\n";
                             break;
-                        case "500 kHz": //vb koodis on 500 enne 660. Kas peabki?????
-                            androidFrequency = new String[]{"Q", "7"};
+                        case "500 kHz":
+                            androidFrequency = "G4\n";
                             break;
                         case "400 kHz":
-                            androidFrequency = new String[]{"Q", "8"};
+                            androidFrequency = "G5\n";
                             break;
                         case "300 kHz":
-                            androidFrequency = new String[]{"Q", "9"};
+                            androidFrequency = "G6\n";
                             break;
                     }
                     //JÄRGMINE ON ARDUINO KOOD
 //                    try {
-//                        outputStream = serialPort.getOutputStream();
-//                        outputStream.write(to_byte(androidFrequency)); //KAS TÖÖTAB ?????
-//                    } catch (IOException e) {
+//                        serialPort.writeString(androidFrequency);
+//                    } catch (SerialPortException e) {
 //                        e.printStackTrace();
 //                    }
-                    System.out.println(androidFrequency[1]);
+                    System.out.println(series.getData().size());
+                    System.out.println(androidFrequency);
                 }
                 else {
                 }
             }
         });
+        group.selectToggle(button4);
         // select the first button to start with
         // add buttons and label to grid and set their positions
         GridPane.setConstraints(box1,0,2);
