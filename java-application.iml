@@ -11,5 +11,6 @@
     <orderEntry type="library" name="org.scream3r:jssc:2.8.0" level="project" />
     <orderEntry type="library" name="org.controlsfx:controlsfx:8.40.14" level="project" />
     <orderEntry type="library" name="org.postgresql:postgresql:9.4.1212.jre7" level="application" />
+    <orderEntry type="library" name="jfree:jfreechart:1.0.13" level="application" />
   </component>
 </module>

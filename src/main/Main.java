@@ -561,6 +561,7 @@ public class Main extends Application {
                 if (file != null) {
                     saveTextToFile(file);
                 }
+                ImageSaver.saveImage(testData);
             }
         });
         Button onOff = (Button) scene.lookup("#onOff");

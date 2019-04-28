@@ -1,16 +1,13 @@
 package main;
 
-import com.sun.javafx.scene.control.skin.ComboBoxListViewSkin;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.Observable;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -73,7 +70,6 @@ public class MainReadData extends Application {
     private int counter = 0; // We don't need 100 first measurements.
     private LineChart<Number,Number> lineChart;
     private Stack<String> arduinoData;
-    private Scene scene;
     private OutputStream outputStream;
     final ObservableList<XYChart.Data> seriesData = FXCollections.observableArrayList();
     private XYChart.Series series;
@@ -86,7 +82,6 @@ public class MainReadData extends Application {
 
     @Override
     public void start(Stage stage) throws Exception{
-
         stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent t) {
@@ -102,7 +97,7 @@ public class MainReadData extends Application {
         root.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
 
         stage.setTitle("Water Analyzer");
-        scene = new Scene(root, 1500, Screen.getPrimary().getVisualBounds().getHeight()*0.9);
+        Scene scene = new Scene(root, 1500, Screen.getPrimary().getVisualBounds().getHeight() * 0.9);
         stage.setScene(scene);
         stage.setResizable(false);
         makeFrequencyButtons(scene);
@@ -586,6 +581,9 @@ public class MainReadData extends Application {
         xAxis.setUpperBound(testData1.size());
         xAxis.setLowerBound(testData1.size() - upperBound);
         xAxis.setTickUnit(upperBound/5);
+        if (dataQ1.isEmpty()) {
+            ImageSaver.saveImage(testData1);
+        }
     }
 
 
