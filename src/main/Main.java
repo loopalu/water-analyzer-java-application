@@ -53,7 +53,6 @@ public class Main extends Application {
     private String currentCapillaryEffective;
     private ObservableList<String> currentAnalytes = FXCollections.observableArrayList();
     private String currentMatrix;
-    private String currentBGE;
     private String currentCapillary;
     private ConcurrentLinkedQueue<Number> dataQ = new ConcurrentLinkedQueue<Number>();
     private ConcurrentLinkedQueue<Number> dataQ1 = new ConcurrentLinkedQueue<Number>();
@@ -226,6 +225,11 @@ public class Main extends Application {
             @Override
             public void handle(ActionEvent event) {
                 System.out.println(comboBox.getValue());
+                if (comboBox.getId().equals("comboBox1")){
+                    currentMethod = (String) comboBox.getValue();
+                } else if (comboBox.getId().equals("comboBox2")) {
+                    currentMatrix = (String) comboBox.getValue();
+                }
                 //Tried dispose method here but dint worked[![enter image description here][1]][1]
             }
         });
@@ -307,7 +311,7 @@ public class Main extends Application {
             @Override
             public void handle(ActionEvent event) {
                 final Stage bgeWindow = new Stage();
-                BGE bge = new BGE(currentAnalytes);
+                bge = new BGE(currentAnalytes);
                 bge.start(bgeWindow);
             }
         });
@@ -573,13 +577,37 @@ public class Main extends Application {
                     saveTextToFile(file);
                 }
 
-                TableView<Analyte> table = bge.getTable();
-                ObservableList<Analyte> observableList = table.getItems();
-                for (Analyte analyte: observableList) {
-                    System.out.println(analyte.getAnalyte() + " " + analyte.getConcentration());
-                }
-
+                String time = String.valueOf(System.currentTimeMillis());
                 ImageSaver.saveImage(testData);
+                BufferedWriter writer;
+                try {
+                    writer = new BufferedWriter(new FileWriter((time + ".txt")));
+                    writer.write("User: "+ currentUser);
+                    writer.newLine();
+                    writer.write("Method: "+ currentMethod);
+                    writer.newLine();
+                    writer.write("Matrix: "+ currentMatrix);
+                    writer.newLine();
+                    writer.write("Capillary: "+ currentCapillary);
+                    writer.newLine();
+                    writer.write("Total length of capillary: "+ currentCapillaryTotal);
+                    writer.newLine();
+                    writer.write("Effective length of capillary: "+ currentCapillaryEffective);
+                    writer.newLine();
+                    writer.write("Frequency: "+ currentFrequency);
+                    writer.newLine();
+                    writer.write("BGE:");
+                    writer.newLine();
+                    TableView<Analyte> table = bge.getTable();
+                    ObservableList<Analyte> observableList = table.getItems();
+                    for (Analyte analyte:observableList) {
+                        writer.write(analyte.getAnalyte()+": "+analyte.getConcentration()+"%");
+                        writer.newLine();
+                    }
+                    writer.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
         Button onOff = (Button) scene.lookup("#onOff");

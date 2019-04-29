@@ -55,8 +55,6 @@ public class MainReadData extends Application {
     private String currentUser;
     private String currentMethod;
     private String currentMatrix;
-    private String currentBGE;
-    private String currentKapilaar;
     private ConcurrentLinkedQueue<Number> dataQ = new ConcurrentLinkedQueue<Number>();
     private ConcurrentLinkedQueue<Number> dataQ1 = new ConcurrentLinkedQueue<Number>();
     private XYChart.Series series1;
@@ -224,6 +222,11 @@ public class MainReadData extends Application {
             @Override
             public void handle(ActionEvent event) {
                 System.out.println(comboBox.getValue());
+                if (comboBox.getId().equals("comboBox1")){
+                    currentMethod = (String) comboBox.getValue();
+                } else if (comboBox.getId().equals("comboBox2")) {
+                    currentMatrix = (String) comboBox.getValue();
+                }
                 //Tried dispose method here but dint worked[![enter image description here][1]][1]
             }
         });
@@ -596,7 +599,37 @@ public class MainReadData extends Application {
         xAxis.setLowerBound(testData1.size() - upperBound);
         xAxis.setTickUnit(upperBound/5);
         if (dataQ1.isEmpty()) {
+            String time = String.valueOf(System.currentTimeMillis());
             ImageSaver.saveImage(testData1);
+            BufferedWriter writer;
+            try {
+                writer = new BufferedWriter(new FileWriter((time + ".txt")));
+                writer.write("User: "+ currentUser);
+                writer.newLine();
+                writer.write("Method: "+ currentMethod);
+                writer.newLine();
+                writer.write("Matrix: "+ currentMatrix);
+                writer.newLine();
+                writer.write("Capillary: "+ currentCapillary);
+                writer.newLine();
+                writer.write("Total length of capillary: "+ currentCapillaryTotal);
+                writer.newLine();
+                writer.write("Effective length of capillary: "+ currentCapillaryEffective);
+                writer.newLine();
+                writer.write("Frequency: "+ currentFrequency);
+                writer.newLine();
+                writer.write("BGE:");
+                writer.newLine();
+                TableView<Analyte> table = bge.getTable();
+                ObservableList<Analyte> observableList = table.getItems();
+                for (Analyte analyte:observableList) {
+                    writer.write(analyte.getAnalyte()+": "+analyte.getConcentration()+"%");
+                    writer.newLine();
+                }
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 

@@ -45,7 +45,7 @@ public class BGE extends Application {
     public void start(Stage stage) {
 
         Scene scene = new Scene(new Group());
-        stage.setTitle("Analytes");
+        stage.setTitle("BGE");
         stage.setWidth(450);
         stage.setHeight(550);
 
