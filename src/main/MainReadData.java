@@ -573,7 +573,7 @@ public class MainReadData extends Application {
         series1min = new XYChart.Series(seriesData1min);
         series30sec = new XYChart.Series(seriesData30sec);
 
-        lineChart.getData().addAll(series);
+        lineChart.getData().addAll(series30sec);
         lineChart.setCreateSymbols(false);
         lineChart.setLegendVisible(false);
         lineChart.setHorizontalGridLinesVisible(true);
