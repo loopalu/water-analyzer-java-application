@@ -32,8 +32,9 @@ class ImageSaver extends ApplicationFrame {
      * Constructs a new demonstration application.
      *
      * @param title  the frame title.
+     * @param imageName the name of image.
      */
-    private ImageSaver(final String title, ArrayList arrayList) {
+    private ImageSaver(final String title, ArrayList arrayList, String imageName) {
         super(title);
         this.data = arrayList;
         final JFreeChart chart = createCombinedChart();
@@ -41,7 +42,7 @@ class ImageSaver extends ApplicationFrame {
         panel.setPreferredSize(new java.awt.Dimension(1000, 500));
         setContentPane(panel);
         try {
-            OutputStream out = new FileOutputStream("test.png");
+            OutputStream out = new FileOutputStream(imageName);
             ChartUtilities.writeChartAsPNG(out, chart, 1000, 500);
         } catch (IOException ex) {
             Logger.getLogger(ImageSaver.class.getName()).log(Level.SEVERE, null, ex);
@@ -90,9 +91,10 @@ class ImageSaver extends ApplicationFrame {
      * Saves image.
      *
      * @param testData The data from test.
+     * @param fileName The name of file.
      */
-    public static void saveImage(final ArrayList testData) {
-        final ImageSaver demo = new ImageSaver("", testData);
+    public static void saveImage(final ArrayList testData, String fileName) {
+        final ImageSaver demo = new ImageSaver("", testData, fileName);
         demo.pack();
         RefineryUtilities.centerFrameOnScreen(demo);
         demo.setVisible(false);

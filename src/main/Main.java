@@ -33,7 +33,9 @@ import org.controlsfx.control.CheckComboBox;
 import org.controlsfx.control.textfield.TextFields;
 
 import java.io.*;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -47,13 +49,13 @@ public class Main extends Application {
     private String currentTime;
     private String currentFrequency;
     private String androidFrequency;
-    private String currentUser;
+    private String currentUser = "Regular user";
     private String currentMethod;
-    private String currentCapillaryTotal;
-    private String currentCapillaryEffective;
+    private String currentCapillaryTotal = "20";
+    private String currentCapillaryEffective = "10";
     private ObservableList<String> currentAnalytes = FXCollections.observableArrayList();
     private String currentMatrix;
-    private String currentCapillary;
+    private String currentCapillary = "10";
     private ConcurrentLinkedQueue<Number> dataQ = new ConcurrentLinkedQueue<Number>();
     private ConcurrentLinkedQueue<Number> dataQ1 = new ConcurrentLinkedQueue<Number>();
     private XYChart.Series series1;
@@ -560,6 +562,8 @@ public class Main extends Application {
                 xAxis.setUpperBound(upperBound);
             }
         });
+
+
         saveButton.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
@@ -577,11 +581,42 @@ public class Main extends Application {
                     saveTextToFile(file);
                 }
 
-                String time = String.valueOf(System.currentTimeMillis());
-                ImageSaver.saveImage(testData);
-                BufferedWriter writer;
+                long time = System.currentTimeMillis();
+                SimpleDateFormat sdf = new SimpleDateFormat("dd_MMMM_yyyy_HH_mm");
+                Date resultdate = new Date(time);
+                String timeStamp = sdf.format(resultdate);
+                String current;
                 try {
-                    writer = new BufferedWriter(new FileWriter((time + ".txt")));
+                    current = new File( "." ).getCanonicalPath();
+                    File newDirectory = new File(current + "/" + timeStamp);
+                    boolean isCreated = newDirectory.mkdirs();
+                    if (isCreated) {
+                        System.out.printf("1. Successfully created directories, path:%s",
+                                newDirectory.getCanonicalPath());
+                    } else if (newDirectory.exists()) {
+                        System.out.printf("1. Directory path already exist, path:%s",
+                                newDirectory.getCanonicalPath());
+                    } else {
+                        System.out.println("1. Unable to create directory");
+                        return;
+                    }
+
+                    BufferedWriter writer;
+
+
+                    PrintWriter dataWriter;
+                    dataWriter = new PrintWriter(current+"/" + timeStamp + File.separator + "data.txt");
+                    dataWriter.println("C4d_2015-test");
+                    dataWriter.println("aeg, juhtivus");
+                    for (int i = 0; i < testData.size(); i++) {
+                        dataWriter.println(" "+i+", "+testData.get(i));
+                    }
+                    System.out.println(testData.size());
+                    System.out.println("done");
+                    dataWriter.close();
+
+
+                    writer = new BufferedWriter(new FileWriter((current+"/" + timeStamp + File.separator + "settings.txt")));
                     writer.write("User: "+ currentUser);
                     writer.newLine();
                     writer.write("Method: "+ currentMethod);
@@ -605,11 +640,14 @@ public class Main extends Application {
                         writer.newLine();
                     }
                     writer.close();
+                    ImageSaver.saveImage(testData, current+"/" + timeStamp + File.separator + "image.txt");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
         });
+
+
         Button onOff = (Button) scene.lookup("#onOff");
         onOff.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
             @Override

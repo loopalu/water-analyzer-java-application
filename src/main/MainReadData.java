@@ -34,7 +34,6 @@ import javafx.scene.layout.HBox;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-import jssc.SerialPortException;
 import org.controlsfx.control.CheckComboBox;
 import org.controlsfx.control.textfield.TextFields;
 
@@ -600,7 +599,7 @@ public class MainReadData extends Application {
         xAxis.setTickUnit(upperBound/5);
         if (dataQ1.isEmpty()) {
             String time = String.valueOf(System.currentTimeMillis());
-            ImageSaver.saveImage(testData1);
+            ImageSaver.saveImage(testData1, current + "/" + timeStamp + File.separator + "image.txt");
             BufferedWriter writer;
             try {
                 writer = new BufferedWriter(new FileWriter((time + ".txt")));
