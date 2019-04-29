@@ -75,6 +75,12 @@ public class Main extends Application {
     private String highVoltage = "h";
     private double upperBound = 600.0;
     private XYChart.Series series;
+    private XYChart.Series series10min;
+    private XYChart.Series series5min;
+    private XYChart.Series series3min;
+    private XYChart.Series series2min;
+    private XYChart.Series series1min;
+    private XYChart.Series series30sec;
     final ObservableList<XYChart.Data> seriesData = FXCollections.observableArrayList();
     private BGE bge;
 
@@ -359,6 +365,8 @@ public class Main extends Application {
                             xAxis.setUpperBound(testData.size());
                             xAxis.setLowerBound(testData.size() - upperBound);
                             xAxis.setTickUnit(upperBound/5);
+                            lineChart.getData().clear();
+                            lineChart.getData().addAll(series10min);
                             break;
                         case "5 min": // 3000 punkti 500ste vahedega
                             oldUpperBound = upperBound;
@@ -367,6 +375,8 @@ public class Main extends Application {
                             xAxis.setUpperBound(testData.size());
                             xAxis.setLowerBound(testData.size() - upperBound);
                             xAxis.setTickUnit(upperBound/5);
+                            lineChart.getData().clear();
+                            lineChart.getData().addAll(series5min);
                             break;
                         case "3 min": // 1800 punkti 360ste vahedega
                             oldUpperBound = upperBound;
@@ -375,6 +385,8 @@ public class Main extends Application {
                             xAxis.setUpperBound(testData.size());
                             xAxis.setLowerBound(testData.size() - upperBound);
                             xAxis.setTickUnit(upperBound/5);
+                            lineChart.getData().clear();
+                            lineChart.getData().addAll(series3min);
                             break;
                         case "2 min": // 1200 punkti 240ste vahedega
                             oldUpperBound = upperBound;
@@ -383,6 +395,8 @@ public class Main extends Application {
                             xAxis.setUpperBound(testData.size());
                             xAxis.setLowerBound(testData.size() - upperBound);
                             xAxis.setTickUnit(upperBound/5);
+                            lineChart.getData().clear();
+                            lineChart.getData().addAll(series2min);
                             break;
                         case "1 min": // 600 punkti 120ste vahedega
                             oldUpperBound = upperBound;
@@ -391,6 +405,8 @@ public class Main extends Application {
                             xAxis.setUpperBound(testData.size());
                             xAxis.setLowerBound(testData.size() - upperBound);
                             xAxis.setTickUnit(upperBound/5);
+                            lineChart.getData().clear();
+                            lineChart.getData().addAll(series1min);
                             break;
                         case "30 sec": // 300 punkti 60ste vahedega  Default start
                             oldUpperBound = upperBound;
@@ -399,6 +415,8 @@ public class Main extends Application {
                             xAxis.setUpperBound(testData.size());
                             xAxis.setLowerBound(testData.size() - upperBound);
                             xAxis.setTickUnit(upperBound/5);
+                            lineChart.getData().clear();
+                            lineChart.getData().addAll(series30sec);
                             break;
                     }
                 }
@@ -759,6 +777,18 @@ public class Main extends Application {
         xAxis.setTickUnit(upperBound/5);
         lineChart = new LineChart<>(xAxis, yAxis); //Siis on palju kitsam graafik
         series = new XYChart.Series(seriesData);
+        ObservableList<XYChart.Data> seriesData10min = FXCollections.observableArrayList();
+        ObservableList<XYChart.Data> seriesData5min = FXCollections.observableArrayList();
+        ObservableList<XYChart.Data> seriesData3min = FXCollections.observableArrayList();
+        ObservableList<XYChart.Data> seriesData2min = FXCollections.observableArrayList();
+        ObservableList<XYChart.Data> seriesData1min = FXCollections.observableArrayList();
+        ObservableList<XYChart.Data> seriesData30sec = FXCollections.observableArrayList();
+        series10min = new XYChart.Series(seriesData10min);
+        series5min = new XYChart.Series(seriesData5min);
+        series3min = new XYChart.Series(seriesData3min);
+        series2min = new XYChart.Series(seriesData2min);
+        series1min = new XYChart.Series(seriesData1min);
+        series30sec = new XYChart.Series(seriesData30sec);
 
         lineChart.getData().addAll(series);
         lineChart.setCreateSymbols(false);
@@ -821,8 +851,34 @@ public class Main extends Application {
             textField.setText(androidData);
         }
         if (isStarted) {
+            xSeriesData += 1;
 
-            series.getData().add(new AreaChart.Data(xSeriesData++, measurement));
+            series10min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+            series5min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+            series3min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+            series2min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+            series1min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+            series30sec.getData().add(new AreaChart.Data(xSeriesData, measurement));
+            if (series10min.getData().size() > 12000) {
+                series10min.getData().remove(0);
+            }
+            if (series5min.getData().size() > 6000) {
+                series5min.getData().remove(0);
+            }
+            if (series3min.getData().size() > 3600) {
+                series3min.getData().remove(0);
+            }
+            if (series2min.getData().size() > 2400) {
+                series2min.getData().remove(0);
+            }
+            if (series1min.getData().size() > 1200) {
+                series1min.getData().remove(0);
+            }
+            if (series30sec.getData().size() > 600) {
+                series30sec.getData().remove(0);
+            }
+
+            series.getData().add(new AreaChart.Data(xSeriesData, measurement));
             testData.add(measurement);
 
 //            xAxis.setLowerBound(xAxis.getLowerBound() + 1);
