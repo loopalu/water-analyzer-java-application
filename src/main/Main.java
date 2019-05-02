@@ -1,6 +1,8 @@
 package main;
 
 import javafx.animation.AnimationTimer;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -23,10 +25,11 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.stage.FileChooser;
+import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import javafx.util.Duration;
 import jssc.SerialPort;
 import jssc.SerialPortException;
 import org.controlsfx.control.CheckComboBox;
@@ -73,7 +76,7 @@ public class Main extends Application {
     private boolean isStarted = false;
     private boolean isHighVoltage = false;
     private String highVoltage = "h";
-    private double upperBound = 600.0;
+    private double upperBound = 300.0;
     private XYChart.Series series;
     private XYChart.Series series10min;
     private XYChart.Series series5min;
@@ -87,6 +90,8 @@ public class Main extends Application {
     private String injectionTime = "0";
     private String currentDescription = "";
     private TextField currentField;
+    int millisecond = 0;
+    private Timeline stopWatchTimeline;
 
 
     @Override
@@ -115,6 +120,7 @@ public class Main extends Application {
         makeMovingChart(scene);
         makeComboBoxes(scene);
         makeComboBox(scene);
+        makeTimer(scene);
         TextArea textArea = (TextArea) scene.lookup("#textArea");
         textArea.setPrefWidth(Screen.getPrimary().getVisualBounds().getWidth()/5);
 
@@ -136,6 +142,16 @@ public class Main extends Application {
         executor.execute(addToQueue);
         //-- Prepare Timeline
         prepareTimeline();
+    }
+
+    private void makeTimer(Scene scene) {
+        Text textField = (Text) scene.lookup("#timerData");
+        textField.setText("00:00:00:000");
+        stopWatchTimeline = new Timeline(new KeyFrame(Duration.millis(1), (ActionEvent event) -> {
+            millisecond++;
+            textField.setText(String.format("%02d:%02d:%02d:%03d", millisecond / 3600000 %24, millisecond / 60000 %60, millisecond/ 1000 %60, millisecond % 1000));
+        }));
+        stopWatchTimeline.setCycleCount(Timeline.INDEFINITE);
     }
 
     private void readFile() throws IOException {
@@ -408,60 +424,60 @@ public class Main extends Application {
                     switch (currentTime) {
                         case "10 min": // 6000 punkti 1200ste vahedega
                             oldUpperBound = upperBound;
-                            upperBound = 12000;
+                            upperBound = 6000;
                             System.out.println(oldUpperBound + " " + upperBound);
-                            xAxis.setUpperBound(testData.size());
-                            xAxis.setLowerBound(testData.size() - upperBound);
+                            xAxis.setUpperBound((int)(testData.size()/2.0));
+                            xAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
                             xAxis.setTickUnit(upperBound/5);
                             lineChart.getData().clear();
                             lineChart.getData().addAll(series10min);
                             break;
                         case "5 min": // 3000 punkti 500ste vahedega
                             oldUpperBound = upperBound;
-                            upperBound = 6000;
+                            upperBound = 3000;
                             System.out.println(oldUpperBound + " " + upperBound);
-                            xAxis.setUpperBound(testData.size());
-                            xAxis.setLowerBound(testData.size() - upperBound);
+                            xAxis.setUpperBound((int)(testData.size()/2.0));
+                            xAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
                             xAxis.setTickUnit(upperBound/5);
                             lineChart.getData().clear();
                             lineChart.getData().addAll(series5min);
                             break;
                         case "3 min": // 1800 punkti 360ste vahedega
                             oldUpperBound = upperBound;
-                            upperBound = 3600;
+                            upperBound = 1800;
                             System.out.println(oldUpperBound + " " + upperBound);
-                            xAxis.setUpperBound(testData.size());
-                            xAxis.setLowerBound(testData.size() - upperBound);
+                            xAxis.setUpperBound((int)(testData.size()/2.0));
+                            xAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
                             xAxis.setTickUnit(upperBound/5);
                             lineChart.getData().clear();
                             lineChart.getData().addAll(series3min);
                             break;
                         case "2 min": // 1200 punkti 240ste vahedega
                             oldUpperBound = upperBound;
-                            upperBound = 2400;
+                            upperBound = 1200;
                             System.out.println(oldUpperBound + " " + upperBound);
-                            xAxis.setUpperBound(testData.size());
-                            xAxis.setLowerBound(testData.size() - upperBound);
+                            xAxis.setUpperBound((int)(testData.size()/2.0));
+                            xAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
                             xAxis.setTickUnit(upperBound/5);
                             lineChart.getData().clear();
                             lineChart.getData().addAll(series2min);
                             break;
                         case "1 min": // 600 punkti 120ste vahedega
                             oldUpperBound = upperBound;
-                            upperBound = 1200;
+                            upperBound = 600;
                             System.out.println(oldUpperBound + " " + upperBound);
-                            xAxis.setUpperBound(testData.size());
-                            xAxis.setLowerBound(testData.size() - upperBound);
+                            xAxis.setUpperBound((int)(testData.size()/2.0));
+                            xAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
                             xAxis.setTickUnit(upperBound/5);
                             lineChart.getData().clear();
                             lineChart.getData().addAll(series1min);
                             break;
                         case "30 sec": // 300 punkti 60ste vahedega  Default start
                             oldUpperBound = upperBound;
-                            upperBound = 600;
+                            upperBound = 300;
                             System.out.println(oldUpperBound + " " + upperBound);
-                            xAxis.setUpperBound(testData.size());
-                            xAxis.setLowerBound(testData.size() - upperBound);
+                            xAxis.setUpperBound((int)(testData.size()/2.0));
+                            xAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
                             xAxis.setTickUnit(upperBound/5);
                             lineChart.getData().clear();
                             lineChart.getData().addAll(series30sec);
@@ -608,6 +624,7 @@ public class Main extends Application {
             public void handle(ActionEvent event) {
                 System.out.println("start");
                 isStarted = true;
+                stopWatchTimeline.play();
             }
         });
         stopButton.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
@@ -615,6 +632,7 @@ public class Main extends Application {
             public void handle(ActionEvent event) {
                 System.out.println("stop");
                 isStarted = false;
+                stopWatchTimeline.pause();
             }
         });
         clearButton.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
@@ -631,6 +649,10 @@ public class Main extends Application {
                 xSeriesData = 0;
                 xAxis.setLowerBound(0);
                 xAxis.setUpperBound(upperBound);
+                millisecond = 0;
+                stopWatchTimeline.stop();
+                Text timerText = (Text) scene.lookup("#timerData");
+                timerText.setText("00:00:00:000");
             }
         });
 
@@ -913,7 +935,7 @@ public class Main extends Application {
             textField.setText(androidData);
         }
         if (isStarted) {
-            xSeriesData += 1;
+            xSeriesData += 0.5;
 
             series10min.getData().add(new AreaChart.Data(xSeriesData, measurement));
             series5min.getData().add(new AreaChart.Data(xSeriesData, measurement));
@@ -945,8 +967,8 @@ public class Main extends Application {
 
 //            xAxis.setLowerBound(xAxis.getLowerBound() + 1);
 //            xAxis.setUpperBound(xAxis.getUpperBound() + 1);
-            xAxis.setUpperBound(testData.size());
-            xAxis.setLowerBound(testData.size() - upperBound);
+            xAxis.setUpperBound((int)(testData.size()/2.0));
+            xAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
             xAxis.setTickUnit(upperBound/5);
         }
     }

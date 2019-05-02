@@ -1,6 +1,8 @@
 package main;
 
 import javafx.animation.AnimationTimer;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -23,9 +25,11 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import javafx.util.Duration;
 import jssc.SerialPort;
 import jssc.SerialPortException;
 import org.controlsfx.control.CheckComboBox;
@@ -44,16 +48,16 @@ import java.util.concurrent.ThreadFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class MainBackupArduinoTime30aprill extends Application {
-    private String currentTime;
-    private String currentFrequency;
-    private String androidFrequency;
+public class MainBackupArduino2mai extends Application {
+    private String currentTime = "";
+    private String currentFrequency = "";
+    private String androidFrequency = "";
     private String currentUser = "Regular user";
-    private String currentMethod;
+    private String currentMethod = "";
     private String currentCapillaryTotal = "20";
     private String currentCapillaryEffective = "10";
     private ObservableList<String> currentAnalytes = FXCollections.observableArrayList();
-    private String currentMatrix;
+    private String currentMatrix = "";
     private String currentCapillary = "10";
     private ConcurrentLinkedQueue<Number> dataQ = new ConcurrentLinkedQueue<Number>();
     private ConcurrentLinkedQueue<Number> dataQ1 = new ConcurrentLinkedQueue<Number>();
@@ -86,6 +90,8 @@ public class MainBackupArduinoTime30aprill extends Application {
     private String injectionTime = "0";
     private String currentDescription = "";
     private TextField currentField;
+    int millisecond = 0;
+    private Timeline stopWatchTimeline;
 
 
     @Override
@@ -114,6 +120,7 @@ public class MainBackupArduinoTime30aprill extends Application {
         makeMovingChart(scene);
         makeComboBoxes(scene);
         makeComboBox(scene);
+        makeTimer(scene);
         TextArea textArea = (TextArea) scene.lookup("#textArea");
         textArea.setPrefWidth(Screen.getPrimary().getVisualBounds().getWidth()/5);
 
@@ -135,6 +142,16 @@ public class MainBackupArduinoTime30aprill extends Application {
         executor.execute(addToQueue);
         //-- Prepare Timeline
         prepareTimeline();
+    }
+
+    private void makeTimer(Scene scene) {
+        Text textField = (Text) scene.lookup("#timerData");
+        textField.setText("00:00:00:000");
+        stopWatchTimeline = new Timeline(new KeyFrame(Duration.millis(1), (ActionEvent event) -> {
+            millisecond++;
+            textField.setText(String.format("%02d:%02d:%02d:%03d", millisecond / 3600000 %24, millisecond / 60000 %60, millisecond/ 1000 %60, millisecond % 1000));
+        }));
+        stopWatchTimeline.setCycleCount(Timeline.INDEFINITE);
     }
 
     private void readFile() throws IOException {
@@ -241,7 +258,6 @@ public class MainBackupArduinoTime30aprill extends Application {
                 } else if (comboBox.getId().equals("comboBox2")) {
                     currentMatrix = (String) comboBox.getValue();
                 }
-                //Tried dispose method here but dint worked[![enter image description here][1]][1]
             }
         });
 
@@ -608,6 +624,7 @@ public class MainBackupArduinoTime30aprill extends Application {
             public void handle(ActionEvent event) {
                 System.out.println("start");
                 isStarted = true;
+                stopWatchTimeline.play();
             }
         });
         stopButton.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
@@ -615,6 +632,7 @@ public class MainBackupArduinoTime30aprill extends Application {
             public void handle(ActionEvent event) {
                 System.out.println("stop");
                 isStarted = false;
+                stopWatchTimeline.pause();
             }
         });
         clearButton.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
@@ -631,6 +649,10 @@ public class MainBackupArduinoTime30aprill extends Application {
                 xSeriesData = 0;
                 xAxis.setLowerBound(0);
                 xAxis.setUpperBound(upperBound);
+                millisecond = 0;
+                stopWatchTimeline.stop();
+                Text timerText = (Text) scene.lookup("#timerData");
+                timerText.setText("00:00:00:000");
             }
         });
 
@@ -678,49 +700,49 @@ public class MainBackupArduinoTime30aprill extends Application {
 
                     PrintWriter dataWriter;
                     dataWriter = new PrintWriter(current+"/" + timeStamp + File.separator + "data.txt");
-                    dataWriter.println("C4d_2015-test");
-                    dataWriter.println("aeg, juhtivus");
                     for (int i = 0; i < testData.size(); i++) {
-                        dataWriter.println(" "+i+", "+testData.get(i));
+                        dataWriter.println(testData.get(i));
                     }
                     System.out.println(testData.size());
                     System.out.println("done");
                     dataWriter.close();
-
-
-                    writer = new BufferedWriter(new FileWriter((current+"/" + timeStamp + File.separator + "settings.txt")));
-                    writer.write("User: "+ currentUser);
-                    writer.newLine();
-                    writer.write("Method: "+ currentMethod);
-                    writer.newLine();
-                    writer.write("Matrix: "+ currentMatrix);
-                    writer.newLine();
-                    writer.write("Capillary: "+ currentCapillary);
-                    writer.newLine();
-                    writer.write("Total length of capillary: "+ currentCapillaryTotal);
-                    writer.newLine();
-                    writer.write("Effective length of capillary: "+ currentCapillaryEffective);
-                    writer.newLine();
-                    writer.write("Frequency: "+ currentFrequency);
-                    writer.newLine();
-                    writer.write("Injection method: "+ currentInjection + " " + injectionTime);
-                    writer.newLine();
-                    writer.write("Current: "+ currentField.getText());
-                    writer.newLine();
-                    writer.write("BGE:");
-                    writer.newLine();
-                    TableView<Analyte> table = bge.getTable();
-                    ObservableList<Analyte> observableList = table.getItems();
-                    for (Analyte analyte:observableList) {
-                        writer.write(analyte.getAnalyte()+": "+analyte.getConcentration()+"%");
-                        writer.newLine();
-                    }
-                    writer.write("Commentary:");
-                    writer.newLine();
-                    writer.write(currentDescription);
-                    writer.newLine();
-                    writer.close();
                     ImageSaver.saveImage(testData, current+"/" + timeStamp + File.separator + "image.png");
+
+                    if (bge != null) {
+                        writer = new BufferedWriter(new FileWriter((current+"/" + timeStamp + File.separator + "settings.txt")));
+                        writer.write("User: "+ currentUser);
+                        writer.newLine();
+                        writer.write("Method: "+ currentMethod);
+                        writer.newLine();
+                        writer.write("Matrix: "+ currentMatrix);
+                        writer.newLine();
+                        writer.write("Capillary: "+ currentCapillary);
+                        writer.newLine();
+                        writer.write("Total length of capillary: "+ currentCapillaryTotal);
+                        writer.newLine();
+                        writer.write("Effective length of capillary: "+ currentCapillaryEffective);
+                        writer.newLine();
+                        writer.write("Frequency: "+ currentFrequency);
+                        writer.newLine();
+                        writer.write("Injection method: "+ currentInjection + " " + injectionTime);
+                        writer.newLine();
+                        writer.write("Current: "+ currentField.getText());
+                        writer.newLine();
+                        writer.write("BGE:");
+                        writer.newLine();
+                        TableView<Analyte> table = bge.getTable();
+                        ObservableList<Analyte> observableList = table.getItems();
+                        for (Analyte analyte:observableList) {
+                            writer.write(analyte.getAnalyte()+": "+analyte.getConcentration()+"%");
+                            writer.newLine();
+                        }
+                        writer.write("Commentary:");
+                        writer.newLine();
+                        writer.write(currentDescription);
+                        writer.newLine();
+                        writer.close();
+                    }
+
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -819,7 +841,7 @@ public class MainBackupArduinoTime30aprill extends Application {
             System.out.println("done");
             writer.close();
         } catch (IOException ex) {
-            Logger.getLogger(MainBackupArduinoTime30aprill.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(MainBackupArduino2mai.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -876,7 +898,7 @@ public class MainBackupArduinoTime30aprill extends Application {
                 executor.execute(this);
 
             } catch (InterruptedException ex) {
-                Logger.getLogger(MainBackupArduinoTime30aprill.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(MainBackupArduino2mai.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
