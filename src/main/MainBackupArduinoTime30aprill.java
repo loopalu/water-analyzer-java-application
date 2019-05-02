@@ -1,9 +1,8 @@
 package main;
 
-//import gnu.io.SerialPort;
-
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -24,16 +23,18 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.stage.FileChooser;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import jssc.SerialPort;
 import jssc.SerialPortException;
 import org.controlsfx.control.CheckComboBox;
 import org.controlsfx.control.textfield.TextFields;
 
 import java.io.*;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -43,18 +44,17 @@ import java.util.concurrent.ThreadFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class MainBackupArduinoTime26aprill extends Application {
+public class MainBackupArduinoTime30aprill extends Application {
     private String currentTime;
     private String currentFrequency;
     private String androidFrequency;
-    private String currentUser;
+    private String currentUser = "Regular user";
     private String currentMethod;
-    private String currentCapillaryTotal;
-    private String currentCapillaryEffective;
+    private String currentCapillaryTotal = "20";
+    private String currentCapillaryEffective = "10";
     private ObservableList<String> currentAnalytes = FXCollections.observableArrayList();
     private String currentMatrix;
-    private String currentBGE;
-    private String currentCapillary;
+    private String currentCapillary = "10";
     private ConcurrentLinkedQueue<Number> dataQ = new ConcurrentLinkedQueue<Number>();
     private ConcurrentLinkedQueue<Number> dataQ1 = new ConcurrentLinkedQueue<Number>();
     private XYChart.Series series1;
@@ -74,11 +74,31 @@ public class MainBackupArduinoTime26aprill extends Application {
     private String highVoltage = "h";
     private double upperBound = 600.0;
     private XYChart.Series series;
+    private XYChart.Series series10min;
+    private XYChart.Series series5min;
+    private XYChart.Series series3min;
+    private XYChart.Series series2min;
+    private XYChart.Series series1min;
+    private XYChart.Series series30sec;
     final ObservableList<XYChart.Data> seriesData = FXCollections.observableArrayList();
+    private BGE bge;
+    private String currentInjection = "Vacuum";
+    private String injectionTime = "0";
+    private String currentDescription = "";
+    private TextField currentField;
 
 
     @Override
     public void start(Stage stage) throws Exception{
+
+        stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent t) {
+                Platform.exit();
+                System.exit(0);
+            }
+        });
+
         //JÄRGMINE ON FAILIST LUGEMISE KOOD
 
         Parent root = FXMLLoader.load(getClass().getResource("structure.fxml"));
@@ -131,207 +151,9 @@ public class MainBackupArduinoTime26aprill extends Application {
     }
 
     private void makeComboBox(Scene scene) {
-        List<String> countries = new ArrayList<>();
         List<String> elements = new ArrayList<>();
         List<String> matrixes = new ArrayList<>();
-
-        countries.add("Afghanistan");
-        countries.add("Albania");
-        countries.add("Algeria");
-        countries.add("Andorra");
-        countries.add("Angola");
-        countries.add("Antigua and Barbuda");
-        countries.add("Argentina");
-        countries.add("Armenia");
-        countries.add("Australia");
-        countries.add("Austria");
-        countries.add("Azerbaijan");
-        countries.add("Bahamas");
-        countries.add("Bahrain");
-        countries.add("Bangladesh");
-        countries.add("Barbados");
-        countries.add("Belarus");
-        countries.add("Belgium");
-        countries.add("Belize");
-        countries.add("Benin");
-        countries.add("Bhutan");
-        countries.add("Bolivia");
-        countries.add("Bosnia and Herzegovina");
-        countries.add("Botswana");
-        countries.add("Brazil");
-        countries.add("Brunei");
-        countries.add("Bulgaria");
-        countries.add("Burkina Faso");
-        countries.add("Burundi");
-        countries.add("Cabo Verde");
-        countries.add("Cambodia");
-        countries.add("Cameroon");
-        countries.add("Canada");
-        countries.add("Central African Republic (CAR)");
-        countries.add("Chad");
-        countries.add("Chile");
-        countries.add("China");
-        countries.add("Colombia");
-        countries.add("Comoros");
-        countries.add("Democratic Republic of the Congo");
-        countries.add("Republic of the Congo");
-        countries.add("Costa Rica");
-        countries.add("Cote d'Ivoire");
-        countries.add("Croatia");
-        countries.add("Cuba");
-        countries.add("Cyprus");
-        countries.add("Czech Republic");
-        countries.add("Denmark");
-        countries.add("Djibouti");
-        countries.add("Dominica");
-        countries.add("Dominican Republic");
-        countries.add("Ecuador");
-        countries.add("Egypt");
-        countries.add("El Salvador");
-        countries.add("Equatorial Guinea");
-        countries.add("Eritrea");
-        countries.add("Estonia");
-        countries.add("Ethiopia");
-        countries.add("Fiji");
-        countries.add("Finland");
-        countries.add("France");
-        countries.add("Gabon");
-        countries.add("Gambia");
-        countries.add("Georgia");
-        countries.add("Germany");
-        countries.add("Ghana");
-        countries.add("Greece");
-        countries.add("Grenada");
-        countries.add("Guatemala");
-        countries.add("Guinea");
-        countries.add("Guinea-Bissau");
-        countries.add("Guyana");
-        countries.add("Haiti");
-        countries.add("Honduras");
-        countries.add("Hungary");
-        countries.add("Iceland");
-        countries.add("India");
-        countries.add("Indonesia");
-        countries.add("Iran");
-        countries.add("Iraq");
-        countries.add("Ireland");
-        countries.add("Israel");
-        countries.add("Italy");
-        countries.add("Jamaica");
-        countries.add("Japan");
-        countries.add("Jordan");
-        countries.add("Kazakhstan");
-        countries.add("Kenya");
-        countries.add("Kiribati");
-        countries.add("Kosovo");
-        countries.add("Kuwait");
-        countries.add("Kyrgyzstan");
-        countries.add("Laos");
-        countries.add("Latvia");
-        countries.add("Lebanon");
-        countries.add("Lesotho");
-        countries.add("Liberia");
-        countries.add("Libya");
-        countries.add("Liechtenstein");
-        countries.add("Lithuania");
-        countries.add("Luxembourg");
-        countries.add("Macedonia (FYROM)");
-        countries.add("Madagascar");
-        countries.add("Malawi");
-        countries.add("Malaysia");
-        countries.add("Maldives");
-        countries.add("Mali");
-        countries.add("Malta");
-        countries.add("Marshall Islands");
-        countries.add("Mauritania");
-        countries.add("Mauritius");
-        countries.add("Mexico");
-        countries.add("Micronesia");
-        countries.add("Moldova");
-        countries.add("Monaco");
-        countries.add("Mongolia");
-        countries.add("Montenegro");
-        countries.add("Morocco");
-        countries.add("Mozambique");
-        countries.add("Myanmar (Burma)");
-        countries.add("Namibia");
-        countries.add("Nauru");
-        countries.add("Nepal");
-        countries.add("Netherlands");
-        countries.add("New Zealand");
-        countries.add("Nicaragua");
-        countries.add("Niger");
-        countries.add("Nigeria");
-        countries.add("North Korea");
-        countries.add("Norway");
-        countries.add("Oman");
-        countries.add("Pakistan");
-        countries.add("Palau");
-        countries.add("Palestine");
-        countries.add("Panama");
-        countries.add("Papua New Guinea");
-        countries.add("Paraguay");
-        countries.add("Peru");
-        countries.add("Philippines");
-        countries.add("Poland");
-        countries.add("Portugal");
-        countries.add("Qatar");
-        countries.add("Romania");
-        countries.add("Russia");
-        countries.add("Rwanda");
-        countries.add("Saint Kitts and Nevis");
-        countries.add("Saint Lucia");
-        countries.add("Saint Vincent and the Grenadines");
-        countries.add("Samoa");
-        countries.add("San Marino");
-        countries.add("Sao Tome and Principe");
-        countries.add("Saudi Arabia");
-        countries.add("Senegal");
-        countries.add("Serbia");
-        countries.add("Seychelles");
-        countries.add("Sierra Leone");
-        countries.add("Singapore");
-        countries.add("Slovakia");
-        countries.add("Slovenia");
-        countries.add("Solomon Islands");
-        countries.add("Somalia");
-        countries.add("South Africa");
-        countries.add("South Korea");
-        countries.add("South Sudan");
-        countries.add("Spain");
-        countries.add("Sri Lanka");
-        countries.add("Sudan");
-        countries.add("Suriname");
-        countries.add("Swaziland");
-        countries.add("Sweden");
-        countries.add("Switzerland");
-        countries.add("Syria");
-        countries.add("Taiwan");
-        countries.add("Tajikistan");
-        countries.add("Tanzania");
-        countries.add("Thailand");
-        countries.add("Timor-Leste");
-        countries.add("Togo");
-        countries.add("Tonga");
-        countries.add("Trinidad and Tobago");
-        countries.add("Tunisia");
-        countries.add("Turkey");
-        countries.add("Turkmenistan");
-        countries.add("Tuvalu");
-        countries.add("Uganda");
-        countries.add("Ukraine");
-        countries.add("United Arab Emirates (UAE)");
-        countries.add("United Kingdom (UK)");
-        countries.add("United States of America (USA)");
-        countries.add("Uruguay");
-        countries.add("Uzbekistan");
-        countries.add("Vanuatu");
-        countries.add("Vatican City (Holy See)");
-        countries.add("Venezuela");
-        countries.add("Vietnam");
-        countries.add("Yemen");
-        countries.add("Zambia");
-        countries.add("Zimbabwe");
+        List<String> methods = new ArrayList<>();
 
         elements.add("Na");
         elements.add("K");
@@ -381,10 +203,11 @@ public class MainBackupArduinoTime26aprill extends Application {
 
         ComboBox comboBox1 = (ComboBox) scene.lookup("#comboBox1");
         ComboBox comboBox2 = (ComboBox) scene.lookup("#comboBox2");
-        ComboBox comboBox3 = (ComboBox) scene.lookup("#comboBox3");
+        //ComboBox comboBox3 = (ComboBox) scene.lookup("#comboBox3");
         CheckComboBox<String> checkComboBox = new CheckComboBox();
         HBox elementsHBox = (HBox) scene.lookup("#elementsHBox");
         checkComboBox.getItems().addAll(elements);
+        checkComboBox.setStyle("-fx-min-width: 430.0");
 
         checkComboBox.getCheckModel().getCheckedItems().addListener(new ListChangeListener<String>() {
             public void onChanged(Change<? extends String> c) {
@@ -397,14 +220,14 @@ public class MainBackupArduinoTime26aprill extends Application {
 
         elementsHBox.getChildren().add(checkComboBox);
 
-        makeComboBoxEditable(comboBox1, countries);
+        makeComboBoxEditable(comboBox1, methods);
         makeComboBoxEditable(comboBox2, matrixes);
-        makeComboBoxEditable(comboBox3, countries);
+        //makeComboBoxEditable(comboBox3, countries);
 
     }
 
-    private void makeComboBoxEditable(ComboBox comboBox, List<String> countries) {
-        comboBox.getItems().addAll(countries);
+    private void makeComboBoxEditable(ComboBox comboBox, List<String> dropDownList) {
+        comboBox.getItems().addAll(dropDownList);
 
         comboBox.setEditable(true);
         comboBox.setMaxWidth(Double.MAX_VALUE);
@@ -413,6 +236,11 @@ public class MainBackupArduinoTime26aprill extends Application {
             @Override
             public void handle(ActionEvent event) {
                 System.out.println(comboBox.getValue());
+                if (comboBox.getId().equals("comboBox1")){
+                    currentMethod = (String) comboBox.getValue();
+                } else if (comboBox.getId().equals("comboBox2")) {
+                    currentMatrix = (String) comboBox.getValue();
+                }
                 //Tried dispose method here but dint worked[![enter image description here][1]][1]
             }
         });
@@ -488,6 +316,61 @@ public class MainBackupArduinoTime26aprill extends Application {
                 System.out.println(currentCapillaryEffective);
             }
         });
+
+        Button bgeButton = (Button) scene.lookup("#bgeButton");
+        bgeButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                final Stage bgeWindow = new Stage();
+                bge = new BGE(currentAnalytes);
+                bge.start(bgeWindow);
+            }
+        });
+
+        ChoiceBox injectionBox = (ChoiceBox) scene.lookup("#injectionBox");
+        injectionBox.getItems().addAll("Vacuum", "Pressure", "Electricity");
+        injectionBox.getSelectionModel().selectFirst();
+        injectionBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
+                currentInjection = (String) injectionBox.getItems().get((Integer) number2);
+                System.out.println(currentInjection);
+            }
+        });
+
+        TextField durationField = (TextField) scene.lookup("#durationField");
+        durationField.setOnKeyPressed(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                injectionTime = durationField.getText();
+                System.out.println(injectionTime);
+            }
+        });
+
+        durationField.setOnKeyReleased(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                injectionTime = durationField.getText();
+                System.out.println(injectionTime);
+            }
+        });
+
+        TextArea commentaryField = (TextArea) scene.lookup("#textArea");
+        commentaryField.setOnKeyPressed(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                currentDescription = commentaryField.getText();
+                System.out.println(currentDescription);
+            }
+        });
+
+        commentaryField.setOnKeyReleased(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                currentDescription = commentaryField.getText();
+                System.out.println(currentDescription);
+            }
+        });
     }
 
     private void makeTimeButtons(Scene scene) {
@@ -530,6 +413,8 @@ public class MainBackupArduinoTime26aprill extends Application {
                             xAxis.setUpperBound(testData.size());
                             xAxis.setLowerBound(testData.size() - upperBound);
                             xAxis.setTickUnit(upperBound/5);
+                            lineChart.getData().clear();
+                            lineChart.getData().addAll(series10min);
                             break;
                         case "5 min": // 3000 punkti 500ste vahedega
                             oldUpperBound = upperBound;
@@ -538,6 +423,8 @@ public class MainBackupArduinoTime26aprill extends Application {
                             xAxis.setUpperBound(testData.size());
                             xAxis.setLowerBound(testData.size() - upperBound);
                             xAxis.setTickUnit(upperBound/5);
+                            lineChart.getData().clear();
+                            lineChart.getData().addAll(series5min);
                             break;
                         case "3 min": // 1800 punkti 360ste vahedega
                             oldUpperBound = upperBound;
@@ -546,6 +433,8 @@ public class MainBackupArduinoTime26aprill extends Application {
                             xAxis.setUpperBound(testData.size());
                             xAxis.setLowerBound(testData.size() - upperBound);
                             xAxis.setTickUnit(upperBound/5);
+                            lineChart.getData().clear();
+                            lineChart.getData().addAll(series3min);
                             break;
                         case "2 min": // 1200 punkti 240ste vahedega
                             oldUpperBound = upperBound;
@@ -554,6 +443,8 @@ public class MainBackupArduinoTime26aprill extends Application {
                             xAxis.setUpperBound(testData.size());
                             xAxis.setLowerBound(testData.size() - upperBound);
                             xAxis.setTickUnit(upperBound/5);
+                            lineChart.getData().clear();
+                            lineChart.getData().addAll(series2min);
                             break;
                         case "1 min": // 600 punkti 120ste vahedega
                             oldUpperBound = upperBound;
@@ -562,6 +453,8 @@ public class MainBackupArduinoTime26aprill extends Application {
                             xAxis.setUpperBound(testData.size());
                             xAxis.setLowerBound(testData.size() - upperBound);
                             xAxis.setTickUnit(upperBound/5);
+                            lineChart.getData().clear();
+                            lineChart.getData().addAll(series1min);
                             break;
                         case "30 sec": // 300 punkti 60ste vahedega  Default start
                             oldUpperBound = upperBound;
@@ -570,6 +463,8 @@ public class MainBackupArduinoTime26aprill extends Application {
                             xAxis.setUpperBound(testData.size());
                             xAxis.setLowerBound(testData.size() - upperBound);
                             xAxis.setTickUnit(upperBound/5);
+                            lineChart.getData().clear();
+                            lineChart.getData().addAll(series30sec);
                             break;
                     }
                 }
@@ -727,30 +622,112 @@ public class MainBackupArduinoTime26aprill extends Application {
             public void handle(ActionEvent event) {
                 System.out.println("clear");
                 testData = new ArrayList();
-                series.getData().clear();
+                series10min.getData().clear();
+                series5min.getData().clear();
+                series3min.getData().clear();
+                series2min.getData().clear();
+                series1min.getData().clear();
+                series30sec.getData().clear();
                 xSeriesData = 0;
                 xAxis.setLowerBound(0);
                 xAxis.setUpperBound(upperBound);
             }
         });
+
+
         saveButton.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 System.out.println("save");
-                FileChooser fileChooser = new FileChooser();
+                //Vana datasaver
+//                FileChooser fileChooser = new FileChooser();
+//
+//                //Set extension filter for text files
+//                FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("TXT files (*.txt)", "*.txt");
+//                fileChooser.getExtensionFilters().add(extFilter);
+//
+//                //Show save file dialog
+//                File file = fileChooser.showSaveDialog(stage);
+//
+//                if (file != null) {
+//                    saveTextToFile(file);
+//                }
 
-                //Set extension filter for text files
-                FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("TXT files (*.txt)", "*.txt");
-                fileChooser.getExtensionFilters().add(extFilter);
+                long time = System.currentTimeMillis();
+                SimpleDateFormat sdf = new SimpleDateFormat("dd_MMMM_yyyy_HH_mm");
+                Date resultdate = new Date(time);
+                String timeStamp = sdf.format(resultdate);
+                String current;
+                try {
+                    current = new File( "." ).getCanonicalPath();
+                    File newDirectory = new File(current + "/" + timeStamp);
+                    boolean isCreated = newDirectory.mkdirs();
+                    if (isCreated) {
+                        System.out.printf("1. Successfully created directories, path:%s",
+                                newDirectory.getCanonicalPath());
+                    } else if (newDirectory.exists()) {
+                        System.out.printf("1. Directory path already exist, path:%s",
+                                newDirectory.getCanonicalPath());
+                    } else {
+                        System.out.println("1. Unable to create directory");
+                        return;
+                    }
 
-                //Show save file dialog
-                File file = fileChooser.showSaveDialog(stage);
+                    BufferedWriter writer;
 
-                if (file != null) {
-                    saveTextToFile(file);
+
+                    PrintWriter dataWriter;
+                    dataWriter = new PrintWriter(current+"/" + timeStamp + File.separator + "data.txt");
+                    dataWriter.println("C4d_2015-test");
+                    dataWriter.println("aeg, juhtivus");
+                    for (int i = 0; i < testData.size(); i++) {
+                        dataWriter.println(" "+i+", "+testData.get(i));
+                    }
+                    System.out.println(testData.size());
+                    System.out.println("done");
+                    dataWriter.close();
+
+
+                    writer = new BufferedWriter(new FileWriter((current+"/" + timeStamp + File.separator + "settings.txt")));
+                    writer.write("User: "+ currentUser);
+                    writer.newLine();
+                    writer.write("Method: "+ currentMethod);
+                    writer.newLine();
+                    writer.write("Matrix: "+ currentMatrix);
+                    writer.newLine();
+                    writer.write("Capillary: "+ currentCapillary);
+                    writer.newLine();
+                    writer.write("Total length of capillary: "+ currentCapillaryTotal);
+                    writer.newLine();
+                    writer.write("Effective length of capillary: "+ currentCapillaryEffective);
+                    writer.newLine();
+                    writer.write("Frequency: "+ currentFrequency);
+                    writer.newLine();
+                    writer.write("Injection method: "+ currentInjection + " " + injectionTime);
+                    writer.newLine();
+                    writer.write("Current: "+ currentField.getText());
+                    writer.newLine();
+                    writer.write("BGE:");
+                    writer.newLine();
+                    TableView<Analyte> table = bge.getTable();
+                    ObservableList<Analyte> observableList = table.getItems();
+                    for (Analyte analyte:observableList) {
+                        writer.write(analyte.getAnalyte()+": "+analyte.getConcentration()+"%");
+                        writer.newLine();
+                    }
+                    writer.write("Commentary:");
+                    writer.newLine();
+                    writer.write(currentDescription);
+                    writer.newLine();
+                    writer.close();
+                    ImageSaver.saveImage(testData, current+"/" + timeStamp + File.separator + "image.png");
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
         });
+
+
         Button onOff = (Button) scene.lookup("#onOff");
         onOff.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
             @Override
@@ -842,7 +819,7 @@ public class MainBackupArduinoTime26aprill extends Application {
             System.out.println("done");
             writer.close();
         } catch (IOException ex) {
-            Logger.getLogger(MainBackupArduinoTime26aprill.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(MainBackupArduinoTime30aprill.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -860,10 +837,22 @@ public class MainBackupArduinoTime26aprill extends Application {
         xAxis.setTickMarkVisible(true);
         xAxis.setMinorTickVisible(false);
         xAxis.setTickUnit(upperBound/5);
-        lineChart = new LineChart<Number,Number>(xAxis,yAxis); //Siis on palju kitsam graafik
+        lineChart = new LineChart<>(xAxis, yAxis); //Siis on palju kitsam graafik
         series = new XYChart.Series(seriesData);
+        ObservableList<XYChart.Data> seriesData10min = FXCollections.observableArrayList();
+        ObservableList<XYChart.Data> seriesData5min = FXCollections.observableArrayList();
+        ObservableList<XYChart.Data> seriesData3min = FXCollections.observableArrayList();
+        ObservableList<XYChart.Data> seriesData2min = FXCollections.observableArrayList();
+        ObservableList<XYChart.Data> seriesData1min = FXCollections.observableArrayList();
+        ObservableList<XYChart.Data> seriesData30sec = FXCollections.observableArrayList();
+        series10min = new XYChart.Series(seriesData10min);
+        series5min = new XYChart.Series(seriesData5min);
+        series3min = new XYChart.Series(seriesData3min);
+        series2min = new XYChart.Series(seriesData2min);
+        series1min = new XYChart.Series(seriesData1min);
+        series30sec = new XYChart.Series(seriesData30sec);
 
-        lineChart.getData().addAll(series);
+        lineChart.getData().addAll(series30sec);
         lineChart.setCreateSymbols(false);
         lineChart.setLegendVisible(false);
         lineChart.setHorizontalGridLinesVisible(true);
@@ -887,7 +876,7 @@ public class MainBackupArduinoTime26aprill extends Application {
                 executor.execute(this);
 
             } catch (InterruptedException ex) {
-                Logger.getLogger(MainBackupArduinoTime26aprill.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(MainBackupArduinoTime30aprill.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
@@ -913,7 +902,7 @@ public class MainBackupArduinoTime26aprill extends Application {
         if (current > 2147483647L) {
             current = current - 4294967295L;
         }
-        TextField currentField = (TextField) scene.lookup("#currentAmper");
+        currentField = (TextField) scene.lookup("#currentAmper");
         currentField.setText(String.valueOf(Math.round(current/256.0)));
         double voltagePercent = Double.parseDouble(androidData.split(" ")[4]);
         TextField percentageField = (TextField) scene.lookup("#voltagePercentBox");
@@ -924,12 +913,41 @@ public class MainBackupArduinoTime26aprill extends Application {
             textField.setText(androidData);
         }
         if (isStarted) {
+            xSeriesData += 1;
 
-            series.getData().add(new AreaChart.Data(xSeriesData++, measurement));
+            series10min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+            series5min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+            series3min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+            series2min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+            series1min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+            series30sec.getData().add(new AreaChart.Data(xSeriesData, measurement));
+            if (series10min.getData().size() > 12000) {
+                series10min.getData().remove(0);
+            }
+            if (series5min.getData().size() > 6000) {
+                series5min.getData().remove(0);
+            }
+            if (series3min.getData().size() > 3600) {
+                series3min.getData().remove(0);
+            }
+            if (series2min.getData().size() > 2400) {
+                series2min.getData().remove(0);
+            }
+            if (series1min.getData().size() > 1200) {
+                series1min.getData().remove(0);
+            }
+            if (series30sec.getData().size() > 600) {
+                series30sec.getData().remove(0);
+            }
+
+            series.getData().add(new AreaChart.Data(xSeriesData, measurement));
             testData.add(measurement);
 
-            xAxis.setLowerBound(xAxis.getLowerBound() + 1);
-            xAxis.setUpperBound(xAxis.getUpperBound() + 1);
+//            xAxis.setLowerBound(xAxis.getLowerBound() + 1);
+//            xAxis.setUpperBound(xAxis.getUpperBound() + 1);
+            xAxis.setUpperBound(testData.size());
+            xAxis.setLowerBound(testData.size() - upperBound);
+            xAxis.setTickUnit(upperBound/5);
         }
     }
 

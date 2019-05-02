@@ -85,6 +85,8 @@ public class MainReadData extends Application {
     private List<String> matrixes = new ArrayList<>();
     private List<String> methods = new ArrayList<>();
     private BGE bge;
+    private String currentInjection = "Vacuum";
+    private String injectionTime = "0";
 
     @Override
     public void start(Stage stage) throws Exception{
@@ -313,6 +315,26 @@ public class MainReadData extends Application {
                 final Stage bgeWindow = new Stage();
                 bge = new BGE(currentAnalytes);
                 bge.start(bgeWindow);
+            }
+        });
+
+        ChoiceBox injectionBox = (ChoiceBox) scene.lookup("#injectionBox");
+        injectionBox.getItems().addAll("Vacuum", "Pressure", "Electricity");
+        injectionBox.getSelectionModel().selectFirst();
+        injectionBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
+                currentInjection = (String) injectionBox.getItems().get((Integer) number2);
+                System.out.println(currentInjection);
+            }
+        });
+
+        TextField durationField = (TextField) scene.lookup("#durationField");
+        durationField.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                injectionTime = durationField.getText();
+                System.out.println(injectionTime);
             }
         });
 
@@ -675,6 +697,8 @@ public class MainReadData extends Application {
                 writer.write("Effective length of capillary: "+ currentCapillaryEffective);
                 writer.newLine();
                 writer.write("Frequency: "+ currentFrequency);
+                writer.newLine();
+                writer.write("Injection method: "+ currentInjection + " " + injectionTime);
                 writer.newLine();
                 writer.write("BGE:");
                 writer.newLine();

@@ -1,0 +1,15 @@
+User: Scientist
+Method: hmm jälle
+Matrix: spring water
+Capillary: 150
+Total length of capillary: 75
+Effective length of capillary: 10
+Frequency: 800 kHz
+Injection method: Vacuum 100
+Current: 0
+BGE:
+Na: 50%
+Ba: 10%
+Cl: 20%
+Commentary:
+Currenty jaoks test.

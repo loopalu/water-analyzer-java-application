@@ -44,6 +44,7 @@ class ImageSaver extends ApplicationFrame {
         try {
             OutputStream out = new FileOutputStream(imageName);
             ChartUtilities.writeChartAsPNG(out, chart, 1000, 500);
+            out.close();
         } catch (IOException ex) {
             Logger.getLogger(ImageSaver.class.getName()).log(Level.SEVERE, null, ex);
         }

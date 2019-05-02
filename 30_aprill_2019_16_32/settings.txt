@@ -1,0 +1,14 @@
+User: Scientist
+Method: uus katse
+Matrix: aquarium water
+Capillary: 50
+Total length of capillary: 50
+Effective length of capillary: 15
+Frequency: 1.3 MHz
+Injection method: Electricity 20
+BGE:
+Na: 30%
+Nicotinamide: 10%
+GABA: 50%
+Commentary:
+See on mingi katse.

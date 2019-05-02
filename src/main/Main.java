@@ -46,15 +46,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Main extends Application {
-    private String currentTime;
-    private String currentFrequency;
-    private String androidFrequency;
+    private String currentTime = "";
+    private String currentFrequency = "";
+    private String androidFrequency = "";
     private String currentUser = "Regular user";
-    private String currentMethod;
+    private String currentMethod = "";
     private String currentCapillaryTotal = "20";
     private String currentCapillaryEffective = "10";
     private ObservableList<String> currentAnalytes = FXCollections.observableArrayList();
-    private String currentMatrix;
+    private String currentMatrix = "";
     private String currentCapillary = "10";
     private ConcurrentLinkedQueue<Number> dataQ = new ConcurrentLinkedQueue<Number>();
     private ConcurrentLinkedQueue<Number> dataQ1 = new ConcurrentLinkedQueue<Number>();
@@ -83,6 +83,10 @@ public class Main extends Application {
     private XYChart.Series series30sec;
     final ObservableList<XYChart.Data> seriesData = FXCollections.observableArrayList();
     private BGE bge;
+    private String currentInjection = "Vacuum";
+    private String injectionTime = "0";
+    private String currentDescription = "";
+    private TextField currentField;
 
 
     @Override
@@ -238,7 +242,6 @@ public class Main extends Application {
                 } else if (comboBox.getId().equals("comboBox2")) {
                     currentMatrix = (String) comboBox.getValue();
                 }
-                //Tried dispose method here but dint worked[![enter image description here][1]][1]
             }
         });
 
@@ -321,6 +324,51 @@ public class Main extends Application {
                 final Stage bgeWindow = new Stage();
                 bge = new BGE(currentAnalytes);
                 bge.start(bgeWindow);
+            }
+        });
+
+        ChoiceBox injectionBox = (ChoiceBox) scene.lookup("#injectionBox");
+        injectionBox.getItems().addAll("Vacuum", "Pressure", "Electricity");
+        injectionBox.getSelectionModel().selectFirst();
+        injectionBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
+                currentInjection = (String) injectionBox.getItems().get((Integer) number2);
+                System.out.println(currentInjection);
+            }
+        });
+
+        TextField durationField = (TextField) scene.lookup("#durationField");
+        durationField.setOnKeyPressed(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                injectionTime = durationField.getText();
+                System.out.println(injectionTime);
+            }
+        });
+
+        durationField.setOnKeyReleased(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                injectionTime = durationField.getText();
+                System.out.println(injectionTime);
+            }
+        });
+
+        TextArea commentaryField = (TextArea) scene.lookup("#textArea");
+        commentaryField.setOnKeyPressed(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                currentDescription = commentaryField.getText();
+                System.out.println(currentDescription);
+            }
+        });
+
+        commentaryField.setOnKeyReleased(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                currentDescription = commentaryField.getText();
+                System.out.println(currentDescription);
             }
         });
     }
@@ -574,7 +622,12 @@ public class Main extends Application {
             public void handle(ActionEvent event) {
                 System.out.println("clear");
                 testData = new ArrayList();
-                series.getData().clear();
+                series10min.getData().clear();
+                series5min.getData().clear();
+                series3min.getData().clear();
+                series2min.getData().clear();
+                series1min.getData().clear();
+                series30sec.getData().clear();
                 xSeriesData = 0;
                 xAxis.setLowerBound(0);
                 xAxis.setUpperBound(upperBound);
@@ -586,18 +639,19 @@ public class Main extends Application {
             @Override
             public void handle(ActionEvent event) {
                 System.out.println("save");
-                FileChooser fileChooser = new FileChooser();
-
-                //Set extension filter for text files
-                FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("TXT files (*.txt)", "*.txt");
-                fileChooser.getExtensionFilters().add(extFilter);
-
-                //Show save file dialog
-                File file = fileChooser.showSaveDialog(stage);
-
-                if (file != null) {
-                    saveTextToFile(file);
-                }
+                //Vana datasaver
+//                FileChooser fileChooser = new FileChooser();
+//
+//                //Set extension filter for text files
+//                FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("TXT files (*.txt)", "*.txt");
+//                fileChooser.getExtensionFilters().add(extFilter);
+//
+//                //Show save file dialog
+//                File file = fileChooser.showSaveDialog(stage);
+//
+//                if (file != null) {
+//                    saveTextToFile(file);
+//                }
 
                 long time = System.currentTimeMillis();
                 SimpleDateFormat sdf = new SimpleDateFormat("dd_MMMM_yyyy_HH_mm");
@@ -624,41 +678,49 @@ public class Main extends Application {
 
                     PrintWriter dataWriter;
                     dataWriter = new PrintWriter(current+"/" + timeStamp + File.separator + "data.txt");
-                    dataWriter.println("C4d_2015-test");
-                    dataWriter.println("aeg, juhtivus");
                     for (int i = 0; i < testData.size(); i++) {
-                        dataWriter.println(" "+i+", "+testData.get(i));
+                        dataWriter.println(testData.get(i));
                     }
                     System.out.println(testData.size());
                     System.out.println("done");
                     dataWriter.close();
+                    ImageSaver.saveImage(testData, current+"/" + timeStamp + File.separator + "image.png");
 
-
-                    writer = new BufferedWriter(new FileWriter((current+"/" + timeStamp + File.separator + "settings.txt")));
-                    writer.write("User: "+ currentUser);
-                    writer.newLine();
-                    writer.write("Method: "+ currentMethod);
-                    writer.newLine();
-                    writer.write("Matrix: "+ currentMatrix);
-                    writer.newLine();
-                    writer.write("Capillary: "+ currentCapillary);
-                    writer.newLine();
-                    writer.write("Total length of capillary: "+ currentCapillaryTotal);
-                    writer.newLine();
-                    writer.write("Effective length of capillary: "+ currentCapillaryEffective);
-                    writer.newLine();
-                    writer.write("Frequency: "+ currentFrequency);
-                    writer.newLine();
-                    writer.write("BGE:");
-                    writer.newLine();
-                    TableView<Analyte> table = bge.getTable();
-                    ObservableList<Analyte> observableList = table.getItems();
-                    for (Analyte analyte:observableList) {
-                        writer.write(analyte.getAnalyte()+": "+analyte.getConcentration()+"%");
+                    if (bge != null) {
+                        writer = new BufferedWriter(new FileWriter((current+"/" + timeStamp + File.separator + "settings.txt")));
+                        writer.write("User: "+ currentUser);
                         writer.newLine();
+                        writer.write("Method: "+ currentMethod);
+                        writer.newLine();
+                        writer.write("Matrix: "+ currentMatrix);
+                        writer.newLine();
+                        writer.write("Capillary: "+ currentCapillary);
+                        writer.newLine();
+                        writer.write("Total length of capillary: "+ currentCapillaryTotal);
+                        writer.newLine();
+                        writer.write("Effective length of capillary: "+ currentCapillaryEffective);
+                        writer.newLine();
+                        writer.write("Frequency: "+ currentFrequency);
+                        writer.newLine();
+                        writer.write("Injection method: "+ currentInjection + " " + injectionTime);
+                        writer.newLine();
+                        writer.write("Current: "+ currentField.getText());
+                        writer.newLine();
+                        writer.write("BGE:");
+                        writer.newLine();
+                        TableView<Analyte> table = bge.getTable();
+                        ObservableList<Analyte> observableList = table.getItems();
+                        for (Analyte analyte:observableList) {
+                            writer.write(analyte.getAnalyte()+": "+analyte.getConcentration()+"%");
+                            writer.newLine();
+                        }
+                        writer.write("Commentary:");
+                        writer.newLine();
+                        writer.write(currentDescription);
+                        writer.newLine();
+                        writer.close();
                     }
-                    writer.close();
-                    ImageSaver.saveImage(testData, current+"/" + timeStamp + File.separator + "image.txt");
+
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -840,7 +902,7 @@ public class Main extends Application {
         if (current > 2147483647L) {
             current = current - 4294967295L;
         }
-        TextField currentField = (TextField) scene.lookup("#currentAmper");
+        currentField = (TextField) scene.lookup("#currentAmper");
         currentField.setText(String.valueOf(Math.round(current/256.0)));
         double voltagePercent = Double.parseDouble(androidData.split(" ")[4]);
         TextField percentageField = (TextField) scene.lookup("#voltagePercentBox");
