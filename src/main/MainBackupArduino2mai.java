@@ -85,7 +85,7 @@ public class MainBackupArduino2mai extends Application {
     private XYChart.Series series1min;
     private XYChart.Series series30sec;
     final ObservableList<XYChart.Data> seriesData = FXCollections.observableArrayList();
-    private BGE bge;
+    private ConcentrationTable concentrationTable;
     private String currentInjection = "Vacuum";
     private String injectionTime = "0";
     private String currentDescription = "";
@@ -338,8 +338,8 @@ public class MainBackupArduino2mai extends Application {
             @Override
             public void handle(ActionEvent event) {
                 final Stage bgeWindow = new Stage();
-                bge = new BGE(currentAnalytes);
-                bge.start(bgeWindow);
+                concentrationTable = new ConcentrationTable(currentAnalytes);
+                concentrationTable.start(bgeWindow);
             }
         });
 
@@ -708,7 +708,7 @@ public class MainBackupArduino2mai extends Application {
                     dataWriter.close();
                     ImageSaver.saveImage(testData, current+"/" + timeStamp + File.separator + "image.png");
 
-                    if (bge != null) {
+                    if (concentrationTable != null) {
                         writer = new BufferedWriter(new FileWriter((current+"/" + timeStamp + File.separator + "settings.txt")));
                         writer.write("User: "+ currentUser);
                         writer.newLine();
@@ -728,9 +728,9 @@ public class MainBackupArduino2mai extends Application {
                         writer.newLine();
                         writer.write("Current: "+ currentField.getText());
                         writer.newLine();
-                        writer.write("BGE:");
+                        writer.write("ConcentrationTable:");
                         writer.newLine();
-                        TableView<Analyte> table = bge.getTable();
+                        TableView<Analyte> table = concentrationTable.getTable();
                         ObservableList<Analyte> observableList = table.getItems();
                         for (Analyte analyte:observableList) {
                             writer.write(analyte.getAnalyte()+": "+analyte.getConcentration()+"%");

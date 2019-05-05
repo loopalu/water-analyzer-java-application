@@ -23,13 +23,13 @@ import javafx.stage.Stage;
 
 import java.util.List;
 
-public class BGE extends Application {
+public class ConcentrationTable extends Application {
     private List<String> elements;
     private TableView<Analyte> table = new TableView<>();
     private final ObservableList<Analyte> data = FXCollections.observableArrayList();
     private final HBox hBox = new HBox();
 
-    public BGE(List<String> elements) {
+    public ConcentrationTable(List<String> elements) {
         this.elements = elements;
     }
 
@@ -45,7 +45,7 @@ public class BGE extends Application {
     public void start(Stage stage) {
 
         Scene scene = new Scene(new Group());
-        stage.setTitle("BGE");
+        stage.setTitle("ConcentrationTable");
         stage.setWidth(450);
         stage.setHeight(550);
 

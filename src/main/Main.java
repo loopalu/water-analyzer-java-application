@@ -57,6 +57,7 @@ public class Main extends Application {
     private String currentCapillaryTotal = "20";
     private String currentCapillaryEffective = "10";
     private ObservableList<String> currentAnalytes = FXCollections.observableArrayList();
+    private ObservableList<String> currentBge = FXCollections.observableArrayList();
     private String currentMatrix = "";
     private String currentCapillary = "10";
     private ConcurrentLinkedQueue<Number> dataQ = new ConcurrentLinkedQueue<Number>();
@@ -84,14 +85,18 @@ public class Main extends Application {
     private XYChart.Series series2min;
     private XYChart.Series series1min;
     private XYChart.Series series30sec;
-    final ObservableList<XYChart.Data> seriesData = FXCollections.observableArrayList();
-    private BGE bge;
+    private final ObservableList<XYChart.Data> seriesData = FXCollections.observableArrayList();
+    private ConcentrationTable concentrationTable;
+    private ConcentrationTable elementsConcentrationTable;
     private String currentInjection = "Vacuum";
     private String injectionTime = "0";
     private String currentDescription = "";
     private TextField currentField;
-    int millisecond = 0;
+    private int millisecond = 0;
     private Timeline stopWatchTimeline;
+    private String currentAnalyteValue = "mol";
+    private String currentBgeValue = "mol";
+    private String testTime = "00:00:00:000";
 
 
     @Override
@@ -119,7 +124,7 @@ public class Main extends Application {
         makeStartStopButtons(scene, stage);
         makeMovingChart(scene);
         makeComboBoxes(scene);
-        makeComboBox(scene);
+        makeOptions(scene);
         makeTimer(scene);
         TextArea textArea = (TextArea) scene.lookup("#textArea");
         textArea.setPrefWidth(Screen.getPrimary().getVisualBounds().getWidth()/5);
@@ -149,7 +154,8 @@ public class Main extends Application {
         textField.setText("00:00:00:000");
         stopWatchTimeline = new Timeline(new KeyFrame(Duration.millis(1), (ActionEvent event) -> {
             millisecond++;
-            textField.setText(String.format("%02d:%02d:%02d:%03d", millisecond / 3600000 %24, millisecond / 60000 %60, millisecond/ 1000 %60, millisecond % 1000));
+            testTime = String.format("%02d:%02d:%02d:%03d", millisecond / 3600000 %24, millisecond / 60000 %60, millisecond/ 1000 %60, millisecond % 1000);
+            textField.setText(testTime);
         }));
         stopWatchTimeline.setCycleCount(Timeline.INDEFINITE);
     }
@@ -167,10 +173,11 @@ public class Main extends Application {
         reader.close();
     }
 
-    private void makeComboBox(Scene scene) {
+    private void makeOptions(Scene scene) {
         List<String> elements = new ArrayList<>();
         List<String> matrixes = new ArrayList<>();
         List<String> methods = new ArrayList<>();
+        List<String> bges = new ArrayList<>();
 
         elements.add("Na");
         elements.add("K");
@@ -201,6 +208,9 @@ public class Main extends Application {
         elements.add("Glycine");
         elements.add("Phenylalanine");
 
+        bges.add("Water");
+        bges.add("Vingegar");
+
         matrixes.add("soil");
         matrixes.add("sand");
         matrixes.add("rocks");
@@ -220,26 +230,57 @@ public class Main extends Application {
 
         ComboBox comboBox1 = (ComboBox) scene.lookup("#comboBox1");
         ComboBox comboBox2 = (ComboBox) scene.lookup("#comboBox2");
-        //ComboBox comboBox3 = (ComboBox) scene.lookup("#comboBox3");
-        CheckComboBox<String> checkComboBox = new CheckComboBox();
-        HBox elementsHBox = (HBox) scene.lookup("#elementsHBox");
-        checkComboBox.getItems().addAll(elements);
-        checkComboBox.setStyle("-fx-min-width: 430.0");
 
-        checkComboBox.getCheckModel().getCheckedItems().addListener(new ListChangeListener<String>() {
+        CheckComboBox<String> checkElementsComboBox = new CheckComboBox();
+        GridPane elementsHBox = (GridPane) scene.lookup("#elementsHBox");
+        checkElementsComboBox.getItems().addAll(elements);
+        checkElementsComboBox.setStyle("-fx-min-width: 192.0");
+        checkElementsComboBox.getCheckModel().getCheckedItems().addListener(new ListChangeListener<String>() {
             public void onChanged(ListChangeListener.Change<? extends String> c) {
-                checkComboBox.getCheckModel().getCheckedItems();
-                currentAnalytes = checkComboBox.getCheckModel().getCheckedItems();
-                System.out.println(checkComboBox.getCheckModel().getCheckedItems());
+                checkElementsComboBox.getCheckModel().getCheckedItems();
+                currentAnalytes = checkElementsComboBox.getCheckModel().getCheckedItems();
+                System.out.println(checkElementsComboBox.getCheckModel().getCheckedItems());
             }
         });
+        Button elementsButton = (Button) scene.lookup("#elementsButton");
+        elementsButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                final Stage elementWindow = new Stage();
+                elementsConcentrationTable = new ConcentrationTable(currentAnalytes);
+                elementsConcentrationTable.start(elementWindow);
+            }
+        });
+        elementsButton.setText("Concentration");
+        elementsButton.setMinWidth(145.0);
+        elementsHBox.getChildren().addAll(checkElementsComboBox);
 
-
-        elementsHBox.getChildren().add(checkComboBox);
+        CheckComboBox<String> checkBgeComboBox = new CheckComboBox();
+        GridPane bgeHBox = (GridPane) scene.lookup("#bgeHBox");
+        checkBgeComboBox.getItems().addAll(bges);
+        checkBgeComboBox.setStyle("-fx-min-width: 192.0");
+        checkBgeComboBox.getCheckModel().getCheckedItems().addListener(new ListChangeListener<String>() {
+            public void onChanged(ListChangeListener.Change<? extends String> c) {
+                checkBgeComboBox.getCheckModel().getCheckedItems();
+                currentBge = checkBgeComboBox.getCheckModel().getCheckedItems();
+                System.out.println(checkBgeComboBox.getCheckModel().getCheckedItems());
+            }
+        });
+        Button bgeButton = (Button) scene.lookup("#bgeButton");
+        bgeButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                final Stage bgeWindow = new Stage();
+                concentrationTable = new ConcentrationTable(currentBge);
+                concentrationTable.start(bgeWindow);
+            }
+        });
+        bgeButton.setText("Concentration");
+        bgeButton.setMinWidth(145.0);
+        bgeHBox.getChildren().addAll(checkBgeComboBox);
 
         makeComboBoxEditable(comboBox1, methods);
         makeComboBoxEditable(comboBox2, matrixes);
-        //makeComboBoxEditable(comboBox3, countries);
 
     }
 
@@ -296,8 +337,30 @@ public class Main extends Application {
             }
         });
 
+        ChoiceBox elementsValueBox = (ChoiceBox) scene.lookup("#elementsValueBox");
+        elementsValueBox.getItems().addAll("mol", "mmol", "μmol", "ppm", "ppb");
+        elementsValueBox.getSelectionModel().selectFirst();
+        elementsValueBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
+                currentAnalyteValue = (String) elementsValueBox.getItems().get((Integer) number2);
+                System.out.println(currentAnalyteValue);
+            }
+        });
+
+        ChoiceBox bgeValueBox = (ChoiceBox) scene.lookup("#bgeValueBox");
+        bgeValueBox.getItems().addAll("mol", "mmol", "μmol", "ppm", "ppb");
+        bgeValueBox.getSelectionModel().selectFirst();
+        bgeValueBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
+                currentBgeValue = (String) bgeValueBox.getItems().get((Integer) number2);
+                System.out.println(currentBgeValue);
+            }
+        });
+
         ChoiceBox capillaryBox = (ChoiceBox) scene.lookup("#capillaryBox");
-        capillaryBox.getItems().addAll("10", "25", "50", "75", "150", "350");
+        capillaryBox.getItems().addAll("25/150 μm", "25/350 μm", "50/150 μm", "50/350 μm", "75/175 μm", "75/350 μm", "100/175 μm", "100/350 μm");
         capillaryBox.getSelectionModel().selectFirst();
         capillaryBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
             @Override
@@ -309,7 +372,7 @@ public class Main extends Application {
 
         ChoiceBox capillaryTotalBox = (ChoiceBox) scene.lookup("#capillaryTotalBox");
         for (int i = 4; i < 16; i++) {
-            capillaryTotalBox.getItems().add((String.valueOf(i*5)));
+            capillaryTotalBox.getItems().add((i * 5 + " cm"));
         }
         capillaryTotalBox.getSelectionModel().selectFirst();
         capillaryTotalBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
@@ -322,7 +385,7 @@ public class Main extends Application {
 
         ChoiceBox capillaryEffectiveBox = (ChoiceBox) scene.lookup("#capillaryEffectiveBox");
         for (int i = 2; i < 13; i++) {
-            capillaryEffectiveBox.getItems().add((String.valueOf(i*5)));
+            capillaryEffectiveBox.getItems().add((i * 5 + " cm"));
         }
         capillaryEffectiveBox.getSelectionModel().selectFirst();
         capillaryEffectiveBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
@@ -330,16 +393,6 @@ public class Main extends Application {
             public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
                 currentCapillaryEffective = (String) capillaryEffectiveBox.getItems().get((Integer) number2);
                 System.out.println(currentCapillaryEffective);
-            }
-        });
-
-        Button bgeButton = (Button) scene.lookup("#bgeButton");
-        bgeButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                final Stage bgeWindow = new Stage();
-                bge = new BGE(currentAnalytes);
-                bge.start(bgeWindow);
             }
         });
 
@@ -650,6 +703,7 @@ public class Main extends Application {
                 xAxis.setLowerBound(0);
                 xAxis.setUpperBound(upperBound);
                 millisecond = 0;
+                testTime = "00:00:00:000";
                 stopWatchTimeline.stop();
                 Text timerText = (Text) scene.lookup("#timerData");
                 timerText.setText("00:00:00:000");
@@ -661,19 +715,6 @@ public class Main extends Application {
             @Override
             public void handle(ActionEvent event) {
                 System.out.println("save");
-                //Vana datasaver
-//                FileChooser fileChooser = new FileChooser();
-//
-//                //Set extension filter for text files
-//                FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("TXT files (*.txt)", "*.txt");
-//                fileChooser.getExtensionFilters().add(extFilter);
-//
-//                //Show save file dialog
-//                File file = fileChooser.showSaveDialog(stage);
-//
-//                if (file != null) {
-//                    saveTextToFile(file);
-//                }
 
                 long time = System.currentTimeMillis();
                 SimpleDateFormat sdf = new SimpleDateFormat("dd_MMMM_yyyy_HH_mm");
@@ -708,7 +749,7 @@ public class Main extends Application {
                     dataWriter.close();
                     ImageSaver.saveImage(testData, current+"/" + timeStamp + File.separator + "image.png");
 
-                    if (bge != null) {
+                    if (concentrationTable != null) {
                         writer = new BufferedWriter(new FileWriter((current+"/" + timeStamp + File.separator + "settings.txt")));
                         writer.write("User: "+ currentUser);
                         writer.newLine();
@@ -716,7 +757,7 @@ public class Main extends Application {
                         writer.newLine();
                         writer.write("Matrix: "+ currentMatrix);
                         writer.newLine();
-                        writer.write("Capillary: "+ currentCapillary);
+                        writer.write("Capillary ID/OD: "+ currentCapillary);
                         writer.newLine();
                         writer.write("Total length of capillary: "+ currentCapillaryTotal);
                         writer.newLine();
@@ -726,21 +767,32 @@ public class Main extends Application {
                         writer.newLine();
                         writer.write("Injection method: "+ currentInjection + " " + injectionTime);
                         writer.newLine();
-                        writer.write("Current: "+ currentField.getText());
+                        writer.write("Current: "+ currentField.getText() + " µA");
                         writer.newLine();
-                        writer.write("BGE:");
+                        writer.write("Analytes:");
                         writer.newLine();
-                        TableView<Analyte> table = bge.getTable();
-                        ObservableList<Analyte> observableList = table.getItems();
-                        for (Analyte analyte:observableList) {
-                            writer.write(analyte.getAnalyte()+": "+analyte.getConcentration()+"%");
+                        TableView<Analyte> analytesTable = elementsConcentrationTable.getTable();
+                        ObservableList<Analyte> observableAnalytesList = analytesTable.getItems();
+                        for (Analyte analyte:observableAnalytesList) {
+                            writer.write(analyte.getAnalyte()+": "+analyte.getConcentration()+" " + currentAnalyteValue);
+                            writer.newLine();
+                        }
+                        writer.write("ConcentrationTable:");
+                        writer.newLine();
+                        TableView<Analyte> bgeTable = concentrationTable.getTable();
+                        ObservableList<Analyte> observableBgeList = bgeTable.getItems();
+                        for (Analyte analyte:observableBgeList) {
+                            writer.write(analyte.getAnalyte()+": "+analyte.getConcentration()+" " + currentBgeValue);
                             writer.newLine();
                         }
                         writer.write("Commentary:");
                         writer.newLine();
                         writer.write(currentDescription);
                         writer.newLine();
+                        writer.write("Test duration: " + testTime);
+                        writer.newLine();
                         writer.close();
+                        testTime = "00:00:00:000";
                     }
 
                 } catch (IOException e) {
@@ -965,8 +1017,6 @@ public class Main extends Application {
             series.getData().add(new AreaChart.Data(xSeriesData, measurement));
             testData.add(measurement);
 
-//            xAxis.setLowerBound(xAxis.getLowerBound() + 1);
-//            xAxis.setUpperBound(xAxis.getUpperBound() + 1);
             xAxis.setUpperBound((int)(testData.size()/2.0));
             xAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
             xAxis.setTickUnit(upperBound/5);

@@ -84,7 +84,7 @@ public class MainReadData extends Application {
     private List<String> elements = new ArrayList<>();
     private List<String> matrixes = new ArrayList<>();
     private List<String> methods = new ArrayList<>();
-    private BGE bge;
+    private ConcentrationTable concentrationTable;
     private String currentInjection = "Vacuum";
     private String injectionTime = "0";
 
@@ -313,8 +313,8 @@ public class MainReadData extends Application {
             @Override
             public void handle(ActionEvent event) {
                 final Stage bgeWindow = new Stage();
-                bge = new BGE(currentAnalytes);
-                bge.start(bgeWindow);
+                concentrationTable = new ConcentrationTable(currentAnalytes);
+                concentrationTable.start(bgeWindow);
             }
         });
 
@@ -690,7 +690,7 @@ public class MainReadData extends Application {
                 writer.newLine();
                 writer.write("Matrix: "+ currentMatrix);
                 writer.newLine();
-                writer.write("Capillary: "+ currentCapillary);
+                writer.write("Capillary ID/OD: "+ currentCapillary);
                 writer.newLine();
                 writer.write("Total length of capillary: "+ currentCapillaryTotal);
                 writer.newLine();
@@ -700,9 +700,9 @@ public class MainReadData extends Application {
                 writer.newLine();
                 writer.write("Injection method: "+ currentInjection + " " + injectionTime);
                 writer.newLine();
-                writer.write("BGE:");
+                writer.write("ConcentrationTable:");
                 writer.newLine();
-                TableView<Analyte> table = bge.getTable();
+                TableView<Analyte> table = concentrationTable.getTable();
                 ObservableList<Analyte> observableList = table.getItems();
                 for (Analyte analyte:observableList) {
                     writer.write(analyte.getAnalyte()+": "+analyte.getConcentration()+"%");
