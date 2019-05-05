@@ -36,6 +36,7 @@ import org.controlsfx.control.CheckComboBox;
 import org.controlsfx.control.textfield.TextFields;
 
 import java.io.*;
+import java.text.ChoiceFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -97,6 +98,8 @@ public class Main extends Application {
     private String currentAnalyteValue = "mol";
     private String currentBgeValue = "mol";
     private String testTime = "00:00:00:000";
+    private boolean isTimerOn = false;
+    private int currentTimer = 60000;
 
 
     @Override
@@ -156,6 +159,9 @@ public class Main extends Application {
             millisecond++;
             testTime = String.format("%02d:%02d:%02d:%03d", millisecond / 3600000 %24, millisecond / 60000 %60, millisecond/ 1000 %60, millisecond % 1000);
             textField.setText(testTime);
+            if (isTimerOn && millisecond > currentTimer) {
+                saveTest();
+            }
         }));
         stopWatchTimeline.setCycleCount(Timeline.INDEFINITE);
     }
@@ -326,6 +332,19 @@ public class Main extends Application {
     }
 
     private void makeComboBoxes(Scene scene) {
+        ChoiceBox timerBox = (ChoiceBox) scene.lookup("#timerBox");
+        for (int i = 1; i < 61; i++) {
+            timerBox.getItems().add((i + " min"));
+        }
+        timerBox.getSelectionModel().selectFirst();
+        timerBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
+                currentTimer = Integer.parseInt(((String) timerBox.getItems().get((Integer) number2)).split(" ")[0]) * 60000;
+                System.out.println(currentTimer);
+            }
+        });
+
         ChoiceBox userBox = (ChoiceBox) scene.lookup("#userbox");
         userBox.getItems().addAll("Regular user", "Scientist", "Administrator");
         userBox.getSelectionModel().selectFirst();
@@ -715,89 +734,7 @@ public class Main extends Application {
             @Override
             public void handle(ActionEvent event) {
                 System.out.println("save");
-
-                long time = System.currentTimeMillis();
-                SimpleDateFormat sdf = new SimpleDateFormat("dd_MMMM_yyyy_HH_mm");
-                Date resultdate = new Date(time);
-                String timeStamp = sdf.format(resultdate);
-                String current;
-                try {
-                    current = new File( "." ).getCanonicalPath();
-                    File newDirectory = new File(current + "/" + timeStamp);
-                    boolean isCreated = newDirectory.mkdirs();
-                    if (isCreated) {
-                        System.out.printf("1. Successfully created directories, path:%s",
-                                newDirectory.getCanonicalPath());
-                    } else if (newDirectory.exists()) {
-                        System.out.printf("1. Directory path already exist, path:%s",
-                                newDirectory.getCanonicalPath());
-                    } else {
-                        System.out.println("1. Unable to create directory");
-                        return;
-                    }
-
-                    BufferedWriter writer;
-
-
-                    PrintWriter dataWriter;
-                    dataWriter = new PrintWriter(current+"/" + timeStamp + File.separator + "data.txt");
-                    for (int i = 0; i < testData.size(); i++) {
-                        dataWriter.println(testData.get(i));
-                    }
-                    System.out.println(testData.size());
-                    System.out.println("done");
-                    dataWriter.close();
-                    ImageSaver.saveImage(testData, current+"/" + timeStamp + File.separator + "image.png");
-
-                    if (concentrationTable != null) {
-                        writer = new BufferedWriter(new FileWriter((current+"/" + timeStamp + File.separator + "settings.txt")));
-                        writer.write("User: "+ currentUser);
-                        writer.newLine();
-                        writer.write("Method: "+ currentMethod);
-                        writer.newLine();
-                        writer.write("Matrix: "+ currentMatrix);
-                        writer.newLine();
-                        writer.write("Capillary ID/OD: "+ currentCapillary);
-                        writer.newLine();
-                        writer.write("Total length of capillary: "+ currentCapillaryTotal);
-                        writer.newLine();
-                        writer.write("Effective length of capillary: "+ currentCapillaryEffective);
-                        writer.newLine();
-                        writer.write("Frequency: "+ currentFrequency);
-                        writer.newLine();
-                        writer.write("Injection method: "+ currentInjection + " " + injectionTime);
-                        writer.newLine();
-                        writer.write("Current: "+ currentField.getText() + " µA");
-                        writer.newLine();
-                        writer.write("Analytes:");
-                        writer.newLine();
-                        TableView<Analyte> analytesTable = elementsConcentrationTable.getTable();
-                        ObservableList<Analyte> observableAnalytesList = analytesTable.getItems();
-                        for (Analyte analyte:observableAnalytesList) {
-                            writer.write(analyte.getAnalyte()+": "+analyte.getConcentration()+" " + currentAnalyteValue);
-                            writer.newLine();
-                        }
-                        writer.write("ConcentrationTable:");
-                        writer.newLine();
-                        TableView<Analyte> bgeTable = concentrationTable.getTable();
-                        ObservableList<Analyte> observableBgeList = bgeTable.getItems();
-                        for (Analyte analyte:observableBgeList) {
-                            writer.write(analyte.getAnalyte()+": "+analyte.getConcentration()+" " + currentBgeValue);
-                            writer.newLine();
-                        }
-                        writer.write("Commentary:");
-                        writer.newLine();
-                        writer.write(currentDescription);
-                        writer.newLine();
-                        writer.write("Test duration: " + testTime);
-                        writer.newLine();
-                        writer.close();
-                        testTime = "00:00:00:000";
-                    }
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                saveTest();
             }
         });
 
@@ -831,6 +768,7 @@ public class Main extends Application {
                 }
             }
         });
+
         Button sendPercentageButton = (Button) scene.lookup("#sendPercentageButton");
         sendPercentageButton.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
             @Override
@@ -864,6 +802,23 @@ public class Main extends Application {
                 }
             }
         });
+
+        Button timerButton = (Button) scene.lookup("#timerButton");
+        timerButton.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                if (isTimerOn) {
+                    isTimerOn = false;
+                    timerButton.setStyle("-fx-background-color: red;");
+                    timerButton.setText("TIMER OFF");
+                } else {
+                    isTimerOn = true;
+                    timerButton.setStyle("-fx-background-color: lawngreen;");
+                    timerButton.setText("TIMER ON");
+                }
+            }
+        });
+
         HBox box1 = new HBox(startButton);
         box1.setId("hbox");
         HBox box2 = new HBox(stopButton);
@@ -872,12 +827,105 @@ public class Main extends Application {
         box3.setId("hbox");
         HBox box4 = new HBox(saveButton);
         box4.setId("hbox");
-        GridPane.setConstraints(box1,0,11);
-        GridPane.setConstraints(box2,1,11);
-        GridPane.setConstraints(box3,2,11);
-        GridPane.setConstraints(box4,3,11);
+        GridPane.setConstraints(box1,0,13);
+        GridPane.setConstraints(box2,1,13);
+        GridPane.setConstraints(box3,2,13);
+        GridPane.setConstraints(box4,3,13);
         GridPane grid = (GridPane) scene.lookup("#testSettings");
         grid.getChildren().addAll(box1, box2, box3, box4);
+    }
+
+    private void saveTest() {
+        isTimerOn = false;
+        currentTimer = 60000;
+        stopWatchTimeline.stop();
+        Text textField = (Text) scene.lookup("#timerData");
+        textField.setText("00:00:00:000");
+        Button timerButton = (Button) scene.lookup("#timerButton");
+        timerButton.setStyle("-fx-background-color: red;");
+        timerButton.setText("TIMER OFF");
+        ChoiceBox timerBox = (ChoiceBox) scene.lookup("#timerBox");
+        timerBox.getSelectionModel().selectFirst();
+        long time = System.currentTimeMillis();
+        SimpleDateFormat sdf = new SimpleDateFormat("dd_MMMM_yyyy_HH_mm");
+        Date resultdate = new Date(time);
+        String timeStamp = sdf.format(resultdate);
+        String current;
+        try {
+            current = new File( "." ).getCanonicalPath();
+            File newDirectory = new File(current + "/" + timeStamp);
+            boolean isCreated = newDirectory.mkdirs();
+            if (isCreated) {
+                System.out.printf("1. Successfully created directories, path:%s",
+                        newDirectory.getCanonicalPath());
+            } else if (newDirectory.exists()) {
+                System.out.printf("1. Directory path already exist, path:%s",
+                        newDirectory.getCanonicalPath());
+            } else {
+                System.out.println("1. Unable to create directory");
+                return;
+            }
+
+            BufferedWriter writer;
+            PrintWriter dataWriter;
+            dataWriter = new PrintWriter(current+"/" + timeStamp + File.separator + "data.txt");
+            for (int i = 0; i < testData.size(); i++) {
+                dataWriter.println(testData.get(i));
+            }
+            System.out.println(testData.size());
+            System.out.println("done");
+            dataWriter.close();
+            ImageSaver.saveImage(testData, current+"/" + timeStamp + File.separator + "image.png");
+
+            if (concentrationTable != null) {
+                writer = new BufferedWriter(new FileWriter((current+"/" + timeStamp + File.separator + "settings.txt")));
+                writer.write("User: "+ currentUser);
+                writer.newLine();
+                writer.write("Method: "+ currentMethod);
+                writer.newLine();
+                writer.write("Matrix: "+ currentMatrix);
+                writer.newLine();
+                writer.write("Capillary ID/OD: "+ currentCapillary);
+                writer.newLine();
+                writer.write("Total length of capillary: "+ currentCapillaryTotal);
+                writer.newLine();
+                writer.write("Effective length of capillary: "+ currentCapillaryEffective);
+                writer.newLine();
+                writer.write("Frequency: "+ currentFrequency);
+                writer.newLine();
+                writer.write("Injection method: "+ currentInjection + " " + injectionTime);
+                writer.newLine();
+                writer.write("Current: "+ currentField.getText() + " µA");
+                writer.newLine();
+                writer.write("Analytes:");
+                writer.newLine();
+                TableView<Analyte> analytesTable = elementsConcentrationTable.getTable();
+                ObservableList<Analyte> observableAnalytesList = analytesTable.getItems();
+                for (Analyte analyte:observableAnalytesList) {
+                    writer.write(analyte.getAnalyte()+": "+analyte.getConcentration()+" " + currentAnalyteValue);
+                    writer.newLine();
+                }
+                writer.write("ConcentrationTable:");
+                writer.newLine();
+                TableView<Analyte> bgeTable = concentrationTable.getTable();
+                ObservableList<Analyte> observableBgeList = bgeTable.getItems();
+                for (Analyte analyte:observableBgeList) {
+                    writer.write(analyte.getAnalyte()+": "+analyte.getConcentration()+" " + currentBgeValue);
+                    writer.newLine();
+                }
+                writer.write("Commentary:");
+                writer.newLine();
+                writer.write(currentDescription);
+                writer.newLine();
+                writer.write("Test duration: " + testTime);
+                writer.newLine();
+                writer.close();
+                testTime = "00:00:00:000";
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void saveTextToFile(File file) {
