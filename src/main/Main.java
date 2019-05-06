@@ -64,14 +64,18 @@ public class Main extends Application {
     private ConcurrentLinkedQueue<Number> dataQ = new ConcurrentLinkedQueue<Number>();
     private ConcurrentLinkedQueue<Number> dataQ1 = new ConcurrentLinkedQueue<Number>();
     private XYChart.Series series1;
+    private XYChart.Series currentSeries1;
     private double xSeriesData = 0;
     private NumberAxis xAxis = new NumberAxis();
+    private NumberAxis xCurrentAxis = new NumberAxis();
     private final NumberAxis yAxis = new NumberAxis();
+    private final NumberAxis yCurrentAxis = new NumberAxis();
     private ExecutorService executor;
     private AddToQueue addToQueue;
     private ArrayList testData = new ArrayList();
     private int counter = 0; // We don't need 100 first measurements.
     private LineChart<Number,Number> lineChart;
+    private LineChart<Number,Number> currentLineChart;
     private Stack<String> arduinoData;
     private Scene scene;
     private SerialPort serialPort;
@@ -80,13 +84,21 @@ public class Main extends Application {
     private String highVoltage = "h";
     private double upperBound = 300.0;
     private XYChart.Series series;
+    private XYChart.Series currentSeries;
     private XYChart.Series series10min;
     private XYChart.Series series5min;
     private XYChart.Series series3min;
     private XYChart.Series series2min;
     private XYChart.Series series1min;
     private XYChart.Series series30sec;
+    private XYChart.Series current10min;
+    private XYChart.Series current5min;
+    private XYChart.Series current3min;
+    private XYChart.Series current2min;
+    private XYChart.Series current1min;
+    private XYChart.Series current30sec;
     private final ObservableList<XYChart.Data> seriesData = FXCollections.observableArrayList();
+    private final ObservableList<XYChart.Data> currentData = FXCollections.observableArrayList();
     private ConcentrationTable concentrationTable;
     private ConcentrationTable elementsConcentrationTable;
     private String currentInjection = "Vacuum";
@@ -161,6 +173,7 @@ public class Main extends Application {
             textField.setText(testTime);
             if (isTimerOn && millisecond > currentTimer) {
                 saveTest();
+                clear(scene);
             }
         }));
         stopWatchTimeline.setCycleCount(Timeline.INDEFINITE);
@@ -214,8 +227,12 @@ public class Main extends Application {
         elements.add("Glycine");
         elements.add("Phenylalanine");
 
-        bges.add("Water");
-        bges.add("Vingegar");
+        bges.add("Acetic acid 1M");
+        bges.add("Acetic acid 2M");
+        bges.add("Acetic acid 3M");
+        bges.add("Acetic acid 6M");
+        bges.add("Mes");
+        bges.add("His");
 
         matrixes.add("soil");
         matrixes.add("sand");
@@ -357,6 +374,9 @@ public class Main extends Application {
         });
 
         ChoiceBox elementsValueBox = (ChoiceBox) scene.lookup("#elementsValueBox");
+        Button elementsButton = (Button) scene.lookup("#elementsButton");
+        elementsValueBox.setMinHeight(elementsButton.getMinHeight());
+        elementsValueBox.setPrefHeight(elementsButton.getPrefHeight());
         elementsValueBox.getItems().addAll("mol", "mmol", "μmol", "ppm", "ppb");
         elementsValueBox.getSelectionModel().selectFirst();
         elementsValueBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
@@ -503,6 +523,13 @@ public class Main extends Application {
                             xAxis.setTickUnit(upperBound/5);
                             lineChart.getData().clear();
                             lineChart.getData().addAll(series10min);
+
+                            xCurrentAxis.setUpperBound((int)(testData.size()/2.0));
+                            xCurrentAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
+                            xCurrentAxis.setTickUnit(upperBound/5);
+                            currentLineChart.getData().clear();
+                            currentLineChart.getData().addAll(current10min);
+
                             break;
                         case "5 min": // 3000 punkti 500ste vahedega
                             oldUpperBound = upperBound;
@@ -513,6 +540,13 @@ public class Main extends Application {
                             xAxis.setTickUnit(upperBound/5);
                             lineChart.getData().clear();
                             lineChart.getData().addAll(series5min);
+
+                            xCurrentAxis.setUpperBound((int)(testData.size()/2.0));
+                            xCurrentAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
+                            xCurrentAxis.setTickUnit(upperBound/5);
+                            currentLineChart.getData().clear();
+                            currentLineChart.getData().addAll(current5min);
+
                             break;
                         case "3 min": // 1800 punkti 360ste vahedega
                             oldUpperBound = upperBound;
@@ -523,6 +557,13 @@ public class Main extends Application {
                             xAxis.setTickUnit(upperBound/5);
                             lineChart.getData().clear();
                             lineChart.getData().addAll(series3min);
+
+                            xCurrentAxis.setUpperBound((int)(testData.size()/2.0));
+                            xCurrentAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
+                            xCurrentAxis.setTickUnit(upperBound/5);
+                            currentLineChart.getData().clear();
+                            currentLineChart.getData().addAll(current3min);
+
                             break;
                         case "2 min": // 1200 punkti 240ste vahedega
                             oldUpperBound = upperBound;
@@ -533,6 +574,13 @@ public class Main extends Application {
                             xAxis.setTickUnit(upperBound/5);
                             lineChart.getData().clear();
                             lineChart.getData().addAll(series2min);
+
+                            xCurrentAxis.setUpperBound((int)(testData.size()/2.0));
+                            xCurrentAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
+                            xCurrentAxis.setTickUnit(upperBound/5);
+                            currentLineChart.getData().clear();
+                            currentLineChart.getData().addAll(current2min);
+
                             break;
                         case "1 min": // 600 punkti 120ste vahedega
                             oldUpperBound = upperBound;
@@ -543,6 +591,13 @@ public class Main extends Application {
                             xAxis.setTickUnit(upperBound/5);
                             lineChart.getData().clear();
                             lineChart.getData().addAll(series1min);
+
+                            xCurrentAxis.setUpperBound((int)(testData.size()/2.0));
+                            xCurrentAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
+                            xCurrentAxis.setTickUnit(upperBound/5);
+                            currentLineChart.getData().clear();
+                            currentLineChart.getData().addAll(current1min);
+
                             break;
                         case "30 sec": // 300 punkti 60ste vahedega  Default start
                             oldUpperBound = upperBound;
@@ -553,6 +608,13 @@ public class Main extends Application {
                             xAxis.setTickUnit(upperBound/5);
                             lineChart.getData().clear();
                             lineChart.getData().addAll(series30sec);
+
+                            xCurrentAxis.setUpperBound((int)(testData.size()/2.0));
+                            xCurrentAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
+                            xCurrentAxis.setTickUnit(upperBound/5);
+                            currentLineChart.getData().clear();
+                            currentLineChart.getData().addAll(current30sec);
+
                             break;
                     }
                 }
@@ -710,22 +772,7 @@ public class Main extends Application {
         clearButton.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                System.out.println("clear");
-                testData = new ArrayList();
-                series10min.getData().clear();
-                series5min.getData().clear();
-                series3min.getData().clear();
-                series2min.getData().clear();
-                series1min.getData().clear();
-                series30sec.getData().clear();
-                xSeriesData = 0;
-                xAxis.setLowerBound(0);
-                xAxis.setUpperBound(upperBound);
-                millisecond = 0;
-                testTime = "00:00:00:000";
-                stopWatchTimeline.stop();
-                Text timerText = (Text) scene.lookup("#timerData");
-                timerText.setText("00:00:00:000");
+                clear(scene);
             }
         });
 
@@ -835,8 +882,36 @@ public class Main extends Application {
         grid.getChildren().addAll(box1, box2, box3, box4);
     }
 
+    private void clear(Scene scene) {
+        System.out.println("clear");
+        testData = new ArrayList();
+        series10min.getData().clear();
+        series5min.getData().clear();
+        series3min.getData().clear();
+        series2min.getData().clear();
+        series1min.getData().clear();
+        series30sec.getData().clear();
+        current10min.getData().clear();
+        current5min.getData().clear();
+        current3min.getData().clear();
+        current2min.getData().clear();
+        current1min.getData().clear();
+        current30sec.getData().clear();
+        xSeriesData = 0;
+        xAxis.setLowerBound(0);
+        xAxis.setUpperBound(upperBound);
+        xCurrentAxis.setLowerBound(0);
+        xCurrentAxis.setUpperBound(upperBound);
+        millisecond = 0;
+        testTime = "00:00:00:000";
+        stopWatchTimeline.stop();
+        Text timerText = (Text) scene.lookup("#timerData");
+        timerText.setText("00:00:00:000");
+    }
+
     private void saveTest() {
         isTimerOn = false;
+        isStarted = false;
         currentTimer = 60000;
         stopWatchTimeline.stop();
         Text textField = (Text) scene.lookup("#timerData");
@@ -905,7 +980,7 @@ public class Main extends Application {
                     writer.write(analyte.getAnalyte()+": "+analyte.getConcentration()+" " + currentAnalyteValue);
                     writer.newLine();
                 }
-                writer.write("ConcentrationTable:");
+                writer.write("BGE:");
                 writer.newLine();
                 TableView<Analyte> bgeTable = concentrationTable.getTable();
                 ObservableList<Analyte> observableBgeList = bgeTable.getItems();
@@ -947,10 +1022,16 @@ public class Main extends Application {
 
     private void makeMovingChart(Scene scene) {
         NumberAxis yAxis = new NumberAxis();
+        NumberAxis yCurrentAxis = new NumberAxis();
+
         yAxis.setAutoRanging(true);
         yAxis.setForceZeroInRange(false);
 
+        yCurrentAxis.setAutoRanging(true);
+        yCurrentAxis.setForceZeroInRange(false);
+
         series1 = new XYChart.Series<Number, Number>();
+        currentSeries1 = new XYChart.Series<Number, Number>();
 
         xAxis = new NumberAxis(0, upperBound, 1);
         xAxis.setForceZeroInRange(false);
@@ -961,6 +1042,17 @@ public class Main extends Application {
         xAxis.setTickUnit(upperBound/5);
         lineChart = new LineChart<>(xAxis, yAxis); //Siis on palju kitsam graafik
         series = new XYChart.Series(seriesData);
+
+        xCurrentAxis = new NumberAxis(0, upperBound, 1);
+        xCurrentAxis.setForceZeroInRange(false);
+        xCurrentAxis.setAutoRanging(false); // Peab olema false. Muidu muudab ise graafiku laiust.
+        xCurrentAxis.setTickLabelsVisible(true);
+        xCurrentAxis.setTickMarkVisible(true);
+        xCurrentAxis.setMinorTickVisible(false);
+        xCurrentAxis.setTickUnit(upperBound/5);
+        currentLineChart = new LineChart<>(xCurrentAxis, yCurrentAxis); //Siis on palju kitsam graafik
+        currentSeries = new XYChart.Series(currentData);
+
         ObservableList<XYChart.Data> seriesData10min = FXCollections.observableArrayList();
         ObservableList<XYChart.Data> seriesData5min = FXCollections.observableArrayList();
         ObservableList<XYChart.Data> seriesData3min = FXCollections.observableArrayList();
@@ -974,6 +1066,19 @@ public class Main extends Application {
         series1min = new XYChart.Series(seriesData1min);
         series30sec = new XYChart.Series(seriesData30sec);
 
+        ObservableList<XYChart.Data> currentData10min = FXCollections.observableArrayList();
+        ObservableList<XYChart.Data> currentData5min = FXCollections.observableArrayList();
+        ObservableList<XYChart.Data> currentData3min = FXCollections.observableArrayList();
+        ObservableList<XYChart.Data> currentData2min = FXCollections.observableArrayList();
+        ObservableList<XYChart.Data> currentData1min = FXCollections.observableArrayList();
+        ObservableList<XYChart.Data> currentData30sec = FXCollections.observableArrayList();
+        current10min = new XYChart.Series(currentData10min);
+        current5min = new XYChart.Series(currentData5min);
+        current3min = new XYChart.Series(currentData3min);
+        current2min = new XYChart.Series(currentData2min);
+        current1min = new XYChart.Series(currentData1min);
+        current30sec = new XYChart.Series(currentData30sec);
+
         lineChart.getData().addAll(series30sec);
         lineChart.setCreateSymbols(false);
         lineChart.setLegendVisible(false);
@@ -981,9 +1086,18 @@ public class Main extends Application {
         lineChart.setVerticalGridLinesVisible(true);
         lineChart.setAnimated(false);
 
+        currentLineChart.getData().addAll(current30sec);
+        currentLineChart.setCreateSymbols(false);
+        currentLineChart.setLegendVisible(false);
+        currentLineChart.setHorizontalGridLinesVisible(true);
+        currentLineChart.setVerticalGridLinesVisible(true);
+        currentLineChart.setAnimated(false);
+
+        GridPane.setConstraints(currentLineChart, 1, 1); //column ja row vaja muuta !!!!!!!!!! @@@@@@@@@@@@@@@@@@
         GridPane.setConstraints(lineChart, 1, 0);
         GridPane mainPane = (GridPane) scene.lookup("#chartPane");
-        mainPane.getChildren().add(lineChart);
+        mainPane.getChildren().addAll(lineChart, currentLineChart);
+
     }
 
     private class AddToQueue implements Runnable {
@@ -1025,7 +1139,8 @@ public class Main extends Application {
             current = current - 4294967295L;
         }
         currentField = (TextField) scene.lookup("#currentAmper");
-        currentField.setText(String.valueOf(Math.round(current/256.0)));
+        long currentValue = Math.round(current/256.0);
+        currentField.setText(String.valueOf(currentValue));
         double voltagePercent = Double.parseDouble(androidData.split(" ")[4]);
         TextField percentageField = (TextField) scene.lookup("#voltagePercentBox");
         percentageField.setText(String.valueOf(Math.round((127.0-voltagePercent)/1.27)));
@@ -1043,31 +1158,70 @@ public class Main extends Application {
             series2min.getData().add(new AreaChart.Data(xSeriesData, measurement));
             series1min.getData().add(new AreaChart.Data(xSeriesData, measurement));
             series30sec.getData().add(new AreaChart.Data(xSeriesData, measurement));
+
+            current30sec.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+            current10min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+            current5min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+            current3min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+            current2min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+            current1min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+
             if (series10min.getData().size() > 12000) {
                 series10min.getData().remove(0);
+                current10min.getData().remove(0);
             }
             if (series5min.getData().size() > 6000) {
                 series5min.getData().remove(0);
+                current5min.getData().remove(0);
             }
             if (series3min.getData().size() > 3600) {
                 series3min.getData().remove(0);
+                current3min.getData().remove(0);
             }
             if (series2min.getData().size() > 2400) {
                 series2min.getData().remove(0);
+                current2min.getData().remove(0);
             }
             if (series1min.getData().size() > 1200) {
                 series1min.getData().remove(0);
+                current1min.getData().remove(0);
             }
             if (series30sec.getData().size() > 600) {
                 series30sec.getData().remove(0);
+                current30sec.getData().remove(0);
             }
+
+//            if (current10min.getData().size() > 12000) {
+//                current10min.getData().remove(0);
+//            }
+//            if (current5min.getData().size() > 6000) {
+//                current5min.getData().remove(0);
+//            }
+//            if (current3min.getData().size() > 3600) {
+//                current3min.getData().remove(0);
+//            }
+//            if (current2min.getData().size() > 2400) {
+//                current2min.getData().remove(0);
+//            }
+//            if (current1min.getData().size() > 1200) {
+//                current1min.getData().remove(0);
+//            }
+//            if (current30sec.getData().size() > 600) {
+//                current30sec.getData().remove(0);
+//            }
 
             series.getData().add(new AreaChart.Data(xSeriesData, measurement));
             testData.add(measurement);
 
+            currentSeries.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+
             xAxis.setUpperBound((int)(testData.size()/2.0));
             xAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
             xAxis.setTickUnit(upperBound/5);
+
+            xCurrentAxis.setUpperBound((int)(testData.size()/2.0));
+            xCurrentAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
+            xCurrentAxis.setTickUnit(upperBound/5);
         }
     }
 
