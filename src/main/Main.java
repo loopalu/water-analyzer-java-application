@@ -112,6 +112,10 @@ public class Main extends Application {
     private String testTime = "00:00:00:000";
     private boolean isTimerOn = false;
     private int currentTimer = 60000;
+    private String currentInjectionChoice = "Difference";
+    private String currentInjectionChoiceUnit = "cm";
+    private String injectionChoiceValue = "";
+    private String currentValueString = "0";
 
 
     @Override
@@ -349,6 +353,7 @@ public class Main extends Application {
     }
 
     private void makeComboBoxes(Scene scene) {
+
         ChoiceBox timerBox = (ChoiceBox) scene.lookup("#timerBox");
         for (int i = 1; i < 61; i++) {
             timerBox.getItems().add((i + " min"));
@@ -438,11 +443,40 @@ public class Main extends Application {
         ChoiceBox injectionBox = (ChoiceBox) scene.lookup("#injectionBox");
         injectionBox.getItems().addAll("Vacuum", "Pressure", "Electricity");
         injectionBox.getSelectionModel().selectFirst();
+        Text injectionChoiceText = (Text) scene.lookup("#injectionChoiceText");
+        ChoiceBox injectionChoiceUnitBox = (ChoiceBox) scene.lookup("#injectionChoiceUnitBox");
+        injectionChoiceUnitBox.setMinWidth(100.0);
+        injectionChoiceUnitBox.setPrefWidth(100.0);
+        injectionChoiceText.setText("Difference");
+        injectionChoiceUnitBox.getItems().addAll("cm", "mbar");
+        injectionChoiceUnitBox.getSelectionModel().selectFirst();
         injectionBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
                 currentInjection = (String) injectionBox.getItems().get((Integer) number2);
-                System.out.println(currentInjection);
+                System.out.println("currentInjection " + currentInjection);
+                injectionChoiceUnitBox.getItems().clear();
+                if (currentInjection.equals("Vacuum")) {
+                    injectionChoiceText.setText("Difference");
+                    currentInjectionChoice = "Difference";
+                    injectionChoiceUnitBox.getItems().addAll("cm", "mbar");
+                } else if (currentInjection.equals("Pressure")) {
+                    injectionChoiceText.setText("Difference");
+                    currentInjectionChoice = "Difference";
+                    injectionChoiceUnitBox.getItems().addAll("cm", "mbar");
+                } else {
+                    injectionChoiceText.setText("Voltage");
+                    currentInjectionChoice = "Voltage";
+                    injectionChoiceUnitBox.getItems().addAll("kV");
+                }
+                injectionChoiceUnitBox.getSelectionModel().selectFirst();
+            }
+        });
+        injectionChoiceUnitBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number number, Number number2) {
+                currentInjectionChoiceUnit = (String) injectionChoiceUnitBox.getItems().get((Integer) number2);
+                System.out.println(currentInjectionChoiceUnit);
             }
         });
 
@@ -460,6 +494,23 @@ public class Main extends Application {
             public void handle(KeyEvent event) {
                 injectionTime = durationField.getText();
                 System.out.println(injectionTime);
+            }
+        });
+
+        TextField injectionChoiceValueField = (TextField) scene.lookup("#injectionChoiceValue");
+        injectionChoiceValueField.setOnKeyPressed(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                injectionChoiceValue = injectionChoiceValueField.getText();
+                System.out.println(injectionChoiceValue);
+            }
+        });
+
+        injectionChoiceValueField.setOnKeyReleased(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                injectionChoiceValue = injectionChoiceValueField.getText();
+                System.out.println(injectionChoiceValue);
             }
         });
 
@@ -968,9 +1019,9 @@ public class Main extends Application {
                 writer.newLine();
                 writer.write("Frequency: "+ currentFrequency);
                 writer.newLine();
-                writer.write("Injection method: "+ currentInjection + " " + injectionTime);
+                writer.write("Injection method: "+ currentInjection + " " + currentInjectionChoice + ": " + injectionChoiceValue + " " + currentInjectionChoiceUnit + " Injection time: " + injectionTime + " s");
                 writer.newLine();
-                writer.write("Current: "+ currentField.getText() + " µA");
+                writer.write("Current: "+ currentValueString + " µA");
                 writer.newLine();
                 writer.write("Analytes:");
                 writer.newLine();
@@ -1000,23 +1051,6 @@ public class Main extends Application {
 
         } catch (IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    private void saveTextToFile(File file) {
-        try {
-            PrintWriter writer;
-            writer = new PrintWriter(file);
-            writer.println("C4d_2015-test");
-            writer.println("aeg, juhtivus");
-            for (int i = 0; i < testData.size(); i++) {
-                writer.println(" "+i+", "+testData.get(i));
-            }
-            System.out.println(testData.size());
-            System.out.println("done");
-            writer.close();
-        } catch (IOException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -1140,7 +1174,8 @@ public class Main extends Application {
         }
         currentField = (TextField) scene.lookup("#currentAmper");
         long currentValue = Math.round(current/256.0);
-        currentField.setText(String.valueOf(currentValue));
+        currentValueString = String.valueOf(currentValue);
+        currentField.setText(currentValueString);
         double voltagePercent = Double.parseDouble(androidData.split(" ")[4]);
         TextField percentageField = (TextField) scene.lookup("#voltagePercentBox");
         percentageField.setText(String.valueOf(Math.round((127.0-voltagePercent)/1.27)));
@@ -1190,25 +1225,6 @@ public class Main extends Application {
                 series30sec.getData().remove(0);
                 current30sec.getData().remove(0);
             }
-
-//            if (current10min.getData().size() > 12000) {
-//                current10min.getData().remove(0);
-//            }
-//            if (current5min.getData().size() > 6000) {
-//                current5min.getData().remove(0);
-//            }
-//            if (current3min.getData().size() > 3600) {
-//                current3min.getData().remove(0);
-//            }
-//            if (current2min.getData().size() > 2400) {
-//                current2min.getData().remove(0);
-//            }
-//            if (current1min.getData().size() > 1200) {
-//                current1min.getData().remove(0);
-//            }
-//            if (current30sec.getData().size() > 600) {
-//                current30sec.getData().remove(0);
-//            }
 
             series.getData().add(new AreaChart.Data(xSeriesData, measurement));
             testData.add(measurement);

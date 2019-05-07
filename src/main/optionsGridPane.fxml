@@ -53,9 +53,24 @@
         <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Injection method" textAlignment="CENTER" wrappingWidth="216.53673934936523" GridPane.rowIndex="8" />
         <HBox fx:id="injectionHBox" prefHeight="33.0" prefWidth="707.0" GridPane.columnIndex="1" GridPane.rowIndex="8">
             <children>
-                <ChoiceBox fx:id="injectionBox" minWidth="430.0" prefHeight="26.0" />
-                <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Duration" textAlignment="CENTER" wrappingWidth="169.53673934936523" />
-                <TextField id="durationField" alignment="CENTER">
+                <ChoiceBox fx:id="injectionBox" minWidth="173.0" prefHeight="26.0" prefWidth="173.0" />
+                <HBox alignment="CENTER" prefHeight="33.0" prefWidth="140.0" maxWidth="140.0">
+                    <children>
+                        <Text fx:id="injectionChoiceText" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER" wrappingWidth="139.53673934936523" />
+                    </children>
+                </HBox>
+                <TextField id="injectionChoiceValue" alignment="CENTER">
+                    <font>
+                        <Font size="15.0" />
+                    </font>
+                </TextField>
+                <ChoiceBox fx:id="injectionChoiceUnitBox" minWidth="173.0" prefHeight="26.0" prefWidth="173.0" />
+                <HBox alignment="CENTER" prefHeight="33.0" prefWidth="140.0">
+                    <children>
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Duration (s)" textAlignment="CENTER" wrappingWidth="139.53673934936523" />
+                    </children>
+                </HBox>
+                <TextField id="durationField" alignment="CENTER" minWidth="30.0">
                     <font>
                         <Font size="15.0" />
                     </font>
