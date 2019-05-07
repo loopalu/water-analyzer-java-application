@@ -1,11 +1,15 @@
-package main;
-
-//import gnu.io.SerialPort;
+package main.backups;
 
 import javafx.animation.AnimationTimer;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
@@ -21,16 +25,24 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.stage.FileChooser;
+import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
+import javafx.util.Duration;
 import jssc.SerialPort;
 import jssc.SerialPortException;
+import main.Analyte;
+import main.ConcentrationTable;
+import main.util.ArduinoReader;
+import main.util.ImageSaver;
 import org.controlsfx.control.CheckComboBox;
 import org.controlsfx.control.textfield.TextFields;
 
 import java.io.*;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -40,16 +52,17 @@ import java.util.concurrent.ThreadFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class MainBackupArduinoScroll26aprill extends Application {
-    private String currentTime;
-    private String currentFrequency;
-    private String androidFrequency;
-    private String currentUser;
-    private String currentMethod;
-    private ArrayList<String> currentAnalytes = new ArrayList<>();
-    private String currentMatrix;
-    private String currentBGE;
-    private String currentKapilaar;
+public class MainBackupArduino2mai extends Application {
+    private String currentTime = "";
+    private String currentFrequency = "";
+    private String androidFrequency = "";
+    private String currentUser = "Regular user";
+    private String currentMethod = "";
+    private String currentCapillaryTotal = "20";
+    private String currentCapillaryEffective = "10";
+    private ObservableList<String> currentAnalytes = FXCollections.observableArrayList();
+    private String currentMatrix = "";
+    private String currentCapillary = "10";
     private ConcurrentLinkedQueue<Number> dataQ = new ConcurrentLinkedQueue<Number>();
     private ConcurrentLinkedQueue<Number> dataQ1 = new ConcurrentLinkedQueue<Number>();
     private XYChart.Series series1;
@@ -59,27 +72,47 @@ public class MainBackupArduinoScroll26aprill extends Application {
     private ExecutorService executor;
     private AddToQueue addToQueue;
     private ArrayList testData = new ArrayList();
-    private int lowest = Integer.MAX_VALUE;
-    private int timeMoment = 0;
     private int counter = 0; // We don't need 100 first measurements.
     private LineChart<Number,Number> lineChart;
     private Stack<String> arduinoData;
     private Scene scene;
     private SerialPort serialPort;
-    private OutputStream outputStream;
-    private double zoom = 1;
     private boolean isStarted = false;
     private boolean isHighVoltage = false;
     private String highVoltage = "h";
+    private double upperBound = 600.0;
+    private XYChart.Series series;
+    private XYChart.Series series10min;
+    private XYChart.Series series5min;
+    private XYChart.Series series3min;
+    private XYChart.Series series2min;
+    private XYChart.Series series1min;
+    private XYChart.Series series30sec;
+    final ObservableList<XYChart.Data> seriesData = FXCollections.observableArrayList();
+    private ConcentrationTable concentrationTable;
+    private String currentInjection = "Vacuum";
+    private String injectionTime = "0";
+    private String currentDescription = "";
+    private TextField currentField;
+    int millisecond = 0;
+    private Timeline stopWatchTimeline;
 
 
     @Override
     public void start(Stage stage) throws Exception{
-        //JÄRGMINE ON FAILIST LUGEMISE KOOD
-        //readFile();
 
-        Parent root = FXMLLoader.load(getClass().getResource("structure.fxml"));
-        root.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
+        stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent t) {
+                Platform.exit();
+                System.exit(0);
+            }
+        });
+
+        //JÄRGMINE ON FAILIST LUGEMISE KOOD
+
+        Parent root = FXMLLoader.load(getClass().getResource("style/structure.fxml"));
+        root.getStylesheets().add(getClass().getResource("style/style.css").toExternalForm());
 
         stage.setTitle("Water Analyzer");
         scene = new Scene(root, 1500, Screen.getPrimary().getVisualBounds().getHeight()*0.9);
@@ -91,6 +124,7 @@ public class MainBackupArduinoScroll26aprill extends Application {
         makeMovingChart(scene);
         makeComboBoxes(scene);
         makeComboBox(scene);
+        makeTimer(scene);
         TextArea textArea = (TextArea) scene.lookup("#textArea");
         textArea.setPrefWidth(Screen.getPrimary().getVisualBounds().getWidth()/5);
 
@@ -114,6 +148,16 @@ public class MainBackupArduinoScroll26aprill extends Application {
         prepareTimeline();
     }
 
+    private void makeTimer(Scene scene) {
+        Text textField = (Text) scene.lookup("#timerData");
+        textField.setText("00:00:00:000");
+        stopWatchTimeline = new Timeline(new KeyFrame(Duration.millis(1), (ActionEvent event) -> {
+            millisecond++;
+            textField.setText(String.format("%02d:%02d:%02d:%03d", millisecond / 3600000 %24, millisecond / 60000 %60, millisecond/ 1000 %60, millisecond % 1000));
+        }));
+        stopWatchTimeline.setCycleCount(Timeline.INDEFINITE);
+    }
+
     private void readFile() throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader("andmed.txt"));
         String voltage = reader.readLine();
@@ -128,207 +172,9 @@ public class MainBackupArduinoScroll26aprill extends Application {
     }
 
     private void makeComboBox(Scene scene) {
-        List<String> countries = new ArrayList<>();
         List<String> elements = new ArrayList<>();
         List<String> matrixes = new ArrayList<>();
-
-        countries.add("Afghanistan");
-        countries.add("Albania");
-        countries.add("Algeria");
-        countries.add("Andorra");
-        countries.add("Angola");
-        countries.add("Antigua and Barbuda");
-        countries.add("Argentina");
-        countries.add("Armenia");
-        countries.add("Australia");
-        countries.add("Austria");
-        countries.add("Azerbaijan");
-        countries.add("Bahamas");
-        countries.add("Bahrain");
-        countries.add("Bangladesh");
-        countries.add("Barbados");
-        countries.add("Belarus");
-        countries.add("Belgium");
-        countries.add("Belize");
-        countries.add("Benin");
-        countries.add("Bhutan");
-        countries.add("Bolivia");
-        countries.add("Bosnia and Herzegovina");
-        countries.add("Botswana");
-        countries.add("Brazil");
-        countries.add("Brunei");
-        countries.add("Bulgaria");
-        countries.add("Burkina Faso");
-        countries.add("Burundi");
-        countries.add("Cabo Verde");
-        countries.add("Cambodia");
-        countries.add("Cameroon");
-        countries.add("Canada");
-        countries.add("Central African Republic (CAR)");
-        countries.add("Chad");
-        countries.add("Chile");
-        countries.add("China");
-        countries.add("Colombia");
-        countries.add("Comoros");
-        countries.add("Democratic Republic of the Congo");
-        countries.add("Republic of the Congo");
-        countries.add("Costa Rica");
-        countries.add("Cote d'Ivoire");
-        countries.add("Croatia");
-        countries.add("Cuba");
-        countries.add("Cyprus");
-        countries.add("Czech Republic");
-        countries.add("Denmark");
-        countries.add("Djibouti");
-        countries.add("Dominica");
-        countries.add("Dominican Republic");
-        countries.add("Ecuador");
-        countries.add("Egypt");
-        countries.add("El Salvador");
-        countries.add("Equatorial Guinea");
-        countries.add("Eritrea");
-        countries.add("Estonia");
-        countries.add("Ethiopia");
-        countries.add("Fiji");
-        countries.add("Finland");
-        countries.add("France");
-        countries.add("Gabon");
-        countries.add("Gambia");
-        countries.add("Georgia");
-        countries.add("Germany");
-        countries.add("Ghana");
-        countries.add("Greece");
-        countries.add("Grenada");
-        countries.add("Guatemala");
-        countries.add("Guinea");
-        countries.add("Guinea-Bissau");
-        countries.add("Guyana");
-        countries.add("Haiti");
-        countries.add("Honduras");
-        countries.add("Hungary");
-        countries.add("Iceland");
-        countries.add("India");
-        countries.add("Indonesia");
-        countries.add("Iran");
-        countries.add("Iraq");
-        countries.add("Ireland");
-        countries.add("Israel");
-        countries.add("Italy");
-        countries.add("Jamaica");
-        countries.add("Japan");
-        countries.add("Jordan");
-        countries.add("Kazakhstan");
-        countries.add("Kenya");
-        countries.add("Kiribati");
-        countries.add("Kosovo");
-        countries.add("Kuwait");
-        countries.add("Kyrgyzstan");
-        countries.add("Laos");
-        countries.add("Latvia");
-        countries.add("Lebanon");
-        countries.add("Lesotho");
-        countries.add("Liberia");
-        countries.add("Libya");
-        countries.add("Liechtenstein");
-        countries.add("Lithuania");
-        countries.add("Luxembourg");
-        countries.add("Macedonia (FYROM)");
-        countries.add("Madagascar");
-        countries.add("Malawi");
-        countries.add("Malaysia");
-        countries.add("Maldives");
-        countries.add("Mali");
-        countries.add("Malta");
-        countries.add("Marshall Islands");
-        countries.add("Mauritania");
-        countries.add("Mauritius");
-        countries.add("Mexico");
-        countries.add("Micronesia");
-        countries.add("Moldova");
-        countries.add("Monaco");
-        countries.add("Mongolia");
-        countries.add("Montenegro");
-        countries.add("Morocco");
-        countries.add("Mozambique");
-        countries.add("Myanmar (Burma)");
-        countries.add("Namibia");
-        countries.add("Nauru");
-        countries.add("Nepal");
-        countries.add("Netherlands");
-        countries.add("New Zealand");
-        countries.add("Nicaragua");
-        countries.add("Niger");
-        countries.add("Nigeria");
-        countries.add("North Korea");
-        countries.add("Norway");
-        countries.add("Oman");
-        countries.add("Pakistan");
-        countries.add("Palau");
-        countries.add("Palestine");
-        countries.add("Panama");
-        countries.add("Papua New Guinea");
-        countries.add("Paraguay");
-        countries.add("Peru");
-        countries.add("Philippines");
-        countries.add("Poland");
-        countries.add("Portugal");
-        countries.add("Qatar");
-        countries.add("Romania");
-        countries.add("Russia");
-        countries.add("Rwanda");
-        countries.add("Saint Kitts and Nevis");
-        countries.add("Saint Lucia");
-        countries.add("Saint Vincent and the Grenadines");
-        countries.add("Samoa");
-        countries.add("San Marino");
-        countries.add("Sao Tome and Principe");
-        countries.add("Saudi Arabia");
-        countries.add("Senegal");
-        countries.add("Serbia");
-        countries.add("Seychelles");
-        countries.add("Sierra Leone");
-        countries.add("Singapore");
-        countries.add("Slovakia");
-        countries.add("Slovenia");
-        countries.add("Solomon Islands");
-        countries.add("Somalia");
-        countries.add("South Africa");
-        countries.add("South Korea");
-        countries.add("South Sudan");
-        countries.add("Spain");
-        countries.add("Sri Lanka");
-        countries.add("Sudan");
-        countries.add("Suriname");
-        countries.add("Swaziland");
-        countries.add("Sweden");
-        countries.add("Switzerland");
-        countries.add("Syria");
-        countries.add("Taiwan");
-        countries.add("Tajikistan");
-        countries.add("Tanzania");
-        countries.add("Thailand");
-        countries.add("Timor-Leste");
-        countries.add("Togo");
-        countries.add("Tonga");
-        countries.add("Trinidad and Tobago");
-        countries.add("Tunisia");
-        countries.add("Turkey");
-        countries.add("Turkmenistan");
-        countries.add("Tuvalu");
-        countries.add("Uganda");
-        countries.add("Ukraine");
-        countries.add("United Arab Emirates (UAE)");
-        countries.add("United Kingdom (UK)");
-        countries.add("United States of America (USA)");
-        countries.add("Uruguay");
-        countries.add("Uzbekistan");
-        countries.add("Vanuatu");
-        countries.add("Vatican City (Holy See)");
-        countries.add("Venezuela");
-        countries.add("Vietnam");
-        countries.add("Yemen");
-        countries.add("Zambia");
-        countries.add("Zimbabwe");
+        List<String> methods = new ArrayList<>();
 
         elements.add("Na");
         elements.add("K");
@@ -376,37 +222,33 @@ public class MainBackupArduinoScroll26aprill extends Application {
         matrixes.add("juice");
         matrixes.add("drink");
 
-
-
-
-
         ComboBox comboBox1 = (ComboBox) scene.lookup("#comboBox1");
         ComboBox comboBox2 = (ComboBox) scene.lookup("#comboBox2");
-        ComboBox comboBox3 = (ComboBox) scene.lookup("#comboBox3");
-        ComboBox comboBox4 = (ComboBox) scene.lookup("#comboBox4");
+        //ComboBox comboBox3 = (ComboBox) scene.lookup("#comboBox3");
         CheckComboBox<String> checkComboBox = new CheckComboBox();
         HBox elementsHBox = (HBox) scene.lookup("#elementsHBox");
         checkComboBox.getItems().addAll(elements);
+        checkComboBox.setStyle("-fx-min-width: 430.0");
+
+        checkComboBox.getCheckModel().getCheckedItems().addListener(new ListChangeListener<String>() {
+            public void onChanged(Change<? extends String> c) {
+                checkComboBox.getCheckModel().getCheckedItems();
+                currentAnalytes = checkComboBox.getCheckModel().getCheckedItems();
+                System.out.println(checkComboBox.getCheckModel().getCheckedItems());
+            }
+        });
+
+
         elementsHBox.getChildren().add(checkComboBox);
 
-        //comboBox.setEditable(true);
-
-        makeComboBoxEditable(comboBox1, countries);
+        makeComboBoxEditable(comboBox1, methods);
         makeComboBoxEditable(comboBox2, matrixes);
-        makeComboBoxEditable(comboBox3, countries);
-        makeComboBoxEditable(comboBox4, countries);
+        //makeComboBoxEditable(comboBox3, countries);
 
-
-//        GridPane.setConstraints(comboBox1,1,1);
-//        GridPane.setConstraints(comboBox2,1,3);
-//        GridPane.setConstraints(comboBox3,1,4);
-//        GridPane.setConstraints(comboBox4,1,5);
-//        GridPane gridPane = (GridPane) scene.lookup("#testOptions");
-//        gridPane.getChildren().addAll(comboBox1, comboBox2, comboBox3, comboBox4);
     }
 
-    private void makeComboBoxEditable(ComboBox comboBox, List<String> countries) {
-        comboBox.getItems().addAll(countries);
+    private void makeComboBoxEditable(ComboBox comboBox, List<String> dropDownList) {
+        comboBox.getItems().addAll(dropDownList);
 
         comboBox.setEditable(true);
         comboBox.setMaxWidth(Double.MAX_VALUE);
@@ -415,7 +257,11 @@ public class MainBackupArduinoScroll26aprill extends Application {
             @Override
             public void handle(ActionEvent event) {
                 System.out.println(comboBox.getValue());
-                //Tried dispose method here but dint worked[![enter image description here][1]][1]
+                if (comboBox.getId().equals("comboBox1")){
+                    currentMethod = (String) comboBox.getValue();
+                } else if (comboBox.getId().equals("comboBox2")) {
+                    currentMatrix = (String) comboBox.getValue();
+                }
             }
         });
 
@@ -443,14 +289,106 @@ public class MainBackupArduinoScroll26aprill extends Application {
     }
 
     private void makeComboBoxes(Scene scene) {
-        ChoiceBox cb = (ChoiceBox) scene.lookup("#userbox");
-        cb.getItems().addAll("Regular user", "Scientist", "Administrator");
-        cb.getSelectionModel().selectFirst();
-        cb.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+        ChoiceBox userBox = (ChoiceBox) scene.lookup("#userbox");
+        userBox.getItems().addAll("Regular user", "Scientist", "Administrator");
+        userBox.getSelectionModel().selectFirst();
+        userBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
-                currentUser = (String) cb.getItems().get((Integer) number2);
+                currentUser = (String) userBox.getItems().get((Integer) number2);
                 System.out.println(currentUser);
+            }
+        });
+
+        ChoiceBox capillaryBox = (ChoiceBox) scene.lookup("#capillaryBox");
+        capillaryBox.getItems().addAll("10", "25", "50", "75", "150", "350");
+        capillaryBox.getSelectionModel().selectFirst();
+        capillaryBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
+                currentCapillary = (String) capillaryBox.getItems().get((Integer) number2);
+                System.out.println(currentCapillary);
+            }
+        });
+
+        ChoiceBox capillaryTotalBox = (ChoiceBox) scene.lookup("#capillaryTotalBox");
+        for (int i = 4; i < 16; i++) {
+            capillaryTotalBox.getItems().add((String.valueOf(i*5)));
+        }
+        capillaryTotalBox.getSelectionModel().selectFirst();
+        capillaryTotalBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
+                currentCapillaryTotal = (String) capillaryTotalBox.getItems().get((Integer) number2);
+                System.out.println(currentCapillaryTotal);
+            }
+        });
+
+        ChoiceBox capillaryEffectiveBox = (ChoiceBox) scene.lookup("#capillaryEffectiveBox");
+        for (int i = 2; i < 13; i++) {
+            capillaryEffectiveBox.getItems().add((String.valueOf(i*5)));
+        }
+        capillaryEffectiveBox.getSelectionModel().selectFirst();
+        capillaryEffectiveBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
+                currentCapillaryEffective = (String) capillaryEffectiveBox.getItems().get((Integer) number2);
+                System.out.println(currentCapillaryEffective);
+            }
+        });
+
+        Button bgeButton = (Button) scene.lookup("#bgeButton");
+        bgeButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                final Stage bgeWindow = new Stage();
+                concentrationTable = new ConcentrationTable(currentAnalytes);
+                concentrationTable.start(bgeWindow);
+            }
+        });
+
+        ChoiceBox injectionBox = (ChoiceBox) scene.lookup("#injectionBox");
+        injectionBox.getItems().addAll("Vacuum", "Pressure", "Electricity");
+        injectionBox.getSelectionModel().selectFirst();
+        injectionBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
+                currentInjection = (String) injectionBox.getItems().get((Integer) number2);
+                System.out.println(currentInjection);
+            }
+        });
+
+        TextField durationField = (TextField) scene.lookup("#durationField");
+        durationField.setOnKeyPressed(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                injectionTime = durationField.getText();
+                System.out.println(injectionTime);
+            }
+        });
+
+        durationField.setOnKeyReleased(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                injectionTime = durationField.getText();
+                System.out.println(injectionTime);
+            }
+        });
+
+        TextArea commentaryField = (TextArea) scene.lookup("#textArea");
+        commentaryField.setOnKeyPressed(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                currentDescription = commentaryField.getText();
+                System.out.println(currentDescription);
+            }
+        });
+
+        commentaryField.setOnKeyReleased(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                currentDescription = commentaryField.getText();
+                System.out.println(currentDescription);
             }
         });
     }
@@ -486,32 +424,69 @@ public class MainBackupArduinoScroll26aprill extends Application {
             @Override public void changed(ObservableValue<? extends Toggle> observable, Toggle oldValue, Toggle selectedToggle) {
                 if(selectedToggle!=null) {
                     currentTime = ((ToggleButton) selectedToggle).getText();
+                    double oldUpperBound = upperBound;
                     switch (currentTime) {
-                        case "10 min":
-                            zoom = 1;
+                        case "10 min": // 6000 punkti 1200ste vahedega
+                            oldUpperBound = upperBound;
+                            upperBound = 12000;
+                            System.out.println(oldUpperBound + " " + upperBound);
+                            xAxis.setUpperBound(testData.size());
+                            xAxis.setLowerBound(testData.size() - upperBound);
+                            xAxis.setTickUnit(upperBound/5);
+                            lineChart.getData().clear();
+                            lineChart.getData().addAll(series10min);
                             break;
-                        case "5 min":
-                            zoom = 10;
+                        case "5 min": // 3000 punkti 500ste vahedega
+                            oldUpperBound = upperBound;
+                            upperBound = 6000;
+                            System.out.println(oldUpperBound + " " + upperBound);
+                            xAxis.setUpperBound(testData.size());
+                            xAxis.setLowerBound(testData.size() - upperBound);
+                            xAxis.setTickUnit(upperBound/5);
+                            lineChart.getData().clear();
+                            lineChart.getData().addAll(series5min);
                             break;
-                        case "3 min":
-                            zoom = 100;
+                        case "3 min": // 1800 punkti 360ste vahedega
+                            oldUpperBound = upperBound;
+                            upperBound = 3600;
+                            System.out.println(oldUpperBound + " " + upperBound);
+                            xAxis.setUpperBound(testData.size());
+                            xAxis.setLowerBound(testData.size() - upperBound);
+                            xAxis.setTickUnit(upperBound/5);
+                            lineChart.getData().clear();
+                            lineChart.getData().addAll(series3min);
                             break;
-                        case "2 min":
-                            zoom = 1000;
+                        case "2 min": // 1200 punkti 240ste vahedega
+                            oldUpperBound = upperBound;
+                            upperBound = 2400;
+                            System.out.println(oldUpperBound + " " + upperBound);
+                            xAxis.setUpperBound(testData.size());
+                            xAxis.setLowerBound(testData.size() - upperBound);
+                            xAxis.setTickUnit(upperBound/5);
+                            lineChart.getData().clear();
+                            lineChart.getData().addAll(series2min);
                             break;
-                        case "1 min":
-                            zoom = 0.1;
+                        case "1 min": // 600 punkti 120ste vahedega
+                            oldUpperBound = upperBound;
+                            upperBound = 1200;
+                            System.out.println(oldUpperBound + " " + upperBound);
+                            xAxis.setUpperBound(testData.size());
+                            xAxis.setLowerBound(testData.size() - upperBound);
+                            xAxis.setTickUnit(upperBound/5);
+                            lineChart.getData().clear();
+                            lineChart.getData().addAll(series1min);
                             break;
-                        case "30 sec":
-                            zoom = 0.01;
+                        case "30 sec": // 300 punkti 60ste vahedega  Default start
+                            oldUpperBound = upperBound;
+                            upperBound = 600;
+                            System.out.println(oldUpperBound + " " + upperBound);
+                            xAxis.setUpperBound(testData.size());
+                            xAxis.setLowerBound(testData.size() - upperBound);
+                            xAxis.setTickUnit(upperBound/5);
+                            lineChart.getData().clear();
+                            lineChart.getData().addAll(series30sec);
                             break;
                     }
-                    System.out.println(lineChart.widthProperty());
-//                    xAxis.setUpperBound(xAxis.getUpperBound() * zoom);
-//                    xAxis.setLowerBound(xAxis.getLowerBound() * zoom);
-//                    xAxis.setTickUnit(xAxis.getTickUnit() * zoom);
-//                    System.out.println(currentTime);
-                    //label.setText(((ToggleButton) selectedToggle).getText());
                 }
                 else {
                     //label.setText("...");
@@ -519,7 +494,7 @@ public class MainBackupArduinoScroll26aprill extends Application {
             }
         });
         // select the first button to start with
-        //group.selectToggle(tb1);
+        group.selectToggle(button6);
         // add buttons and label to grid and set their positions
         GridPane.setConstraints(box1,0,8);
         GridPane.setConstraints(box2,1,8);
@@ -618,19 +593,14 @@ public class MainBackupArduinoScroll26aprill extends Application {
                     } catch (SerialPortException e) {
                         e.printStackTrace();
                     }
-//                    try {
-//                        outputStream = serialPort.getOutputStream();
-//                        outputStream.write(androidFrequency.getBytes()); //Kui \n Ei tööta, siis proovida windows 1252
-//                        //outputStream.write(androidFrequency.getBytes(Charset.forName("windows-1252"))); //KAS TÖÖTAB ?????
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
+                    System.out.println(series.getData().size());
                     System.out.println(androidFrequency);
                 }
                 else {
                 }
             }
         });
+        group.selectToggle(button4);
         // select the first button to start with
         // add buttons and label to grid and set their positions
         GridPane.setConstraints(box1,0,2);
@@ -658,6 +628,7 @@ public class MainBackupArduinoScroll26aprill extends Application {
             public void handle(ActionEvent event) {
                 System.out.println("start");
                 isStarted = true;
+                stopWatchTimeline.play();
             }
         });
         stopButton.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
@@ -665,35 +636,124 @@ public class MainBackupArduinoScroll26aprill extends Application {
             public void handle(ActionEvent event) {
                 System.out.println("stop");
                 isStarted = false;
+                stopWatchTimeline.pause();
             }
         });
         clearButton.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 System.out.println("clear");
-                xSeriesData = 0;
                 testData = new ArrayList();
-                makeMovingChart(scene);
+                series10min.getData().clear();
+                series5min.getData().clear();
+                series3min.getData().clear();
+                series2min.getData().clear();
+                series1min.getData().clear();
+                series30sec.getData().clear();
+                xSeriesData = 0;
+                xAxis.setLowerBound(0);
+                xAxis.setUpperBound(upperBound);
+                millisecond = 0;
+                stopWatchTimeline.stop();
+                Text timerText = (Text) scene.lookup("#timerData");
+                timerText.setText("00:00:00:000");
             }
         });
+
+
         saveButton.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 System.out.println("save");
-                FileChooser fileChooser = new FileChooser();
+                //Vana datasaver
+//                FileChooser fileChooser = new FileChooser();
+//
+//                //Set extension filter for text files
+//                FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("TXT files (*.txt)", "*.txt");
+//                fileChooser.getExtensionFilters().add(extFilter);
+//
+//                //Show save file dialog
+//                File file = fileChooser.showSaveDialog(stage);
+//
+//                if (file != null) {
+//                    saveTextToFile(file);
+//                }
 
-                //Set extension filter for text files
-                FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("TXT files (*.txt)", "*.txt");
-                fileChooser.getExtensionFilters().add(extFilter);
+                long time = System.currentTimeMillis();
+                SimpleDateFormat sdf = new SimpleDateFormat("dd_MMMM_yyyy_HH_mm");
+                Date resultdate = new Date(time);
+                String timeStamp = sdf.format(resultdate);
+                String current;
+                try {
+                    current = new File( "." ).getCanonicalPath();
+                    File newDirectory = new File(current + "/" + timeStamp);
+                    boolean isCreated = newDirectory.mkdirs();
+                    if (isCreated) {
+                        System.out.printf("1. Successfully created directories, path:%s",
+                                newDirectory.getCanonicalPath());
+                    } else if (newDirectory.exists()) {
+                        System.out.printf("1. Directory path already exist, path:%s",
+                                newDirectory.getCanonicalPath());
+                    } else {
+                        System.out.println("1. Unable to create directory");
+                        return;
+                    }
 
-                //Show save file dialog
-                File file = fileChooser.showSaveDialog(stage);
+                    BufferedWriter writer;
 
-                if (file != null) {
-                    saveTextToFile(file);
+
+                    PrintWriter dataWriter;
+                    dataWriter = new PrintWriter(current+"/" + timeStamp + File.separator + "data.txt");
+                    for (int i = 0; i < testData.size(); i++) {
+                        dataWriter.println(testData.get(i));
+                    }
+                    System.out.println(testData.size());
+                    System.out.println("done");
+                    dataWriter.close();
+                    ImageSaver.saveImage(testData, current+"/" + timeStamp + File.separator + "image.png");
+
+                    if (concentrationTable != null) {
+                        writer = new BufferedWriter(new FileWriter((current+"/" + timeStamp + File.separator + "settings.txt")));
+                        writer.write("User: "+ currentUser);
+                        writer.newLine();
+                        writer.write("Method: "+ currentMethod);
+                        writer.newLine();
+                        writer.write("Matrix: "+ currentMatrix);
+                        writer.newLine();
+                        writer.write("Capillary: "+ currentCapillary);
+                        writer.newLine();
+                        writer.write("Total length of capillary: "+ currentCapillaryTotal);
+                        writer.newLine();
+                        writer.write("Effective length of capillary: "+ currentCapillaryEffective);
+                        writer.newLine();
+                        writer.write("Frequency: "+ currentFrequency);
+                        writer.newLine();
+                        writer.write("Injection method: "+ currentInjection + " " + injectionTime);
+                        writer.newLine();
+                        writer.write("Current: "+ currentField.getText());
+                        writer.newLine();
+                        writer.write("ConcentrationTable:");
+                        writer.newLine();
+                        TableView<Analyte> table = concentrationTable.getTable();
+                        ObservableList<Analyte> observableList = table.getItems();
+                        for (Analyte analyte:observableList) {
+                            writer.write(analyte.getAnalyte()+": "+analyte.getConcentration()+"%");
+                            writer.newLine();
+                        }
+                        writer.write("Commentary:");
+                        writer.newLine();
+                        writer.write(currentDescription);
+                        writer.newLine();
+                        writer.close();
+                    }
+
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
         });
+
+
         Button onOff = (Button) scene.lookup("#onOff");
         onOff.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
             @Override
@@ -705,7 +765,6 @@ public class MainBackupArduinoScroll26aprill extends Application {
                     highVoltage = "h\n";
                     //Arduino kood
                     try {
-                        //outputStream.write(highVoltage.getBytes());
                         serialPort.writeString(highVoltage);
                     } catch (SerialPortException e) {
                         e.printStackTrace();
@@ -717,7 +776,6 @@ public class MainBackupArduinoScroll26aprill extends Application {
                     highVoltage = "H\n";
                     //Arduino kood
                     try {
-                        //outputStream.write(highVoltage.getBytes());
                         serialPort.writeString(highVoltage);
                     } catch (SerialPortException e) {
                         e.printStackTrace();
@@ -787,7 +845,7 @@ public class MainBackupArduinoScroll26aprill extends Application {
             System.out.println("done");
             writer.close();
         } catch (IOException ex) {
-            Logger.getLogger(MainBackupArduinoScroll26aprill.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(MainBackupArduino2mai.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -797,39 +855,39 @@ public class MainBackupArduinoScroll26aprill extends Application {
         yAxis.setForceZeroInRange(false);
 
         series1 = new XYChart.Series<Number, Number>();
-        //lineChart = new LineChart<Number,Number>(xAxis,yAxis); //Siis on palju laiemalt graafik
 
-        xAxis = new NumberAxis();
+        xAxis = new NumberAxis(0, upperBound, 1);
         xAxis.setForceZeroInRange(false);
         xAxis.setAutoRanging(false); // Peab olema false. Muidu muudab ise graafiku laiust.
         xAxis.setTickLabelsVisible(true);
         xAxis.setTickMarkVisible(true);
         xAxis.setMinorTickVisible(false);
-        xAxis.setTickUnit(100); // See on ühe mõõtmisühiku suurus. Sellest ei sõltu graafiku kitsus.
+        xAxis.setTickUnit(upperBound/5);
+        lineChart = new LineChart<>(xAxis, yAxis); //Siis on palju kitsam graafik
+        series = new XYChart.Series(seriesData);
+        ObservableList<XYChart.Data> seriesData10min = FXCollections.observableArrayList();
+        ObservableList<XYChart.Data> seriesData5min = FXCollections.observableArrayList();
+        ObservableList<XYChart.Data> seriesData3min = FXCollections.observableArrayList();
+        ObservableList<XYChart.Data> seriesData2min = FXCollections.observableArrayList();
+        ObservableList<XYChart.Data> seriesData1min = FXCollections.observableArrayList();
+        ObservableList<XYChart.Data> seriesData30sec = FXCollections.observableArrayList();
+        series10min = new XYChart.Series(seriesData10min);
+        series5min = new XYChart.Series(seriesData5min);
+        series3min = new XYChart.Series(seriesData3min);
+        series2min = new XYChart.Series(seriesData2min);
+        series1min = new XYChart.Series(seriesData1min);
+        series30sec = new XYChart.Series(seriesData30sec);
 
-        lineChart = new LineChart<Number,Number>(xAxis,yAxis); //Siis on palju kitsam graafik
-
-        lineChart.getData().addAll(series1);
+        lineChart.getData().addAll(series30sec);
         lineChart.setCreateSymbols(false);
         lineChart.setLegendVisible(false);
         lineChart.setHorizontalGridLinesVisible(true);
-        lineChart.setVerticalGridLinesVisible(false);
+        lineChart.setVerticalGridLinesVisible(true);
         lineChart.setAnimated(false);
 
-        HBox box = new HBox();
-        box.getChildren().add(lineChart);
-        //box.setMaxWidth(200.0);  sellega saab kuidagi ekraani laiust muuta. Peab uurima
-
-        ScrollPane pane = new ScrollPane();
-        pane.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
-        pane.setPannable(true);
-        pane.setFitToWidth(false); //false teeb venimist vähemaks.
-        pane.setFitToHeight(true);
-        pane.setContent(box);
-
-        GridPane.setConstraints(pane, 1, 0);
+        GridPane.setConstraints(lineChart, 1, 0);
         GridPane mainPane = (GridPane) scene.lookup("#chartPane");
-        mainPane.getChildren().add(pane);
+        mainPane.getChildren().add(lineChart);
     }
 
     private class AddToQueue implements Runnable {
@@ -844,7 +902,7 @@ public class MainBackupArduinoScroll26aprill extends Application {
                 executor.execute(this);
 
             } catch (InterruptedException ex) {
-                Logger.getLogger(MainBackupArduinoScroll26aprill.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(MainBackupArduino2mai.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
@@ -860,46 +918,6 @@ public class MainBackupArduinoScroll26aprill extends Application {
     }
 
     private void addDataToSeries() {
-        //SEE OSA TULEB ÄRA MUUTA KUI LISADA HIGH VOLTAGE OSA!!!
-        //JÄRGMINE ON FAILIST LUGEMISE KOOD
-//        while (counter < 20) { // Enne 20 tekib imelik piik. Seda pole vaja lugeda.
-//            if (dataQ1.isEmpty()) {
-//                return;
-//            }
-//            dataQ1.remove();
-//            this.counter += 1;
-//        }
-//        if (!dataQ1.isEmpty()) {
-//            Number data = dataQ1.remove();
-//            if (isStarted) {
-//                series1.getData().add(new AreaChart.Data(xSeriesData++, data));
-//                lineChart.setMinWidth(lineChart.getWidth()+4);
-//                xAxis.setUpperBound(xAxis.getUpperBound()+1);
-//            }
-//        } else {
-//            return;
-//        }
-
-//        if (zoom == 1) {
-//            lineChart.setMinWidth(lineChart.getWidth()+4);
-//            xAxis.setUpperBound(xAxis.getUpperBound()+1);
-//        } else if (zoom == 10) {
-//            lineChart.setMinWidth(lineChart.getWidth()+4);
-//            xAxis.setUpperBound(xAxis.getUpperBound()+1);
-//        } else if (zoom == 100) {
-//            lineChart.setMinWidth(lineChart.getWidth()+4);
-//            xAxis.setUpperBound(xAxis.getUpperBound()+1);
-//        } else if (zoom == 1000) {
-//            lineChart.setMinWidth(lineChart.getWidth()+4);
-//            xAxis.setUpperBound(xAxis.getUpperBound()+1);
-//        } else if (zoom == 0.1) {
-//            lineChart.setMinWidth(lineChart.getWidth()+4);
-//            xAxis.setUpperBound(xAxis.getUpperBound()+1);
-//        } else if (zoom == 0.01) {
-//            lineChart.setMinWidth(lineChart.getWidth()+4);
-//            xAxis.setUpperBound(xAxis.getUpperBound()+1);
-//        }
-        //lineChart.setMinWidth(lineChart.getWidth()+1); //Ei veni, kui välja kommenteerida
         //JÄRGMINE ON ARDUINO KOOD
         if (arduinoData.isEmpty()) {
             return;
@@ -910,25 +928,52 @@ public class MainBackupArduinoScroll26aprill extends Application {
         if (current > 2147483647L) {
             current = current - 4294967295L;
         }
-        TextField currentField = (TextField) scene.lookup("#currentAmper");
+        currentField = (TextField) scene.lookup("#currentAmper");
         currentField.setText(String.valueOf(Math.round(current/256.0)));
         double voltagePercent = Double.parseDouble(androidData.split(" ")[4]);
         TextField percentageField = (TextField) scene.lookup("#voltagePercentBox");
         percentageField.setText(String.valueOf(Math.round((127.0-voltagePercent)/1.27)));
-        counter += 1;
+        //counter += 1;
         TextField textField = (TextField) scene.lookup("#androidData");
         if (androidData.length() - androidData.replace("C", "").length() == 1) {
             textField.setText(androidData);
         }
-        if (counter > 10) {
-            if (isStarted) {
-                xSeriesData += 0.5;
-                //series1.getData().add(new AreaChart.Data(xSeriesData++, measurement));
-                series1.getData().add(new AreaChart.Data(xSeriesData, measurement));
-                testData.add(measurement);
-                lineChart.setMinWidth(lineChart.getWidth()+2);
-                xAxis.setUpperBound(xAxis.getUpperBound()+0.5);
+        if (isStarted) {
+            xSeriesData += 1;
+
+            series10min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+            series5min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+            series3min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+            series2min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+            series1min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+            series30sec.getData().add(new AreaChart.Data(xSeriesData, measurement));
+            if (series10min.getData().size() > 12000) {
+                series10min.getData().remove(0);
             }
+            if (series5min.getData().size() > 6000) {
+                series5min.getData().remove(0);
+            }
+            if (series3min.getData().size() > 3600) {
+                series3min.getData().remove(0);
+            }
+            if (series2min.getData().size() > 2400) {
+                series2min.getData().remove(0);
+            }
+            if (series1min.getData().size() > 1200) {
+                series1min.getData().remove(0);
+            }
+            if (series30sec.getData().size() > 600) {
+                series30sec.getData().remove(0);
+            }
+
+            series.getData().add(new AreaChart.Data(xSeriesData, measurement));
+            testData.add(measurement);
+
+//            xAxis.setLowerBound(xAxis.getLowerBound() + 1);
+//            xAxis.setUpperBound(xAxis.getUpperBound() + 1);
+            xAxis.setUpperBound(testData.size());
+            xAxis.setLowerBound(testData.size() - upperBound);
+            xAxis.setTickUnit(upperBound/5);
         }
     }
 

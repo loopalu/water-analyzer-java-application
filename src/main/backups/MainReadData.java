@@ -1,8 +1,6 @@
-package main;
+package main.backups;
 
 import javafx.animation.AnimationTimer;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -10,55 +8,52 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.chart.AreaChart;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.PixelReader;
+import javafx.scene.image.PixelWriter;
+import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-import javafx.util.Duration;
-import jssc.SerialPort;
-import jssc.SerialPortException;
+import main.Analyte;
+import main.ConcentrationTable;
 import org.controlsfx.control.CheckComboBox;
 import org.controlsfx.control.textfield.TextFields;
 
+import javax.imageio.ImageIO;
 import java.io.*;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Stack;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class MainBackupArduino2mai extends Application {
-    private String currentTime = "";
-    private String currentFrequency = "";
-    private String androidFrequency = "";
-    private String currentUser = "Regular user";
-    private String currentMethod = "";
-    private String currentCapillaryTotal = "20";
-    private String currentCapillaryEffective = "10";
-    private ObservableList<String> currentAnalytes = FXCollections.observableArrayList();
-    private String currentMatrix = "";
-    private String currentCapillary = "10";
+public class MainReadData extends Application {
+    private String currentTime;
+    private String currentFrequency;
+    private String androidFrequency;
+    private String currentUser;
+    private String currentMethod;
+    private String currentMatrix;
     private ConcurrentLinkedQueue<Number> dataQ = new ConcurrentLinkedQueue<Number>();
     private ConcurrentLinkedQueue<Number> dataQ1 = new ConcurrentLinkedQueue<Number>();
     private XYChart.Series series1;
@@ -67,16 +62,14 @@ public class MainBackupArduino2mai extends Application {
     private final NumberAxis yAxis = new NumberAxis();
     private ExecutorService executor;
     private AddToQueue addToQueue;
-    private ArrayList testData = new ArrayList();
+    private HashMap<Integer, String> testData = new HashMap<>();
+    private int lowest = Integer.MAX_VALUE;
+    private int timeMoment = 0;
     private int counter = 0; // We don't need 100 first measurements.
     private LineChart<Number,Number> lineChart;
     private Stack<String> arduinoData;
-    private Scene scene;
-    private SerialPort serialPort;
-    private boolean isStarted = false;
-    private boolean isHighVoltage = false;
-    private String highVoltage = "h";
-    private double upperBound = 600.0;
+    private OutputStream outputStream;
+    final ObservableList<XYChart.Data> seriesData = FXCollections.observableArrayList();
     private XYChart.Series series;
     private XYChart.Series series10min;
     private XYChart.Series series5min;
@@ -84,19 +77,21 @@ public class MainBackupArduino2mai extends Application {
     private XYChart.Series series2min;
     private XYChart.Series series1min;
     private XYChart.Series series30sec;
-    final ObservableList<XYChart.Data> seriesData = FXCollections.observableArrayList();
+    private int upperBound = 300;
+    private String currentCapillary;
+    private String currentCapillaryTotal;
+    private String currentCapillaryEffective;
+    private ObservableList<String> currentAnalytes = FXCollections.observableArrayList();
+    private ArrayList testData1 = new ArrayList();
+    private List<String> elements = new ArrayList<>();
+    private List<String> matrixes = new ArrayList<>();
+    private List<String> methods = new ArrayList<>();
     private ConcentrationTable concentrationTable;
     private String currentInjection = "Vacuum";
     private String injectionTime = "0";
-    private String currentDescription = "";
-    private TextField currentField;
-    int millisecond = 0;
-    private Timeline stopWatchTimeline;
-
 
     @Override
     public void start(Stage stage) throws Exception{
-
         stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent t) {
@@ -106,30 +101,24 @@ public class MainBackupArduino2mai extends Application {
         });
 
         //JÄRGMINE ON FAILIST LUGEMISE KOOD
+        readFile();
 
-        Parent root = FXMLLoader.load(getClass().getResource("structure.fxml"));
-        root.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
+        Parent root = FXMLLoader.load(getClass().getResource("style/structure.fxml"));
+        root.getStylesheets().add(getClass().getResource("style/style.css").toExternalForm());
 
         stage.setTitle("Water Analyzer");
-        scene = new Scene(root, 1500, Screen.getPrimary().getVisualBounds().getHeight()*0.9);
+        Scene scene = new Scene(root, 1500, Screen.getPrimary().getVisualBounds().getHeight() * 0.9);
         stage.setScene(scene);
         stage.setResizable(false);
         makeFrequencyButtons(scene);
         makeTimeButtons(scene);
-        makeStartStopButtons(scene, stage);
         makeMovingChart(scene);
         makeComboBoxes(scene);
         makeComboBox(scene);
-        makeTimer(scene);
         TextArea textArea = (TextArea) scene.lookup("#textArea");
         textArea.setPrefWidth(Screen.getPrimary().getVisualBounds().getWidth()/5);
 
         stage.show();
-        //JÄRGMINE ON ARDUINO KOOD
-        ArduinoReader reader = new ArduinoReader();
-        reader.initialize();
-        arduinoData = reader.getData();
-        serialPort = reader.getSerialPort();
 
         executor = Executors.newCachedThreadPool(new ThreadFactory() {
             @Override public Thread newThread(Runnable r) {
@@ -144,21 +133,11 @@ public class MainBackupArduino2mai extends Application {
         prepareTimeline();
     }
 
-    private void makeTimer(Scene scene) {
-        Text textField = (Text) scene.lookup("#timerData");
-        textField.setText("00:00:00:000");
-        stopWatchTimeline = new Timeline(new KeyFrame(Duration.millis(1), (ActionEvent event) -> {
-            millisecond++;
-            textField.setText(String.format("%02d:%02d:%02d:%03d", millisecond / 3600000 %24, millisecond / 60000 %60, millisecond/ 1000 %60, millisecond % 1000));
-        }));
-        stopWatchTimeline.setCycleCount(Timeline.INDEFINITE);
-    }
-
     private void readFile() throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader("andmed.txt"));
         String voltage = reader.readLine();
         while (voltage != null) {
-            testData.add(voltage);
+            testData.put(timeMoment, voltage);
             Integer data = Integer.parseInt(voltage);
             dataQ.add(data);
             // read next line
@@ -168,9 +147,6 @@ public class MainBackupArduino2mai extends Application {
     }
 
     private void makeComboBox(Scene scene) {
-        List<String> elements = new ArrayList<>();
-        List<String> matrixes = new ArrayList<>();
-        List<String> methods = new ArrayList<>();
 
         elements.add("Na");
         elements.add("K");
@@ -227,7 +203,7 @@ public class MainBackupArduino2mai extends Application {
         checkComboBox.setStyle("-fx-min-width: 430.0");
 
         checkComboBox.getCheckModel().getCheckedItems().addListener(new ListChangeListener<String>() {
-            public void onChanged(Change<? extends String> c) {
+            public void onChanged(ListChangeListener.Change<? extends String> c) {
                 checkComboBox.getCheckModel().getCheckedItems();
                 currentAnalytes = checkComboBox.getCheckModel().getCheckedItems();
                 System.out.println(checkComboBox.getCheckModel().getCheckedItems());
@@ -258,6 +234,7 @@ public class MainBackupArduino2mai extends Application {
                 } else if (comboBox.getId().equals("comboBox2")) {
                     currentMatrix = (String) comboBox.getValue();
                 }
+                //Tried dispose method here but dint worked[![enter image description here][1]][1]
             }
         });
 
@@ -355,38 +332,14 @@ public class MainBackupArduino2mai extends Application {
         });
 
         TextField durationField = (TextField) scene.lookup("#durationField");
-        durationField.setOnKeyPressed(new EventHandler<KeyEvent>() {
+        durationField.setOnAction(new EventHandler<ActionEvent>() {
             @Override
-            public void handle(KeyEvent event) {
+            public void handle(ActionEvent event) {
                 injectionTime = durationField.getText();
                 System.out.println(injectionTime);
             }
         });
 
-        durationField.setOnKeyReleased(new EventHandler<KeyEvent>() {
-            @Override
-            public void handle(KeyEvent event) {
-                injectionTime = durationField.getText();
-                System.out.println(injectionTime);
-            }
-        });
-
-        TextArea commentaryField = (TextArea) scene.lookup("#textArea");
-        commentaryField.setOnKeyPressed(new EventHandler<KeyEvent>() {
-            @Override
-            public void handle(KeyEvent event) {
-                currentDescription = commentaryField.getText();
-                System.out.println(currentDescription);
-            }
-        });
-
-        commentaryField.setOnKeyReleased(new EventHandler<KeyEvent>() {
-            @Override
-            public void handle(KeyEvent event) {
-                currentDescription = commentaryField.getText();
-                System.out.println(currentDescription);
-            }
-        });
     }
 
     private void makeTimeButtons(Scene scene) {
@@ -426,8 +379,8 @@ public class MainBackupArduino2mai extends Application {
                             oldUpperBound = upperBound;
                             upperBound = 12000;
                             System.out.println(oldUpperBound + " " + upperBound);
-                            xAxis.setUpperBound(testData.size());
-                            xAxis.setLowerBound(testData.size() - upperBound);
+                            xAxis.setUpperBound(testData1.size());
+                            xAxis.setLowerBound(testData1.size() - upperBound);
                             xAxis.setTickUnit(upperBound/5);
                             lineChart.getData().clear();
                             lineChart.getData().addAll(series10min);
@@ -436,8 +389,8 @@ public class MainBackupArduino2mai extends Application {
                             oldUpperBound = upperBound;
                             upperBound = 6000;
                             System.out.println(oldUpperBound + " " + upperBound);
-                            xAxis.setUpperBound(testData.size());
-                            xAxis.setLowerBound(testData.size() - upperBound);
+                            xAxis.setUpperBound(testData1.size());
+                            xAxis.setLowerBound(testData1.size() - upperBound);
                             xAxis.setTickUnit(upperBound/5);
                             lineChart.getData().clear();
                             lineChart.getData().addAll(series5min);
@@ -446,8 +399,8 @@ public class MainBackupArduino2mai extends Application {
                             oldUpperBound = upperBound;
                             upperBound = 3600;
                             System.out.println(oldUpperBound + " " + upperBound);
-                            xAxis.setUpperBound(testData.size());
-                            xAxis.setLowerBound(testData.size() - upperBound);
+                            xAxis.setUpperBound(testData1.size());
+                            xAxis.setLowerBound(testData1.size() - upperBound);
                             xAxis.setTickUnit(upperBound/5);
                             lineChart.getData().clear();
                             lineChart.getData().addAll(series3min);
@@ -456,8 +409,8 @@ public class MainBackupArduino2mai extends Application {
                             oldUpperBound = upperBound;
                             upperBound = 2400;
                             System.out.println(oldUpperBound + " " + upperBound);
-                            xAxis.setUpperBound(testData.size());
-                            xAxis.setLowerBound(testData.size() - upperBound);
+                            xAxis.setUpperBound(testData1.size());
+                            xAxis.setLowerBound(testData1.size() - upperBound);
                             xAxis.setTickUnit(upperBound/5);
                             lineChart.getData().clear();
                             lineChart.getData().addAll(series2min);
@@ -466,18 +419,19 @@ public class MainBackupArduino2mai extends Application {
                             oldUpperBound = upperBound;
                             upperBound = 1200;
                             System.out.println(oldUpperBound + " " + upperBound);
-                            xAxis.setUpperBound(testData.size());
-                            xAxis.setLowerBound(testData.size() - upperBound);
+                            xAxis.setUpperBound(testData1.size());
+                            xAxis.setLowerBound(testData1.size() - upperBound);
                             xAxis.setTickUnit(upperBound/5);
                             lineChart.getData().clear();
                             lineChart.getData().addAll(series1min);
+
                             break;
                         case "30 sec": // 300 punkti 60ste vahedega  Default start
                             oldUpperBound = upperBound;
                             upperBound = 600;
                             System.out.println(oldUpperBound + " " + upperBound);
-                            xAxis.setUpperBound(testData.size());
-                            xAxis.setLowerBound(testData.size() - upperBound);
+                            xAxis.setUpperBound(testData1.size());
+                            xAxis.setLowerBound(testData1.size() - upperBound);
                             xAxis.setTickUnit(upperBound/5);
                             lineChart.getData().clear();
                             lineChart.getData().addAll(series30sec);
@@ -584,11 +538,11 @@ public class MainBackupArduino2mai extends Application {
                             break;
                     }
                     //JÄRGMINE ON ARDUINO KOOD
-                    try {
-                        serialPort.writeString(androidFrequency);
-                    } catch (SerialPortException e) {
-                        e.printStackTrace();
-                    }
+//                    try {
+//                        serialPort.writeString(androidFrequency);
+//                    } catch (SerialPortException e) {
+//                        e.printStackTrace();
+//                    }
                     System.out.println(series.getData().size());
                     System.out.println(androidFrequency);
                 }
@@ -614,237 +568,6 @@ public class MainBackupArduino2mai extends Application {
         grid.getChildren().addAll(box1, box2, box3, box4, box5, box6, box7, box8, box9, box10);
     }
 
-    private void makeStartStopButtons(Scene scene, Stage stage) {
-        Button startButton = new Button("Start");
-        Button stopButton = new Button("Stop");
-        Button clearButton = new Button("Clear");
-        Button saveButton = new Button("Save");
-        startButton.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                System.out.println("start");
-                isStarted = true;
-                stopWatchTimeline.play();
-            }
-        });
-        stopButton.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                System.out.println("stop");
-                isStarted = false;
-                stopWatchTimeline.pause();
-            }
-        });
-        clearButton.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                System.out.println("clear");
-                testData = new ArrayList();
-                series10min.getData().clear();
-                series5min.getData().clear();
-                series3min.getData().clear();
-                series2min.getData().clear();
-                series1min.getData().clear();
-                series30sec.getData().clear();
-                xSeriesData = 0;
-                xAxis.setLowerBound(0);
-                xAxis.setUpperBound(upperBound);
-                millisecond = 0;
-                stopWatchTimeline.stop();
-                Text timerText = (Text) scene.lookup("#timerData");
-                timerText.setText("00:00:00:000");
-            }
-        });
-
-
-        saveButton.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                System.out.println("save");
-                //Vana datasaver
-//                FileChooser fileChooser = new FileChooser();
-//
-//                //Set extension filter for text files
-//                FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("TXT files (*.txt)", "*.txt");
-//                fileChooser.getExtensionFilters().add(extFilter);
-//
-//                //Show save file dialog
-//                File file = fileChooser.showSaveDialog(stage);
-//
-//                if (file != null) {
-//                    saveTextToFile(file);
-//                }
-
-                long time = System.currentTimeMillis();
-                SimpleDateFormat sdf = new SimpleDateFormat("dd_MMMM_yyyy_HH_mm");
-                Date resultdate = new Date(time);
-                String timeStamp = sdf.format(resultdate);
-                String current;
-                try {
-                    current = new File( "." ).getCanonicalPath();
-                    File newDirectory = new File(current + "/" + timeStamp);
-                    boolean isCreated = newDirectory.mkdirs();
-                    if (isCreated) {
-                        System.out.printf("1. Successfully created directories, path:%s",
-                                newDirectory.getCanonicalPath());
-                    } else if (newDirectory.exists()) {
-                        System.out.printf("1. Directory path already exist, path:%s",
-                                newDirectory.getCanonicalPath());
-                    } else {
-                        System.out.println("1. Unable to create directory");
-                        return;
-                    }
-
-                    BufferedWriter writer;
-
-
-                    PrintWriter dataWriter;
-                    dataWriter = new PrintWriter(current+"/" + timeStamp + File.separator + "data.txt");
-                    for (int i = 0; i < testData.size(); i++) {
-                        dataWriter.println(testData.get(i));
-                    }
-                    System.out.println(testData.size());
-                    System.out.println("done");
-                    dataWriter.close();
-                    ImageSaver.saveImage(testData, current+"/" + timeStamp + File.separator + "image.png");
-
-                    if (concentrationTable != null) {
-                        writer = new BufferedWriter(new FileWriter((current+"/" + timeStamp + File.separator + "settings.txt")));
-                        writer.write("User: "+ currentUser);
-                        writer.newLine();
-                        writer.write("Method: "+ currentMethod);
-                        writer.newLine();
-                        writer.write("Matrix: "+ currentMatrix);
-                        writer.newLine();
-                        writer.write("Capillary: "+ currentCapillary);
-                        writer.newLine();
-                        writer.write("Total length of capillary: "+ currentCapillaryTotal);
-                        writer.newLine();
-                        writer.write("Effective length of capillary: "+ currentCapillaryEffective);
-                        writer.newLine();
-                        writer.write("Frequency: "+ currentFrequency);
-                        writer.newLine();
-                        writer.write("Injection method: "+ currentInjection + " " + injectionTime);
-                        writer.newLine();
-                        writer.write("Current: "+ currentField.getText());
-                        writer.newLine();
-                        writer.write("ConcentrationTable:");
-                        writer.newLine();
-                        TableView<Analyte> table = concentrationTable.getTable();
-                        ObservableList<Analyte> observableList = table.getItems();
-                        for (Analyte analyte:observableList) {
-                            writer.write(analyte.getAnalyte()+": "+analyte.getConcentration()+"%");
-                            writer.newLine();
-                        }
-                        writer.write("Commentary:");
-                        writer.newLine();
-                        writer.write(currentDescription);
-                        writer.newLine();
-                        writer.close();
-                    }
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
-
-        Button onOff = (Button) scene.lookup("#onOff");
-        onOff.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                if (isHighVoltage) {
-                    isHighVoltage = false;
-                    onOff.setStyle("-fx-background-color: red;");
-                    onOff.setText("OFF");
-                    highVoltage = "h\n";
-                    //Arduino kood
-                    try {
-                        serialPort.writeString(highVoltage);
-                    } catch (SerialPortException e) {
-                        e.printStackTrace();
-                    }
-                } else {
-                    isHighVoltage = true;
-                    onOff.setStyle("-fx-background-color: lawngreen;");
-                    onOff.setText("ON");
-                    highVoltage = "H\n";
-                    //Arduino kood
-                    try {
-                        serialPort.writeString(highVoltage);
-                    } catch (SerialPortException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        });
-        Button sendPercentageButton = (Button) scene.lookup("#sendPercentageButton");
-        sendPercentageButton.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                System.out.println("send");
-                TextField field = (TextField) scene.lookup("#percentageField");
-                field.setOnMouseClicked(event1 -> {
-                    field.setStyle("-fx-text-inner-color: black;");
-                    field.clear();
-                });
-                String fieldData = field.getText();
-                try {
-                    int out = Integer.parseInt(fieldData);
-                    if (out < 0 || out > 100) {
-                        field.setStyle("-fx-text-inner-color: red;");
-                        field.setText("ERROR");
-                    } else {
-                        String outData = "v" + (int) (127 - out * 1.27)+"\n";
-                        //Arduino kood
-                        try {
-                            serialPort.writeString(outData);
-                            //outputStream.write(outData.getBytes());
-                        } catch (SerialPortException e) {
-                            e.printStackTrace();
-                        }
-                        System.out.println(outData);
-                    }
-                } catch (NumberFormatException ex) {
-                    field.setStyle("-fx-text-inner-color: red;");
-                    field.setText("ERROR");
-                }
-            }
-        });
-        HBox box1 = new HBox(startButton);
-        box1.setId("hbox");
-        HBox box2 = new HBox(stopButton);
-        box2.setId("hbox");
-        HBox box3 = new HBox(clearButton);
-        box3.setId("hbox");
-        HBox box4 = new HBox(saveButton);
-        box4.setId("hbox");
-        GridPane.setConstraints(box1,0,11);
-        GridPane.setConstraints(box2,1,11);
-        GridPane.setConstraints(box3,2,11);
-        GridPane.setConstraints(box4,3,11);
-        GridPane grid = (GridPane) scene.lookup("#testSettings");
-        grid.getChildren().addAll(box1, box2, box3, box4);
-    }
-
-    private void saveTextToFile(File file) {
-        try {
-            PrintWriter writer;
-            writer = new PrintWriter(file);
-            writer.println("C4d_2015-test");
-            writer.println("aeg, juhtivus");
-            for (int i = 0; i < testData.size(); i++) {
-                writer.println(" "+i+", "+testData.get(i));
-            }
-            System.out.println(testData.size());
-            System.out.println("done");
-            writer.close();
-        } catch (IOException ex) {
-            Logger.getLogger(MainBackupArduino2mai.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
     private void makeMovingChart(Scene scene) {
         NumberAxis yAxis = new NumberAxis();
         yAxis.setAutoRanging(true);
@@ -859,7 +582,7 @@ public class MainBackupArduino2mai extends Application {
         xAxis.setTickMarkVisible(true);
         xAxis.setMinorTickVisible(false);
         xAxis.setTickUnit(upperBound/5);
-        lineChart = new LineChart<>(xAxis, yAxis); //Siis on palju kitsam graafik
+        lineChart = new LineChart<Number,Number>(xAxis,yAxis); //Siis on palju kitsam graafik
         series = new XYChart.Series(seriesData);
         ObservableList<XYChart.Data> seriesData10min = FXCollections.observableArrayList();
         ObservableList<XYChart.Data> seriesData5min = FXCollections.observableArrayList();
@@ -898,7 +621,7 @@ public class MainBackupArduino2mai extends Application {
                 executor.execute(this);
 
             } catch (InterruptedException ex) {
-                Logger.getLogger(MainBackupArduino2mai.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(MainReadData.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
@@ -914,62 +637,83 @@ public class MainBackupArduino2mai extends Application {
     }
 
     private void addDataToSeries() {
-        //JÄRGMINE ON ARDUINO KOOD
-        if (arduinoData.isEmpty()) {
+        //JÄRGMINE ON FAILIST LUGEMISE KOOD
+        if (dataQ1.isEmpty()) {
             return;
         }
-        String androidData = arduinoData.pop();
-        Number measurement = Integer.parseInt(androidData.split(" ")[1]);
-        long current = Long.parseLong(androidData.split(" ")[2]);
-        if (current > 2147483647L) {
-            current = current - 4294967295L;
+        Number measurement = dataQ1.remove();
+        xSeriesData += 1;
+
+        series10min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+        series5min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+        series3min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+        series2min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+        series1min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+        series30sec.getData().add(new AreaChart.Data(xSeriesData, measurement));
+        System.out.println(series1min.getData().get(series1min.getData().size()-1));
+        if (series10min.getData().size() > 12000) {
+            series10min.getData().remove(0);
         }
-        currentField = (TextField) scene.lookup("#currentAmper");
-        currentField.setText(String.valueOf(Math.round(current/256.0)));
-        double voltagePercent = Double.parseDouble(androidData.split(" ")[4]);
-        TextField percentageField = (TextField) scene.lookup("#voltagePercentBox");
-        percentageField.setText(String.valueOf(Math.round((127.0-voltagePercent)/1.27)));
-        //counter += 1;
-        TextField textField = (TextField) scene.lookup("#androidData");
-        if (androidData.length() - androidData.replace("C", "").length() == 1) {
-            textField.setText(androidData);
+        if (series5min.getData().size() > 6000) {
+            series5min.getData().remove(0);
         }
-        if (isStarted) {
-            xSeriesData += 1;
+        if (series3min.getData().size() > 3600) {
+            series3min.getData().remove(0);
+        }
+        if (series2min.getData().size() > 2400) {
+            series2min.getData().remove(0);
+        }
+        if (series1min.getData().size() > 1200) {
+            series1min.getData().remove(0);
+        }
+        if (series30sec.getData().size() > 600) {
+            series30sec.getData().remove(0);
+        }
 
-            series10min.getData().add(new AreaChart.Data(xSeriesData, measurement));
-            series5min.getData().add(new AreaChart.Data(xSeriesData, measurement));
-            series3min.getData().add(new AreaChart.Data(xSeriesData, measurement));
-            series2min.getData().add(new AreaChart.Data(xSeriesData, measurement));
-            series1min.getData().add(new AreaChart.Data(xSeriesData, measurement));
-            series30sec.getData().add(new AreaChart.Data(xSeriesData, measurement));
-            if (series10min.getData().size() > 12000) {
-                series10min.getData().remove(0);
-            }
-            if (series5min.getData().size() > 6000) {
-                series5min.getData().remove(0);
-            }
-            if (series3min.getData().size() > 3600) {
-                series3min.getData().remove(0);
-            }
-            if (series2min.getData().size() > 2400) {
-                series2min.getData().remove(0);
-            }
-            if (series1min.getData().size() > 1200) {
-                series1min.getData().remove(0);
-            }
-            if (series30sec.getData().size() > 600) {
-                series30sec.getData().remove(0);
-            }
+        series.getData().add(new AreaChart.Data(xSeriesData, measurement));
+        testData1.add(measurement);
 
-            series.getData().add(new AreaChart.Data(xSeriesData, measurement));
-            testData.add(measurement);
-
-//            xAxis.setLowerBound(xAxis.getLowerBound() + 1);
-//            xAxis.setUpperBound(xAxis.getUpperBound() + 1);
-            xAxis.setUpperBound(testData.size());
-            xAxis.setLowerBound(testData.size() - upperBound);
-            xAxis.setTickUnit(upperBound/5);
+//        xAxis.setLowerBound(xAxis.getLowerBound() + 1);
+//        xAxis.setUpperBound(xAxis.getUpperBound() + 1);
+        xAxis.setUpperBound(testData1.size());
+        xAxis.setLowerBound(testData1.size() - upperBound);
+        xAxis.setTickUnit(upperBound/5);
+        if (dataQ1.isEmpty()) {
+            long time = System.currentTimeMillis();
+            SimpleDateFormat sdf = new SimpleDateFormat("dd_MMMM_yyyy_HH_mm");
+            Date resultdate = new Date(time);
+            String timeStamp = sdf.format(resultdate);
+            BufferedWriter writer;
+            try {
+                writer = new BufferedWriter(new FileWriter((time + ".txt")));
+                writer.write("User: "+ currentUser);
+                writer.newLine();
+                writer.write("Method: "+ currentMethod);
+                writer.newLine();
+                writer.write("Matrix: "+ currentMatrix);
+                writer.newLine();
+                writer.write("Capillary ID/OD: "+ currentCapillary);
+                writer.newLine();
+                writer.write("Total length of capillary: "+ currentCapillaryTotal);
+                writer.newLine();
+                writer.write("Effective length of capillary: "+ currentCapillaryEffective);
+                writer.newLine();
+                writer.write("Frequency: "+ currentFrequency);
+                writer.newLine();
+                writer.write("Injection method: "+ currentInjection + " " + injectionTime);
+                writer.newLine();
+                writer.write("ConcentrationTable:");
+                writer.newLine();
+                TableView<Analyte> table = concentrationTable.getTable();
+                ObservableList<Analyte> observableList = table.getItems();
+                for (Analyte analyte:observableList) {
+                    writer.write(analyte.getAnalyte()+": "+analyte.getConcentration()+"%");
+                    writer.newLine();
+                }
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -977,6 +721,58 @@ public class MainBackupArduino2mai extends Application {
     @SuppressWarnings("unchecked")
     public static void main(String[] args) {
         launch(args);
+    }
+
+    private void exportPng(final Node node, final String filePath) {
+
+        final int w = (int) node.getLayoutBounds().getWidth();
+        final int h = (int) node.getLayoutBounds().getHeight();
+        final WritableImage full = new WritableImage(w, h);
+
+        // defines the number of tiles to export (use higher value for bigger resolution)
+        final int size = 1;
+        final int tileWidth = w / size;
+        final int tileHeight = h / size;
+
+        System.out.println("Exporting node (building " + (size * size) + " tiles)");
+
+        try {
+            for (int row = 0; row < size; ++row) {
+
+                final int x = row * tileWidth;
+                System.out.println("1 done");
+                final int y = row * tileHeight;
+                System.out.println("2 done");
+                final SnapshotParameters params = new SnapshotParameters();
+                System.out.println("3 done");
+                params.setViewport(new Rectangle2D(x, y, tileWidth, tileHeight));
+                System.out.println("4 done");
+
+                final CompletableFuture<Image> future = new CompletableFuture<>();
+                System.out.println("5 done");
+
+                // keeps fx application thread unblocked
+                Platform.runLater(() -> future.complete(node.snapshot(params, null)));
+                System.out.println("6 done");
+                PixelWriter pixelWriter = full.getPixelWriter();
+                System.out.println("7 done");
+                Image image = future.get();
+                System.out.println("8 done");
+                PixelReader pixelReader = image.getPixelReader();
+                System.out.println("9 done");
+                pixelWriter.setPixels(x, y, tileWidth, tileHeight, pixelReader, 0, 0);
+                System.out.println("10 done");
+            }
+
+            System.out.println("Exporting node (saving to file)");
+
+            ImageIO.write(SwingFXUtils.fromFXImage(full, null), "png", new File(filePath));
+
+            System.out.println("Exporting node (finished)");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }

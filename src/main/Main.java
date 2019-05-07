@@ -32,16 +32,15 @@ import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 import jssc.SerialPort;
 import jssc.SerialPortException;
+import main.util.ArduinoReader;
+import main.util.DatabaseAsker;
+import main.util.ImageSaver;
 import org.controlsfx.control.CheckComboBox;
 import org.controlsfx.control.textfield.TextFields;
 
 import java.io.*;
-import java.text.ChoiceFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -101,7 +100,7 @@ public class Main extends Application {
     private final ObservableList<XYChart.Data> currentData = FXCollections.observableArrayList();
     private ConcentrationTable concentrationTable;
     private ConcentrationTable elementsConcentrationTable;
-    private String currentInjection = "Vacuum";
+    private String currentInjection = "Pressure";
     private String injectionTime = "0";
     private String currentDescription = "";
     private TextField currentField;
@@ -116,11 +115,18 @@ public class Main extends Application {
     private String currentInjectionChoiceUnit = "cm";
     private String injectionChoiceValue = "";
     private String currentValueString = "0";
+    private ArrayList<String> analytes = new ArrayList<>(Arrays.asList("Na", "K", "Li", "NH4", "Ba", "Mg", "Mn", "Fe2+",
+            "Br", "Cl", "SO4", "SO3", "NO3", "NO2", "F", "PO4", "Thiamine", "Nicotinic acid", "Nicotinamide",
+            "Pyridoxide", "Ascorbic acid", "GABA", "Arginine", "Lysine", "Valine", "Serine", "Glycine", "Phenylalanine"));
+    private ArrayList<String> bges = new ArrayList<>(Arrays.asList("Acetic acid 1M", "Acetic acid 2M", "Acetic acid 3M",
+            "Acetic acid 6M", "Mes", "His"));
+    private ArrayList<String> matrixes = new ArrayList<>(Arrays.asList("soil", "sand", "rocks", "tap water", "rain water",
+            "spring water", "aquarium water", "sea water", "canalization water", "saliva", "blood", "urine", "plant extract",
+            "juice", "drink"));
 
 
     @Override
     public void start(Stage stage) throws Exception{
-
         stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent t) {
@@ -131,13 +137,16 @@ public class Main extends Application {
 
         //JÄRGMINE ON FAILIST LUGEMISE KOOD
 
-        Parent root = FXMLLoader.load(getClass().getResource("structure.fxml"));
-        root.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
+        Parent root = FXMLLoader.load(getClass().getResource("style/structure.fxml"));
+        root.getStylesheets().add(getClass().getResource("style/style.css").toExternalForm());
 
         stage.setTitle("Water Analyzer");
         scene = new Scene(root, 1500, Screen.getPrimary().getVisualBounds().getHeight()*0.9);
         stage.setScene(scene);
         stage.setResizable(false);
+
+        getDataFromDatabase();
+
         makeFrequencyButtons(scene);
         makeTimeButtons(scene);
         makeStartStopButtons(scene, stage);
@@ -154,7 +163,6 @@ public class Main extends Application {
         reader.initialize();
         arduinoData = reader.getData();
         serialPort = reader.getSerialPort();
-
         executor = Executors.newCachedThreadPool(new ThreadFactory() {
             @Override public Thread newThread(Runnable r) {
                 Thread thread = new Thread(r);
@@ -166,6 +174,15 @@ public class Main extends Application {
         executor.execute(addToQueue);
         //-- Prepare Timeline
         prepareTimeline();
+    }
+
+    private void getDataFromDatabase() {
+        DatabaseAsker databaseAsker = new DatabaseAsker();
+        if (databaseAsker.isConnection()) {
+            if (databaseAsker.isDatabaseUp()) {
+
+            }
+        }
     }
 
     private void makeTimer(Scene scene) {
@@ -197,70 +214,14 @@ public class Main extends Application {
     }
 
     private void makeOptions(Scene scene) {
-        List<String> elements = new ArrayList<>();
-        List<String> matrixes = new ArrayList<>();
         List<String> methods = new ArrayList<>();
-        List<String> bges = new ArrayList<>();
-
-        elements.add("Na");
-        elements.add("K");
-        elements.add("Li");
-        elements.add("NH4");
-        elements.add("Ba");
-        elements.add("Mg");
-        elements.add("Mn");
-        elements.add("Fe2+");
-        elements.add("Br");
-        elements.add("Cl");
-        elements.add("SO4");
-        elements.add("SO3");
-        elements.add("NO3");
-        elements.add("NO2");
-        elements.add("F");
-        elements.add("PO4");
-        elements.add("Thiamine");
-        elements.add("Nicotinic acid");
-        elements.add("Nicotinamide");
-        elements.add("Pyridoxide");
-        elements.add("Ascorbic acid");
-        elements.add("GABA");
-        elements.add("Arginine");
-        elements.add("Lysine");
-        elements.add("Valine");
-        elements.add("Serine");
-        elements.add("Glycine");
-        elements.add("Phenylalanine");
-
-        bges.add("Acetic acid 1M");
-        bges.add("Acetic acid 2M");
-        bges.add("Acetic acid 3M");
-        bges.add("Acetic acid 6M");
-        bges.add("Mes");
-        bges.add("His");
-
-        matrixes.add("soil");
-        matrixes.add("sand");
-        matrixes.add("rocks");
-        matrixes.add("tap water");
-        matrixes.add("rain water");
-        matrixes.add("spring water");
-        matrixes.add("aquarium water");
-        matrixes.add("sea water");
-        matrixes.add("salted water");
-        matrixes.add("canalization water");
-        matrixes.add("salvia");
-        matrixes.add("blood");
-        matrixes.add("urine");
-        matrixes.add("plant extract");
-        matrixes.add("juice");
-        matrixes.add("drink");
 
         ComboBox comboBox1 = (ComboBox) scene.lookup("#comboBox1");
         ComboBox comboBox2 = (ComboBox) scene.lookup("#comboBox2");
 
         CheckComboBox<String> checkElementsComboBox = new CheckComboBox();
         GridPane elementsHBox = (GridPane) scene.lookup("#elementsHBox");
-        checkElementsComboBox.getItems().addAll(elements);
+        checkElementsComboBox.getItems().addAll(analytes);
         checkElementsComboBox.setStyle("-fx-min-width: 192.0");
         checkElementsComboBox.getCheckModel().getCheckedItems().addListener(new ListChangeListener<String>() {
             public void onChanged(ListChangeListener.Change<? extends String> c) {
@@ -405,7 +366,7 @@ public class Main extends Application {
 
         ChoiceBox capillaryBox = (ChoiceBox) scene.lookup("#capillaryBox");
         capillaryBox.getItems().addAll("25/150 μm", "25/350 μm", "50/150 μm", "50/350 μm", "75/175 μm", "75/350 μm", "100/175 μm", "100/350 μm");
-        capillaryBox.getSelectionModel().selectFirst();
+        capillaryBox.getSelectionModel().select(2);
         capillaryBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
@@ -418,7 +379,7 @@ public class Main extends Application {
         for (int i = 4; i < 16; i++) {
             capillaryTotalBox.getItems().add((i * 5 + " cm"));
         }
-        capillaryTotalBox.getSelectionModel().selectFirst();
+        capillaryTotalBox.getSelectionModel().select(4);
         capillaryTotalBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
@@ -431,7 +392,7 @@ public class Main extends Application {
         for (int i = 2; i < 13; i++) {
             capillaryEffectiveBox.getItems().add((i * 5 + " cm"));
         }
-        capillaryEffectiveBox.getSelectionModel().selectFirst();
+        capillaryEffectiveBox.getSelectionModel().select(3);
         capillaryEffectiveBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
@@ -441,7 +402,7 @@ public class Main extends Application {
         });
 
         ChoiceBox injectionBox = (ChoiceBox) scene.lookup("#injectionBox");
-        injectionBox.getItems().addAll("Vacuum", "Pressure", "Electricity");
+        injectionBox.getItems().addAll("Pressure", "Vacuum", "Electricity");
         injectionBox.getSelectionModel().selectFirst();
         Text injectionChoiceText = (Text) scene.lookup("#injectionChoiceText");
         ChoiceBox injectionChoiceUnitBox = (ChoiceBox) scene.lookup("#injectionChoiceUnitBox");
@@ -781,7 +742,7 @@ public class Main extends Application {
                 }
             }
         });
-        group.selectToggle(button4);
+        group.selectToggle(button1);
         // select the first button to start with
         // add buttons and label to grid and set their positions
         GridPane.setConstraints(box1,0,2);
@@ -810,6 +771,11 @@ public class Main extends Application {
                 System.out.println("start");
                 isStarted = true;
                 stopWatchTimeline.play();
+                try {
+                    serialPort.writeString("G9\n");
+                } catch (SerialPortException e) {
+                    e.printStackTrace();
+                }
             }
         });
         stopButton.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
@@ -842,27 +808,9 @@ public class Main extends Application {
             @Override
             public void handle(ActionEvent event) {
                 if (isHighVoltage) {
-                    isHighVoltage = false;
-                    onOff.setStyle("-fx-background-color: red;");
-                    onOff.setText("OFF");
-                    highVoltage = "h\n";
-                    //Arduino kood
-                    try {
-                        serialPort.writeString(highVoltage);
-                    } catch (SerialPortException e) {
-                        e.printStackTrace();
-                    }
+                    turnHighVoltageOff(onOff);
                 } else {
-                    isHighVoltage = true;
-                    onOff.setStyle("-fx-background-color: lawngreen;");
-                    onOff.setText("ON");
-                    highVoltage = "H\n";
-                    //Arduino kood
-                    try {
-                        serialPort.writeString(highVoltage);
-                    } catch (SerialPortException e) {
-                        e.printStackTrace();
-                    }
+                    turnHighVoltageOn(onOff);
                 }
             }
         });
@@ -933,6 +881,32 @@ public class Main extends Application {
         grid.getChildren().addAll(box1, box2, box3, box4);
     }
 
+    private void turnHighVoltageOn(Button onOff) {
+        isHighVoltage = true;
+        onOff.setStyle("-fx-background-color: lawngreen;");
+        onOff.setText("ON");
+        highVoltage = "H\n";
+        //Arduino kood
+        try {
+            serialPort.writeString(highVoltage);
+        } catch (SerialPortException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void turnHighVoltageOff(Button onOff) {
+        isHighVoltage = false;
+        onOff.setStyle("-fx-background-color: red;");
+        onOff.setText("OFF");
+        highVoltage = "h\n";
+        //Arduino kood
+        try {
+            serialPort.writeString(highVoltage);
+        } catch (SerialPortException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void clear(Scene scene) {
         System.out.println("clear");
         testData = new ArrayList();
@@ -994,17 +968,17 @@ public class Main extends Application {
 
             BufferedWriter writer;
             PrintWriter dataWriter;
-            dataWriter = new PrintWriter(current+"/" + timeStamp + File.separator + "data.txt");
+            dataWriter = new PrintWriter(current+"/" + timeStamp + File.separator + timeStamp + "_data.txt");
             for (int i = 0; i < testData.size(); i++) {
                 dataWriter.println(testData.get(i));
             }
             System.out.println(testData.size());
             System.out.println("done");
             dataWriter.close();
-            ImageSaver.saveImage(testData, current+"/" + timeStamp + File.separator + "image.png");
+            ImageSaver.saveImage(testData, current+"/" + timeStamp + File.separator + timeStamp + "_image.png");
 
             if (concentrationTable != null) {
-                writer = new BufferedWriter(new FileWriter((current+"/" + timeStamp + File.separator + "settings.txt")));
+                writer = new BufferedWriter(new FileWriter((current+"/" + timeStamp + File.separator + timeStamp + "_settings.txt")));
                 writer.write("User: "+ currentUser);
                 writer.newLine();
                 writer.write("Method: "+ currentMethod);
@@ -1046,8 +1020,10 @@ public class Main extends Application {
                 writer.write("Test duration: " + testTime);
                 writer.newLine();
                 writer.close();
-                testTime = "00:00:00:000";
             }
+            testTime = "00:00:00:000";
+            Button onOff = (Button) scene.lookup("#onOff");
+            turnHighVoltageOff(onOff);
 
         } catch (IOException e) {
             e.printStackTrace();

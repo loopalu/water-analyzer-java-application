@@ -1,4 +1,4 @@
-package main;
+package main.util;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -24,7 +24,7 @@ import org.jfree.ui.RefineryUtilities;
 /**
  * Saves chart data into an image
  */
-class ImageSaver extends ApplicationFrame {
+public class ImageSaver extends ApplicationFrame {
     private int step = 0;
     private ArrayList data;
 

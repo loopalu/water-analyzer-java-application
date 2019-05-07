@@ -1,4 +1,4 @@
-package main;
+package main.util;
 
 import jssc.*;
 
@@ -10,7 +10,7 @@ public class ArduinoReader implements SerialPortEventListener {
     private Stack<String> data = new Stack<>();
     private ArrayList<String> output = new ArrayList<>();
     private StringBuilder message = new StringBuilder();
-    String out2 = "";
+    private String out2 = "";
 
     public synchronized void serialEvent (SerialPortEvent event){
         if (event.isRXCHAR()) {
@@ -33,7 +33,7 @@ public class ArduinoReader implements SerialPortEventListener {
         }
     }
 
-    void initialize() {
+    public void initialize() {
         String[] portNames = SerialPortList.getPortNames();
         for (String port : portNames) {
             serialPort = new SerialPort(port);
