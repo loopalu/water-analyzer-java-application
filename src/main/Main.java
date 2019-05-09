@@ -179,13 +179,27 @@ public class Main extends Application {
 
     private void getDataFromDatabase() {
         DatabaseCommunicator databaseCommunicator = new DatabaseCommunicator();
-        if (databaseCommunicator.isApiAvailable()) {
-            ArrayList<String> tempAnalytes = databaseCommunicator.getAnalytes();
-            if (tempAnalytes != null) {
-                for (String analyte:tempAnalytes) {
-                    if (!analytes.contains(analyte)) {
-                        analytes.add(analyte);
-                    }
+        ArrayList<String> tempAnalytes = databaseCommunicator.getAnalytes();
+        if (tempAnalytes != null) {
+            for (String analyte:tempAnalytes) {
+                if (!analytes.contains(analyte)) {
+                    analytes.add(analyte);
+                }
+            }
+        }
+        ArrayList<String> tempBges = databaseCommunicator.getBges();
+        if (tempBges != null) {
+            for (String bge:tempBges) {
+                if (!bges.contains(bge)) {
+                    bges.add(bge);
+                }
+            }
+        }
+        ArrayList<String> tempMatrixes = databaseCommunicator.getMatrixes();
+        if (tempMatrixes != null) {
+            for (String matrix:tempMatrixes) {
+                if (!matrixes.contains(matrix)) {
+                    matrixes.add(matrix);
                 }
             }
         }
@@ -805,6 +819,8 @@ public class Main extends Application {
             public void handle(ActionEvent event) {
                 System.out.println("save");
                 saveTest();
+                //sendDataToDatabase();
+                getDataFromDatabase();
             }
         });
 

@@ -11,7 +11,7 @@ import java.util.HashMap;
 import org.json.JSONArray;
 
 public class DatabaseCommunicator {
-    private String apiAddress = "http://localhost:8080/getAnalytes";
+    private String apiAddress = "http://localhost:8080/";
     private String databaseAddress = "localhost";
     private JSONArray jsonArray;
     private HttpURLConnection con;
@@ -26,8 +26,13 @@ public class DatabaseCommunicator {
 
     public ArrayList<String> getAnalytes() {
         ArrayList<String> analytes = new ArrayList<>();
-        if (isApiAvailable()) {
-            makeConnection();
+        getData(analytes, "getAnalytes");
+        return analytes;
+    }
+
+    private void getData(ArrayList<String> elements, String string) {
+        if (isApiAvailable(string)) {
+            makeConnection(string);
             BufferedReader in = null;
             try {
                 in = new BufferedReader(new InputStreamReader(con.getInputStream()));
@@ -50,22 +55,25 @@ public class DatabaseCommunicator {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            String string = content.toString();
-            jsonArray = new JSONArray(string);
+            String jsonstring = content.toString();
+            jsonArray = new JSONArray(jsonstring);
             for (Object value:jsonArray) {
-                analytes.add((String) value);
+                elements.add((String) value);
             }
             con.disconnect();
         }
-        return analytes;
     }
 
     public ArrayList<String> getMatrixes() {
-        return null;
+        ArrayList<String> matrixes = new ArrayList<>();
+        getData(matrixes, "getMatrixes");
+        return matrixes;
     }
 
-    public ArrayList<String> getBge() {
-        return null;
+    public ArrayList<String> getBges() {
+        ArrayList<String> bges = new ArrayList<>();
+        getData(bges, "getBges");
+        return bges;
     }
 
     public static void main(String[] args) {
@@ -76,10 +84,10 @@ public class DatabaseCommunicator {
         System.out.println(analytes);
     }
 
-    public void makeConnection() {
+    private void makeConnection(String string) {
         URL url = null;
         try {
-            url = new URL(apiAddress);
+            url = new URL(apiAddress + string);
         } catch (MalformedURLException e) {
             System.out.println(e);
         }
@@ -91,10 +99,10 @@ public class DatabaseCommunicator {
         }
     }
 
-    public boolean isApiAvailable() { //sama asi läheb API sisse, et vaadata, kas andmebaas on üleval
+    private boolean isApiAvailable(String string) { //sama asi läheb API sisse, et vaadata, kas andmebaas on üleval
         URL url;
         try {
-            url = new URL(apiAddress);
+            url = new URL(apiAddress + string);
         } catch (MalformedURLException e) {
             System.out.println(e);
             return false;
