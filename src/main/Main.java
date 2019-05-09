@@ -33,7 +33,7 @@ import javafx.util.Duration;
 import jssc.SerialPort;
 import jssc.SerialPortException;
 import main.util.ArduinoReader;
-import main.util.DatabaseAsker;
+import main.util.DatabaseCommunicator;
 import main.util.ImageSaver;
 import org.controlsfx.control.CheckComboBox;
 import org.controlsfx.control.textfield.TextFields;
@@ -178,10 +178,15 @@ public class Main extends Application {
     }
 
     private void getDataFromDatabase() {
-        DatabaseAsker databaseAsker = new DatabaseAsker();
-        if (databaseAsker.isConnection()) {
-            if (databaseAsker.isDatabaseUp()) {
-
+        DatabaseCommunicator databaseCommunicator = new DatabaseCommunicator();
+        if (databaseCommunicator.isApiAvailable()) {
+            ArrayList<String> tempAnalytes = databaseCommunicator.getAnalytes();
+            if (tempAnalytes != null) {
+                for (String analyte:tempAnalytes) {
+                    if (!analytes.contains(analyte)) {
+                        analytes.add(analyte);
+                    }
+                }
             }
         }
     }
