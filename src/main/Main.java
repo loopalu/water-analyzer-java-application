@@ -123,6 +123,7 @@ public class Main extends Application {
     private ArrayList<String> matrixes = new ArrayList<>(Arrays.asList("soil", "sand", "rocks", "tap water", "rain water",
             "spring water", "aquarium water", "sea water", "canalization water", "saliva", "blood", "urine", "plant extract",
             "juice", "drink"));
+    private String hvValue = "";
 
 
     @Override
@@ -832,15 +833,15 @@ public class Main extends Application {
                         field.setStyle("-fx-text-inner-color: red;");
                         field.setText("ERROR");
                     } else {
-                        String outData = "v" + (int) (127 - out * 1.27)+"\n";
+                        hvValue = "v" + (int) (127 - out * 1.27)+"\n";
                         //Arduino kood
                         try {
-                            serialPort.writeString(outData);
+                            serialPort.writeString(hvValue);
                             //outputStream.write(outData.getBytes());
                         } catch (SerialPortException e) {
                             e.printStackTrace();
                         }
-                        System.out.println(outData);
+                        System.out.println(hvValue);
                     }
                 } catch (NumberFormatException ex) {
                     field.setStyle("-fx-text-inner-color: red;");
@@ -996,6 +997,8 @@ public class Main extends Application {
                 writer.write("Injection method: "+ currentInjection + " " + currentInjectionChoice + ": " + injectionChoiceValue + " " + currentInjectionChoiceUnit + " Injection time: " + injectionTime + " s");
                 writer.newLine();
                 writer.write("Current: "+ currentValueString + " µA");
+                writer.newLine();
+                writer.write("HV value: " + hvValue + " %");
                 writer.newLine();
                 writer.write("Analytes:");
                 writer.newLine();

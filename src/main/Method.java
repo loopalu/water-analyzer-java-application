@@ -22,6 +22,8 @@ public class Method {
     private String injectionTime;
     private String current;
     private String frequency;
+    private String description;
+    private String hvValue;
 
     public String getName() {
         return name;
@@ -165,5 +167,21 @@ public class Method {
 
     public void setFrequency(String frequency) {
         this.frequency = frequency;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getHvValue() {
+        return hvValue;
+    }
+
+    public void setHvValue(String hvValue) {
+        this.hvValue = hvValue;
     }
 }
