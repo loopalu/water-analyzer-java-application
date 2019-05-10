@@ -1,14 +1,19 @@
 package main.util;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import main.Analyte;
 import main.Method;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
+import java.util.Map;
 
 import main.User;
 import org.json.JSONArray;
@@ -32,6 +37,35 @@ public class DatabaseCommunicator {
 
     public HashMap<String,Method> getMethods() {
         return null;
+    }
+
+    public void postMethod(Method method) {
+        URL url = null;
+        try {
+            url = new URL(apiAddress+"postMethod");
+
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            String json = gson.toJson(method);
+            String encodedString = Base64.getEncoder().encodeToString(json.getBytes());
+
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setDoOutput(true);
+            con.setInstanceFollowRedirects( false );
+            con.setRequestMethod( "GET" );
+            con.setRequestProperty( "Content-Type", "application/json");
+            con.setRequestProperty( "charset", "utf-8");
+            con.setRequestProperty( "Content-Length", Integer.toString( encodedString.getBytes().length ));
+            con.setRequestProperty("Data", encodedString);
+            con.setUseCaches( false );
+            BufferedReader in = null;
+            try {
+                in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public ArrayList<String> getAnalytes() {
@@ -124,10 +158,39 @@ public class DatabaseCommunicator {
 
     public static void main(String[] args) {
         DatabaseCommunicator test = new DatabaseCommunicator();
-        //System.out.println(test.isApiAvailable()); //töötab
-        //System.out.println(test.isDatabaseUp());
-        HashMap<String, Integer> users = test.getUsers();
-        System.out.println(users);
+        Method method = new Method();
+        method.setNameOfTest("11 jaanuar");
+        method.setNameOfUser("Aivar");
+        method.setUserClass("1");
+        method.setNameOfMethod("mingi method");
+        method.setMatrix("kraanivesi");
+        method.setCapillary("50/150 mm");
+        method.setCapillaryTotalLength("20 cm");
+        method.setCapillaryEffectiveLength("10 cm");
+        method.setFrequency("2 MHz");
+        method.setInjectionMethod("Pressure");
+        method.setInjectionChoice("Difference");
+        method.setInjectionChoiceValue("20");
+        method.setInjectionChoiceUnit("cm");
+        method.setInjectionTime("5 s");
+        method.setCurrent("-15 µA");
+        method.setHvValue("87 %");
+        method.setAnalyteUnit("cm");
+        Analyte analyte1 = new Analyte("raud", "11");
+        Analyte analyte2 = new Analyte("sool", "100");
+        ObservableList<Analyte> analytes = FXCollections.observableArrayList(analyte1, analyte2);
+        method.setAnalytes(analytes);
+        method.setAnalyteUnit("mol");
+        Analyte analyte3 = new Analyte("MisMos", "100");
+        ObservableList<Analyte> bge = FXCollections.observableArrayList(analyte3);
+        method.setBge(bge);
+        method.setBgeUnit("ppb");
+        method.setDescription("mingi test");
+        method.setTestTime("00:00:23:231");
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String json = gson.toJson(method);
+        System.out.println(json);
+        test.postMethod(method);
     }
 
     private void makeConnection(String string) {
@@ -145,7 +208,7 @@ public class DatabaseCommunicator {
         }
     }
 
-    private boolean isApiAvailable(String string) { //sama asi läheb API sisse, et vaadata, kas andmebaas on üleval
+    public boolean isApiAvailable(String string) { //sama asi läheb API sisse, et vaadata, kas andmebaas on üleval
         URL url;
         try {
             url = new URL(apiAddress + string);

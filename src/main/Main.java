@@ -1,5 +1,7 @@
 package main;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import javafx.animation.AnimationTimer;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -54,12 +56,12 @@ public class Main extends Application {
     private String androidFrequency = "";
     private String currentUser = "Regular user";
     private String currentMethod = "";
-    private String currentCapillaryTotal = "20";
-    private String currentCapillaryEffective = "10";
+    private String currentCapillaryTotal = "40 cm";
+    private String currentCapillaryEffective = "25 cm";
     private ObservableList<String> currentAnalytes = FXCollections.observableArrayList();
     private ObservableList<String> currentBge = FXCollections.observableArrayList();
     private String currentMatrix = "";
-    private String currentCapillary = "10";
+    private String currentCapillary = "50/150 μm";
     private ConcurrentLinkedQueue<Number> dataQ = new ConcurrentLinkedQueue<Number>();
     private ConcurrentLinkedQueue<Number> dataQ1 = new ConcurrentLinkedQueue<Number>();
     private XYChart.Series series1;
@@ -1013,6 +1015,23 @@ public class Main extends Application {
             ImageSaver.saveImage(testData, current+"/" + timeStamp + File.separator + timeStamp + "_image.png");
 
             if (concentrationTable != null) {
+                Method method = new Method();
+                method.setNameOfTest(timeStamp);
+                method.setNameOfUser(currentUser);
+                method.setUserClass(String.valueOf(users.get(currentUser)));
+                method.setNameOfMethod(currentMethod);
+                method.setMatrix(currentMatrix);
+                method.setCapillary(currentCapillary);
+                method.setCapillaryTotalLength(currentCapillaryTotal);
+                method.setCapillaryEffectiveLength(currentCapillaryEffective);
+                method.setFrequency(currentFrequency);
+                method.setInjectionMethod(currentInjection);
+                method.setInjectionChoice(currentInjectionChoice);
+                method.setInjectionChoiceValue(injectionChoiceValue);
+                method.setInjectionChoiceUnit(currentInjectionChoiceUnit);
+                method.setInjectionTime(injectionTime + " s");
+                method.setCurrent(currentValueString + " µA");
+                method.setHvValue(hvValue + " %");
                 writer = new BufferedWriter(new FileWriter((current+"/" + timeStamp + File.separator + timeStamp + "_settings.txt")));
                 writer.write("User: "+ currentUser);
                 writer.newLine();
@@ -1040,6 +1059,8 @@ public class Main extends Application {
                 writer.newLine();
                 TableView<Analyte> analytesTable = elementsConcentrationTable.getTable();
                 ObservableList<Analyte> observableAnalytesList = analytesTable.getItems();
+                method.setAnalytes(observableAnalytesList);
+                method.setAnalyteUnit(currentAnalyteValue);
                 for (Analyte analyte:observableAnalytesList) {
                     writer.write(analyte.getAnalyte()+": "+analyte.getConcentration()+" " + currentAnalyteValue);
                     writer.newLine();
@@ -1048,17 +1069,29 @@ public class Main extends Application {
                 writer.newLine();
                 TableView<Analyte> bgeTable = concentrationTable.getTable();
                 ObservableList<Analyte> observableBgeList = bgeTable.getItems();
+                method.setBge(observableBgeList);
+                method.setBgeUnit(currentBgeValue);
                 for (Analyte analyte:observableBgeList) {
                     writer.write(analyte.getAnalyte()+": "+analyte.getConcentration()+" " + currentBgeValue);
                     writer.newLine();
                 }
+                method.setDescription(currentDescription);
                 writer.write("Commentary:");
                 writer.newLine();
                 writer.write(currentDescription);
                 writer.newLine();
+                method.setTestTime(testTime);
                 writer.write("Test duration: " + testTime);
                 writer.newLine();
+                Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                String json = gson.toJson(method);
+                writer.write(json);
+                writer.newLine();
                 writer.close();
+                DatabaseCommunicator communicator = new DatabaseCommunicator();
+                if (communicator.isApiAvailable("postMethod")) {
+                    communicator.postMethod(method);
+                }
             }
             testTime = "00:00:00:000";
             Button onOff = (Button) scene.lookup("#onOff");

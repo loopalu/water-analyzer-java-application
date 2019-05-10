@@ -1,18 +1,21 @@
 package main;
 
+import javafx.collections.ObservableList;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Method {
     private String nameOfTest;
+    private String nameOfMethod;
     private String nameOfUser;
     private String userClass;
-    private ArrayList analytes = new ArrayList();
-    private HashMap<String,Integer> analyteConcentrations = new HashMap<>();
+    private ObservableList<Analyte> analytes;
+    //private HashMap<String,Integer> analyteConcentrations = new HashMap<>();
     private String analyteUnit;
     private String matrix;
-    private ArrayList bge = new ArrayList();
-    private HashMap<String, Integer> bgeConcentrations = new HashMap<>();
+    private ObservableList<Analyte> bge;
+    //private HashMap<String, Integer> bgeConcentrations = new HashMap<>();
     private String bgeUnit;
     private String capillary;
     private String capillaryTotalLength;
@@ -26,6 +29,7 @@ public class Method {
     private String frequency;
     private String description;
     private String hvValue;
+    private String testTime;
 
     public String getNameOfUser() {
         return nameOfUser;
@@ -35,21 +39,21 @@ public class Method {
         this.nameOfUser = nameOfUser;
     }
 
-    public ArrayList getAnalytes() {
+    public ObservableList<Analyte> getAnalytes() {
         return analytes;
     }
 
-    public void setAnalytes(ArrayList analytes) {
+    public void setAnalytes(ObservableList<Analyte> analytes) {
         this.analytes = analytes;
     }
 
-    public HashMap<String, Integer> getAnalyteConcentrations() {
-        return analyteConcentrations;
-    }
-
-    public void setAnalyteConcentrations(HashMap<String, Integer> analyteConcentrations) {
-        this.analyteConcentrations = analyteConcentrations;
-    }
+//    public HashMap<String, Integer> getAnalyteConcentrations() {
+//        return analyteConcentrations;
+//    }
+//
+//    public void setAnalyteConcentrations(HashMap<String, Integer> analyteConcentrations) {
+//        this.analyteConcentrations = analyteConcentrations;
+//    }
 
     public String getAnalyteUnit() {
         return analyteUnit;
@@ -67,21 +71,21 @@ public class Method {
         this.matrix = matrix;
     }
 
-    public ArrayList getBge() {
+    public ObservableList<Analyte> getBge() {
         return bge;
     }
 
-    public void setBge(ArrayList bge) {
+    public void setBge(ObservableList<Analyte> bge) {
         this.bge = bge;
     }
 
-    public HashMap<String, Integer> getBgeConcentrations() {
-        return bgeConcentrations;
-    }
-
-    public void setBgeConcentrations(HashMap<String, Integer> bgeConcentrations) {
-        this.bgeConcentrations = bgeConcentrations;
-    }
+//    public HashMap<String, Integer> getBgeConcentrations() {
+//        return bgeConcentrations;
+//    }
+//
+//    public void setBgeConcentrations(HashMap<String, Integer> bgeConcentrations) {
+//        this.bgeConcentrations = bgeConcentrations;
+//    }
 
     public String getBgeUnit() {
         return bgeUnit;
@@ -201,5 +205,21 @@ public class Method {
 
     public void setUserClass(String userClass) {
         this.userClass = userClass;
+    }
+
+    public String getTestTime() {
+        return testTime;
+    }
+
+    public void setTestTime(String testTime) {
+        this.testTime = testTime;
+    }
+
+    public String getNameOfMethod() {
+        return nameOfMethod;
+    }
+
+    public void setNameOfMethod(String nameOfMethod) {
+        this.nameOfMethod = nameOfMethod;
     }
 }
