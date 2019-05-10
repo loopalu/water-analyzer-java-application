@@ -10,62 +10,62 @@
 <?import javafx.scene.text.Text?>
 
 <GridPane fx:id="mainGridPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1400.0" xmlns="http://javafx.com/javafx/10.0.1" xmlns:fx="http://javafx.com/fxml/1">
-  <columnConstraints>
-    <ColumnConstraints hgrow="SOMETIMES" maxWidth="985.5999755859375" minWidth="10.0" prefWidth="985.5999755859375" />
-    <ColumnConstraints hgrow="SOMETIMES" maxWidth="693.5999755859375" minWidth="10.0" prefWidth="415.20002441406245" />
-  </columnConstraints>
-  <rowConstraints>
-      <RowConstraints maxHeight="677.9333251953125" minHeight="10.0" prefHeight="268.8000091552734" vgrow="SOMETIMES" />
-    <RowConstraints maxHeight="677.9333251953125" minHeight="10.0" prefHeight="450.4000122070312" vgrow="SOMETIMES" />
-    <RowConstraints maxHeight="403.0000366210937" minHeight="0.0" prefHeight="53.5999755859375" vgrow="SOMETIMES" />
-      <RowConstraints maxHeight="403.0000366210937" minHeight="1.0" prefHeight="28.000024414062523" vgrow="SOMETIMES" />
-  </rowConstraints>
-  <children>
-      <fx:include source="testSettingsGridPane.fxml" />
-      <fx:include source="optionsGridPane.fxml" />
-      <GridPane GridPane.columnIndex="1">
-        <columnConstraints>
-            <ColumnConstraints hgrow="SOMETIMES" maxWidth="434.7999267578125" minWidth="10.0" prefWidth="17.399938964843727" />
-          <ColumnConstraints hgrow="SOMETIMES" maxWidth="434.7999267578125" minWidth="10.0" prefWidth="432.0000244140625" />
-            <ColumnConstraints hgrow="SOMETIMES" maxWidth="220.4000244140625" minWidth="7.999975585937477" prefWidth="7.999975585937477" />
-        </columnConstraints>
-        <rowConstraints>
-            <RowConstraints maxHeight="64.5999969482422" minHeight="10.0" prefHeight="16.00000076293945" vgrow="SOMETIMES" />
-          <RowConstraints maxHeight="163.99999923706054" minHeight="10.0" prefHeight="163.99999923706054" vgrow="SOMETIMES" />
-        </rowConstraints>
-         <children>
-            <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Description of the test" wrappingWidth="449.33673095703125" GridPane.columnIndex="1" />
-            <TextArea fx:id="textArea" prefHeight="164.0" prefWidth="410.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-         </children>
-      </GridPane>
-      <GridPane fx:id="chartPane" prefHeight="541.0" prefWidth="983.0" GridPane.rowIndex="1">
-        <columnConstraints>
-          <ColumnConstraints hgrow="SOMETIMES" maxWidth="469.199951171875" minWidth="10.0" prefWidth="45.99995803833008" />
-          <ColumnConstraints hgrow="SOMETIMES" maxWidth="910.0000419616699" minWidth="10.0" prefWidth="902.0000419616699" />
-        </columnConstraints>
-        <rowConstraints>
-          <RowConstraints maxHeight="478.0000366210937" minHeight="10.0" prefHeight="326.3999877929688" vgrow="SOMETIMES" />
-            <RowConstraints maxHeight="255.60001220703123" minHeight="10.0" prefHeight="124.80000000000001" vgrow="SOMETIMES" />
-          <RowConstraints maxHeight="255.60001220703123" minHeight="10.0" prefHeight="17.600000000000023" vgrow="SOMETIMES" />
-        </rowConstraints>
-         <children>
-            <TextField alignment="CENTER" editable="false" minHeight="55.0" minWidth="988.0" mouseTransparent="true" prefHeight="55.0" prefWidth="988.0" text="Time (100 ms)" translateX="-75.0" translateY="28.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-            <TextField alignment="CENTER" editable="false" minWidth="330.0" mouseTransparent="true" prefHeight="105.0" prefWidth="330.0" rotate="-90.0" text="Conductivity" translateX="-145.0" translateY="-3.0" />
-            <TextField alignment="CENTER" editable="false" minHeight="74.0" minWidth="150.0" mouseTransparent="true" prefHeight="74.0" prefWidth="150.0" rotate="-90.0" text="Current" translateX="-39.0" translateY="3.0" GridPane.rowIndex="1" />
-         </children>
-      </GridPane>
-      <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" GridPane.rowIndex="3">
-         <children>
-            <TextField id="androidData" alignment="CENTER" prefHeight="26.0" prefWidth="417.0" />
-         </children>
-      </HBox>
-      <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
-          <children>
-              <Text fx:id="timerData" text="00:00:00:000">
-               <font>
-                  <Font name="System Bold" size="25.0" />
-               </font></Text>
-          </children>
-      </HBox>
-  </children>
+    <columnConstraints>
+        <ColumnConstraints hgrow="SOMETIMES" maxWidth="985.5999755859375" minWidth="10.0" prefWidth="985.5999755859375" />
+        <ColumnConstraints hgrow="SOMETIMES" maxWidth="693.5999755859375" minWidth="10.0" prefWidth="415.20002441406245" />
+    </columnConstraints>
+    <rowConstraints>
+        <RowConstraints maxHeight="677.9333251953125" minHeight="10.0" prefHeight="268.8000091552734" vgrow="SOMETIMES" />
+        <RowConstraints maxHeight="677.9333251953125" minHeight="10.0" prefHeight="450.4000122070312" vgrow="SOMETIMES" />
+        <RowConstraints maxHeight="403.0000366210937" minHeight="0.0" prefHeight="53.5999755859375" vgrow="SOMETIMES" />
+        <RowConstraints maxHeight="403.0000366210937" minHeight="1.0" prefHeight="28.000024414062523" vgrow="SOMETIMES" />
+    </rowConstraints>
+    <children>
+        <fx:include source="testSettingsGridPane.fxml" />
+        <fx:include source="optionsGridPane.fxml" />
+        <GridPane GridPane.columnIndex="1">
+            <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="434.7999267578125" minWidth="10.0" prefWidth="17.399938964843727" />
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="434.7999267578125" minWidth="10.0" prefWidth="432.0000244140625" />
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="220.4000244140625" minWidth="7.999975585937477" prefWidth="7.999975585937477" />
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints maxHeight="64.5999969482422" minHeight="10.0" prefHeight="16.00000076293945" vgrow="SOMETIMES" />
+                <RowConstraints maxHeight="163.99999923706054" minHeight="10.0" prefHeight="163.99999923706054" vgrow="SOMETIMES" />
+            </rowConstraints>
+            <children>
+                <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Description of the test" wrappingWidth="449.33673095703125" GridPane.columnIndex="1" />
+                <TextArea fx:id="textArea" prefHeight="164.0" prefWidth="410.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            </children>
+        </GridPane>
+        <GridPane fx:id="chartPane" prefHeight="541.0" prefWidth="983.0" GridPane.rowIndex="1">
+            <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="469.199951171875" minWidth="10.0" prefWidth="45.99995803833008" />
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="910.0000419616699" minWidth="10.0" prefWidth="902.0000419616699" />
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints maxHeight="478.0000366210937" minHeight="10.0" prefHeight="326.3999877929688" vgrow="SOMETIMES" />
+                <RowConstraints maxHeight="255.60001220703123" minHeight="10.0" prefHeight="124.80000000000001" vgrow="SOMETIMES" />
+                <RowConstraints maxHeight="255.60001220703123" minHeight="10.0" prefHeight="17.600000000000023" vgrow="SOMETIMES" />
+            </rowConstraints>
+            <children>
+                <TextField alignment="CENTER" editable="false" minHeight="55.0" minWidth="988.0" mouseTransparent="true" prefHeight="55.0" prefWidth="988.0" text="Time (100 ms)" translateX="-75.0" translateY="28.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                <TextField alignment="CENTER" editable="false" minWidth="330.0" mouseTransparent="true" prefHeight="105.0" prefWidth="330.0" rotate="-90.0" text="Conductivity" translateX="-145.0" translateY="-3.0" />
+                <TextField alignment="CENTER" editable="false" minHeight="74.0" minWidth="150.0" mouseTransparent="true" prefHeight="74.0" prefWidth="150.0" rotate="-90.0" text="Current" translateX="-39.0" translateY="3.0" GridPane.rowIndex="1" />
+            </children>
+        </GridPane>
+        <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" GridPane.rowIndex="3">
+            <children>
+                <TextField id="androidData" alignment="CENTER" prefHeight="26.0" prefWidth="417.0" />
+            </children>
+        </HBox>
+        <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
+            <children>
+                <Text fx:id="timerData" text="00:00:00:000">
+                    <font>
+                        <Font name="System Bold" size="25.0" />
+                    </font></Text>
+            </children>
+        </HBox>
+    </children>
 </GridPane>

@@ -123,6 +123,7 @@ public class Main extends Application {
     private ArrayList<String> matrixes = new ArrayList<>(Arrays.asList("soil", "sand", "rocks", "tap water", "rain water",
             "spring water", "aquarium water", "sea water", "canalization water", "saliva", "blood", "urine", "plant extract",
             "juice", "drink"));
+    private HashMap<String, Integer> users = new HashMap<String, Integer>() {{ put("Regular user", 3);put("Scientist", 2);put("Administrator", 1);}};
     private String hvValue = "";
 
 
@@ -201,6 +202,14 @@ public class Main extends Application {
                 if (!matrixes.contains(matrix)) {
                     matrixes.add(matrix);
                 }
+            }
+        }
+        ArrayList<String> userList = new ArrayList<>(users.keySet());
+        HashMap<String, Integer> newUsers = databaseCommunicator.getUsers();
+        ArrayList<String> newUserList = new ArrayList<>(newUsers.keySet());
+        for (String user:newUserList) {
+            if (!userList.contains(user)) {
+                users.put(user,newUsers.get(user));
             }
         }
     }
@@ -349,13 +358,17 @@ public class Main extends Application {
         });
 
         ChoiceBox userBox = (ChoiceBox) scene.lookup("#userbox");
-        userBox.getItems().addAll("Regular user", "Scientist", "Administrator");
-        userBox.getSelectionModel().selectFirst();
+        ArrayList<String> userList = new ArrayList<>(users.keySet());
+        for (String user:userList) {
+            userBox.getItems().add(user);
+        }
+        userBox.getSelectionModel().select("Regular user");
+        //userBox.getSelectionModel().selectFirst();
         userBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
                 currentUser = (String) userBox.getItems().get((Integer) number2);
-                System.out.println(currentUser);
+                System.out.println(currentUser + " " + users.get(currentUser));
             }
         });
 
@@ -1002,6 +1015,8 @@ public class Main extends Application {
             if (concentrationTable != null) {
                 writer = new BufferedWriter(new FileWriter((current+"/" + timeStamp + File.separator + timeStamp + "_settings.txt")));
                 writer.write("User: "+ currentUser);
+                writer.newLine();
+                writer.write("User class: "+ users.get(currentUser));
                 writer.newLine();
                 writer.write("Method: "+ currentMethod);
                 writer.newLine();

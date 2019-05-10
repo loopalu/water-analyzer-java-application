@@ -1,5 +1,6 @@
 package main.util;
 
+import com.google.gson.Gson;
 import main.Method;
 
 import java.io.BufferedReader;
@@ -8,7 +9,10 @@ import java.io.InputStreamReader;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import main.User;
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class DatabaseCommunicator {
     private String apiAddress = "http://localhost:8080/";
@@ -20,6 +24,12 @@ public class DatabaseCommunicator {
         return null;
     }
 
+    public HashMap<String, Integer> getUsers() {
+        HashMap<String, Integer> users = new HashMap<>();
+        getData(users, "getUsers");
+        return users;
+    }
+
     public HashMap<String,Method> getMethods() {
         return null;
     }
@@ -28,6 +38,42 @@ public class DatabaseCommunicator {
         ArrayList<String> analytes = new ArrayList<>();
         getData(analytes, "getAnalytes");
         return analytes;
+    }
+
+    private void getData(HashMap<String, Integer> users, String string) {
+        if (isApiAvailable(string)) {
+            makeConnection(string);
+            BufferedReader in = null;
+            try {
+                in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            String inputLine = null;
+            StringBuilder content = new StringBuilder();
+            while (true) {
+                try {
+                    assert in != null;
+                    if ((inputLine = in.readLine()) == null) break;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                content.append(inputLine);
+            }
+            try {
+                in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            String jsonstring = content.toString();
+            jsonArray = new JSONArray(jsonstring);
+            for (int i = 0; i < jsonArray.length(); i++) {
+                Gson gson = new Gson();
+                User user = gson.fromJson(jsonArray.get(i).toString(), User.class);
+                users.put(user.getName(), user.getUserClass());
+            }
+            con.disconnect();
+        }
     }
 
     private void getData(ArrayList<String> elements, String string) {
@@ -80,8 +126,8 @@ public class DatabaseCommunicator {
         DatabaseCommunicator test = new DatabaseCommunicator();
         //System.out.println(test.isApiAvailable()); //töötab
         //System.out.println(test.isDatabaseUp());
-        ArrayList<String> analytes = test.getAnalytes();
-        System.out.println(analytes);
+        HashMap<String, Integer> users = test.getUsers();
+        System.out.println(users);
     }
 
     private void makeConnection(String string) {

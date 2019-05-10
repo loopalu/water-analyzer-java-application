@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Method {
-    private String name;
+    private String nameOfTest;
+    private String nameOfUser;
+    private String userClass;
     private ArrayList analytes = new ArrayList();
     private HashMap<String,Integer> analyteConcentrations = new HashMap<>();
     private String analyteUnit;
@@ -25,12 +27,12 @@ public class Method {
     private String description;
     private String hvValue;
 
-    public String getName() {
-        return name;
+    public String getNameOfUser() {
+        return nameOfUser;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setNameOfUser(String nameOfUser) {
+        this.nameOfUser = nameOfUser;
     }
 
     public ArrayList getAnalytes() {
@@ -183,5 +185,21 @@ public class Method {
 
     public void setHvValue(String hvValue) {
         this.hvValue = hvValue;
+    }
+
+    public String getNameOfTest() {
+        return nameOfTest;
+    }
+
+    public void setNameOfTest(String nameOfTest) {
+        this.nameOfTest = nameOfTest;
+    }
+
+    public String getUserClass() {
+        return userClass;
+    }
+
+    public void setUserClass(String userClass) {
+        this.userClass = userClass;
     }
 }
