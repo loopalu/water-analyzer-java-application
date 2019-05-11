@@ -716,7 +716,7 @@ public class MainBackupArduino2mai extends Application {
                         writer = new BufferedWriter(new FileWriter((current+"/" + timeStamp + File.separator + "settings.txt")));
                         writer.write("User: "+ currentUser);
                         writer.newLine();
-                        writer.write("Method: "+ currentMethod);
+                        writer.write("LabTest: "+ currentMethod);
                         writer.newLine();
                         writer.write("Matrix: "+ currentMatrix);
                         writer.newLine();

@@ -5,7 +5,7 @@ import javafx.collections.ObservableList;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class Method {
+public class LabTest {
     private String nameOfTest;
     private String nameOfMethod;
     private String nameOfUser;

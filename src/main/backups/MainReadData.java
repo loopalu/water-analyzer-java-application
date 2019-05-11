@@ -688,7 +688,7 @@ public class MainReadData extends Application {
                 writer = new BufferedWriter(new FileWriter((time + ".txt")));
                 writer.write("User: "+ currentUser);
                 writer.newLine();
-                writer.write("Method: "+ currentMethod);
+                writer.write("LabTest: "+ currentMethod);
                 writer.newLine();
                 writer.write("Matrix: "+ currentMatrix);
                 writer.newLine();

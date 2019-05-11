@@ -5,19 +5,16 @@ import com.google.gson.GsonBuilder;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import main.Analyte;
-import main.Method;
+import main.LabTest;
 
 import java.io.*;
 import java.net.*;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
-import java.util.Map;
 
 import main.User;
 import org.json.JSONArray;
-import org.json.JSONObject;
 
 public class DatabaseCommunicator {
     private String apiAddress = "http://localhost:8080/";
@@ -35,17 +32,17 @@ public class DatabaseCommunicator {
         return users;
     }
 
-    public HashMap<String,Method> getMethods() {
+    public HashMap<String, LabTest> getMethods() {
         return null;
     }
 
-    public void postMethod(Method method) {
+    public void postTest(LabTest labTest) {
         URL url = null;
         try {
-            url = new URL(apiAddress+"postMethod");
+            url = new URL(apiAddress+"postTest");
 
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            String json = gson.toJson(method);
+            String json = gson.toJson(labTest);
             String encodedString = Base64.getEncoder().encodeToString(json.getBytes());
 
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -158,39 +155,39 @@ public class DatabaseCommunicator {
 
     public static void main(String[] args) {
         DatabaseCommunicator test = new DatabaseCommunicator();
-        Method method = new Method();
-        method.setNameOfTest("11 jaanuar");
-        method.setNameOfUser("Aivar");
-        method.setUserClass("1");
-        method.setNameOfMethod("mingi method");
-        method.setMatrix("kraanivesi");
-        method.setCapillary("50/150 mm");
-        method.setCapillaryTotalLength("20 cm");
-        method.setCapillaryEffectiveLength("10 cm");
-        method.setFrequency("2 MHz");
-        method.setInjectionMethod("Pressure");
-        method.setInjectionChoice("Difference");
-        method.setInjectionChoiceValue("20");
-        method.setInjectionChoiceUnit("cm");
-        method.setInjectionTime("5 s");
-        method.setCurrent("-15 µA");
-        method.setHvValue("87 %");
-        method.setAnalyteUnit("cm");
-        Analyte analyte1 = new Analyte("raud", "11");
-        Analyte analyte2 = new Analyte("sool", "100");
+        LabTest labTest = new LabTest();
+        labTest.setNameOfTest("11 jaanuar");
+        labTest.setNameOfUser("Aivar");
+        labTest.setUserClass("1");
+        labTest.setNameOfMethod("mingi labTest");
+        labTest.setMatrix("kraanivesi");
+        labTest.setCapillary("50/150 mm");
+        labTest.setCapillaryTotalLength("20 cm");
+        labTest.setCapillaryEffectiveLength("10 cm");
+        labTest.setFrequency("2 MHz");
+        labTest.setInjectionMethod("Pressure");
+        labTest.setInjectionChoice("Difference");
+        labTest.setInjectionChoiceValue("20");
+        labTest.setInjectionChoiceUnit("cm");
+        labTest.setInjectionTime("5 s");
+        labTest.setCurrent("-15 µA");
+        labTest.setHvValue("87 %");
+        labTest.setAnalyteUnit("cm");
+        Analyte analyte1 = new Analyte("uraan", "11");
+        Analyte analyte2 = new Analyte("plaatinum", "100");
         ObservableList<Analyte> analytes = FXCollections.observableArrayList(analyte1, analyte2);
-        method.setAnalytes(analytes);
-        method.setAnalyteUnit("mol");
+        labTest.setAnalytes(analytes);
+        labTest.setAnalyteUnit("mol");
         Analyte analyte3 = new Analyte("MisMos", "100");
         ObservableList<Analyte> bge = FXCollections.observableArrayList(analyte3);
-        method.setBge(bge);
-        method.setBgeUnit("ppb");
-        method.setDescription("mingi test");
-        method.setTestTime("00:00:23:231");
+        labTest.setBge(bge);
+        labTest.setBgeUnit("ppb");
+        labTest.setDescription("mingi test");
+        labTest.setTestTime("00:00:23:231");
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String json = gson.toJson(method);
+        String json = gson.toJson(labTest);
         System.out.println(json);
-        test.postMethod(method);
+        test.postTest(labTest);
     }
 
     private void makeConnection(String string) {

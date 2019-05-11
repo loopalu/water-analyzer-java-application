@@ -50,7 +50,7 @@
         </HBox>
         <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Total length of capillary" textAlignment="CENTER" wrappingWidth="218.13671493530273" GridPane.rowIndex="6" />
         <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Effective length of capillary" textAlignment="CENTER" wrappingWidth="216.53673934936523" GridPane.rowIndex="7" />
-        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Injection method" textAlignment="CENTER" wrappingWidth="216.53673934936523" GridPane.rowIndex="8" />
+        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Injection labTest" textAlignment="CENTER" wrappingWidth="216.53673934936523" GridPane.rowIndex="8" />
         <HBox fx:id="injectionHBox" prefHeight="33.0" prefWidth="707.0" GridPane.columnIndex="1" GridPane.rowIndex="8">
             <children>
                 <ChoiceBox fx:id="injectionBox" minWidth="173.0" prefHeight="26.0" prefWidth="173.0" />

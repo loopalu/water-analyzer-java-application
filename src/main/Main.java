@@ -127,6 +127,7 @@ public class Main extends Application {
             "juice", "drink"));
     private HashMap<String, Integer> users = new HashMap<String, Integer>() {{ put("Regular user", 3);put("Scientist", 2);put("Administrator", 1);}};
     private String hvValue = "";
+    private int currentUserClass = 1;
 
 
     @Override
@@ -370,6 +371,7 @@ public class Main extends Application {
             @Override
             public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
                 currentUser = (String) userBox.getItems().get((Integer) number2);
+                currentUserClass = users.get(currentUser);
                 System.out.println(currentUser + " " + users.get(currentUser));
             }
         });
@@ -1015,29 +1017,27 @@ public class Main extends Application {
             ImageSaver.saveImage(testData, current+"/" + timeStamp + File.separator + timeStamp + "_image.png");
 
             if (concentrationTable != null) {
-                Method method = new Method();
-                method.setNameOfTest(timeStamp);
-                method.setNameOfUser(currentUser);
-                method.setUserClass(String.valueOf(users.get(currentUser)));
-                method.setNameOfMethod(currentMethod);
-                method.setMatrix(currentMatrix);
-                method.setCapillary(currentCapillary);
-                method.setCapillaryTotalLength(currentCapillaryTotal);
-                method.setCapillaryEffectiveLength(currentCapillaryEffective);
-                method.setFrequency(currentFrequency);
-                method.setInjectionMethod(currentInjection);
-                method.setInjectionChoice(currentInjectionChoice);
-                method.setInjectionChoiceValue(injectionChoiceValue);
-                method.setInjectionChoiceUnit(currentInjectionChoiceUnit);
-                method.setInjectionTime(injectionTime + " s");
-                method.setCurrent(currentValueString + " µA");
-                method.setHvValue(hvValue + " %");
+                LabTest labTest = new LabTest();
+                labTest.setNameOfTest(timeStamp);
+                labTest.setNameOfUser(currentUser);
+                labTest.setUserClass(String.valueOf(currentUserClass));
+                labTest.setNameOfMethod(currentMethod);
+                labTest.setMatrix(currentMatrix);
+                labTest.setCapillary(currentCapillary);
+                labTest.setCapillaryTotalLength(currentCapillaryTotal);
+                labTest.setCapillaryEffectiveLength(currentCapillaryEffective);
+                labTest.setFrequency(currentFrequency);
+                labTest.setInjectionMethod(currentInjection);
+                labTest.setInjectionChoice(currentInjectionChoice);
+                labTest.setInjectionChoiceValue(injectionChoiceValue);
+                labTest.setInjectionChoiceUnit(currentInjectionChoiceUnit);
+                labTest.setInjectionTime(injectionTime + " s");
+                labTest.setCurrent(currentValueString + " µA");
+                labTest.setHvValue(hvValue + " %");
                 writer = new BufferedWriter(new FileWriter((current+"/" + timeStamp + File.separator + timeStamp + "_settings.txt")));
                 writer.write("User: "+ currentUser);
                 writer.newLine();
-                writer.write("User class: "+ users.get(currentUser));
-                writer.newLine();
-                writer.write("Method: "+ currentMethod);
+                writer.write("LabTest: "+ currentMethod);
                 writer.newLine();
                 writer.write("Matrix: "+ currentMatrix);
                 writer.newLine();
@@ -1049,7 +1049,7 @@ public class Main extends Application {
                 writer.newLine();
                 writer.write("Frequency: "+ currentFrequency);
                 writer.newLine();
-                writer.write("Injection method: "+ currentInjection + " " + currentInjectionChoice + ": " + injectionChoiceValue + " " + currentInjectionChoiceUnit + " Injection time: " + injectionTime + " s");
+                writer.write("Injection labTest: "+ currentInjection + " " + currentInjectionChoice + ": " + injectionChoiceValue + " " + currentInjectionChoiceUnit + " Injection time: " + injectionTime + " s");
                 writer.newLine();
                 writer.write("Current: "+ currentValueString + " µA");
                 writer.newLine();
@@ -1059,8 +1059,8 @@ public class Main extends Application {
                 writer.newLine();
                 TableView<Analyte> analytesTable = elementsConcentrationTable.getTable();
                 ObservableList<Analyte> observableAnalytesList = analytesTable.getItems();
-                method.setAnalytes(observableAnalytesList);
-                method.setAnalyteUnit(currentAnalyteValue);
+                labTest.setAnalytes(observableAnalytesList);
+                labTest.setAnalyteUnit(currentAnalyteValue);
                 for (Analyte analyte:observableAnalytesList) {
                     writer.write(analyte.getAnalyte()+": "+analyte.getConcentration()+" " + currentAnalyteValue);
                     writer.newLine();
@@ -1069,28 +1069,28 @@ public class Main extends Application {
                 writer.newLine();
                 TableView<Analyte> bgeTable = concentrationTable.getTable();
                 ObservableList<Analyte> observableBgeList = bgeTable.getItems();
-                method.setBge(observableBgeList);
-                method.setBgeUnit(currentBgeValue);
+                labTest.setBge(observableBgeList);
+                labTest.setBgeUnit(currentBgeValue);
                 for (Analyte analyte:observableBgeList) {
                     writer.write(analyte.getAnalyte()+": "+analyte.getConcentration()+" " + currentBgeValue);
                     writer.newLine();
                 }
-                method.setDescription(currentDescription);
+                labTest.setDescription(currentDescription);
                 writer.write("Commentary:");
                 writer.newLine();
                 writer.write(currentDescription);
                 writer.newLine();
-                method.setTestTime(testTime);
+                labTest.setTestTime(testTime);
                 writer.write("Test duration: " + testTime);
                 writer.newLine();
                 Gson gson = new GsonBuilder().setPrettyPrinting().create();
-                String json = gson.toJson(method);
+                String json = gson.toJson(labTest);
                 writer.write(json);
                 writer.newLine();
                 writer.close();
                 DatabaseCommunicator communicator = new DatabaseCommunicator();
-                if (communicator.isApiAvailable("postMethod")) {
-                    communicator.postMethod(method);
+                if (communicator.isApiAvailable("postTest")) {
+                    communicator.postTest(labTest);
                 }
             }
             testTime = "00:00:00:000";
