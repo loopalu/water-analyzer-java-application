@@ -30,6 +30,7 @@ public class LabTest {
     private String description;
     private String hvValue;
     private String testTime;
+    private ArrayList testData;
 
     public String getNameOfUser() {
         return nameOfUser;
@@ -221,5 +222,13 @@ public class LabTest {
 
     public void setNameOfMethod(String nameOfMethod) {
         this.nameOfMethod = nameOfMethod;
+    }
+
+    public ArrayList getTestData() {
+        return testData;
+    }
+
+    public void setTestData(ArrayList testData) {
+        this.testData = testData;
     }
 }

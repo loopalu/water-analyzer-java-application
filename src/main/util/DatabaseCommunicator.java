@@ -12,6 +12,7 @@ import java.net.*;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.Scanner;
 
 import main.User;
 import org.json.JSONArray;
@@ -153,9 +154,29 @@ public class DatabaseCommunicator {
         return bges;
     }
 
+    private ArrayList<Integer> fileReader() {
+        ArrayList<Integer> data = new ArrayList<>();
+        try {
+            Scanner scanner = new Scanner(new File("andmed.txt"));
+            while (scanner.hasNextLine()) {
+                data.add(Integer.valueOf(scanner.nextLine()));
+            }
+            scanner.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return data;
+    }
+
     public static void main(String[] args) {
         DatabaseCommunicator test = new DatabaseCommunicator();
+        ArrayList<Integer> testData = test.fileReader();
         LabTest labTest = new LabTest();
+        testSendingToDatabase(test, labTest, testData);
+        test.fileReader();
+    }
+
+    private static void testSendingToDatabase(DatabaseCommunicator test, LabTest labTest, ArrayList testData) {
         labTest.setNameOfTest("11 jaanuar");
         labTest.setNameOfUser("Aivar");
         labTest.setUserClass("1");
@@ -184,6 +205,7 @@ public class DatabaseCommunicator {
         labTest.setBgeUnit("ppb");
         labTest.setDescription("mingi test");
         labTest.setTestTime("00:00:23:231");
+        labTest.setTestData(testData);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String json = gson.toJson(labTest);
         System.out.println(json);

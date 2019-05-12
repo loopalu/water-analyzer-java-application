@@ -1081,6 +1081,7 @@ public class Main extends Application {
                 writer.write(currentDescription);
                 writer.newLine();
                 labTest.setTestTime(testTime);
+                labTest.setTestData(testData);
                 writer.write("Test duration: " + testTime);
                 writer.newLine();
                 Gson gson = new GsonBuilder().setPrettyPrinting().create();
