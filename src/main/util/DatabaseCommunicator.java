@@ -1,7 +1,6 @@
 package main.util;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.gson.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import main.Analyte;
@@ -9,6 +8,8 @@ import main.LabTest;
 
 import java.io.*;
 import java.net.*;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
@@ -23,10 +24,6 @@ public class DatabaseCommunicator {
     private JSONArray jsonArray;
     private HttpURLConnection con;
 
-    public ArrayList<String> getMethodNames() {
-        return null;
-    }
-
     public HashMap<String, Integer> getUsers() {
         HashMap<String, Integer> users = new HashMap<>();
         getData(users, "getUsers");
@@ -34,7 +31,94 @@ public class DatabaseCommunicator {
     }
 
     public HashMap<String, LabTest> getMethods() {
-        return null;
+        HashMap<String, LabTest> methods = new HashMap<>();
+        if (isApiAvailable("getMethods")) {
+            makeConnection("getMethods");
+            BufferedReader in = null;
+            try {
+                in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            String inputLine = null;
+            StringBuilder content = new StringBuilder();
+            while (true) {
+                try {
+                    assert in != null;
+                    if ((inputLine = in.readLine()) == null) break;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                content.append(inputLine);
+            }
+            try {
+                in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            String jsonstring = content.toString();
+            jsonArray = new JSONArray(jsonstring);
+            for (int i = 0; i < jsonArray.length(); i++) {
+                Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                JsonObject jsonObject = gson.fromJson(String.valueOf(jsonArray.get(i)), JsonObject.class);
+                LabTest method = makeMethod(jsonObject);
+                methods.put(method.getNameOfMethod(), method);
+            }
+            con.disconnect();
+        }
+        return methods;
+    }
+
+    private LabTest makeMethod(JsonObject jsonObject) {
+        LabTest labTest = new LabTest();
+        labTest.setNameOfTest(""); // Not important for method.
+        labTest.setNameOfUser(""); // Not important for method.
+        labTest.setUserClass(""); // Not important for method.
+        labTest.setNameOfMethod(String.valueOf(jsonObject.get("nameOfMethod")).replace('"', ' ').trim());
+        labTest.setMatrix(String.valueOf(jsonObject.get("matrix")).replace('"', ' ').trim());
+        labTest.setCapillary(String.valueOf(jsonObject.get("capillary")).replace('"', ' ').trim());
+        labTest.setCapillaryTotalLength(String.valueOf(jsonObject.get("capillaryTotalLength")).replace('"', ' ').trim());
+        labTest.setCapillaryEffectiveLength(String.valueOf(jsonObject.get("capillaryEffectiveLength")).replace('"', ' ').trim());
+        labTest.setFrequency(String.valueOf(jsonObject.get("frequency")).replace('"', ' ').trim());
+        labTest.setInjectionMethod(String.valueOf(jsonObject.get("injectionMethod")).replace('"', ' ').trim());
+        labTest.setInjectionChoice(String.valueOf(jsonObject.get("injectionChoice")).replace('"', ' ').trim());
+        labTest.setInjectionChoiceValue(String.valueOf(jsonObject.get("injectionChoiceValue")).replace('"', ' ').trim());
+        labTest.setInjectionChoiceUnit(String.valueOf(jsonObject.get("injectionChoiceUnit")).replace('"', ' ').trim());
+        labTest.setInjectionTime(String.valueOf(jsonObject.get("injectionTime")).replace('"', ' ').trim().split(" ")[0]);
+        labTest.setCurrent("-15 µA"); // Actually this is not important.
+        labTest.setHvValue(String.valueOf(jsonObject.get("hvValue")).replace('"', ' ').trim().split(" ")[0]);
+
+        ObservableList<Analyte> analytes = FXCollections.observableArrayList();
+        JsonElement analyteJson = jsonObject.get("analytes");
+        JsonArray jsonArray = analyteJson.getAsJsonArray();
+        for (int i = 0; i < jsonArray.size(); i++) {
+            JsonObject subObject = jsonArray.get(i).getAsJsonObject();
+            String analyteName = String.valueOf(subObject.get("analyte").getAsJsonObject().get("value")).replace('"', ' ').trim();
+            Integer analyteValue = Integer.valueOf(String.valueOf(subObject.get("concentration").getAsJsonObject().get("value")).replace('"', ' ').trim());
+            Analyte analyte = new Analyte(analyteName, String.valueOf(analyteValue));
+            analytes.add(analyte);
+        }
+        labTest.setAnalytes(analytes);
+
+        labTest.setAnalyteUnit(String.valueOf(jsonObject.get("analyteUnit")).replace('"', ' ').trim());
+
+        ObservableList<Analyte> bges = FXCollections.observableArrayList();
+        JsonElement bgeJson = jsonObject.get("bge");
+        JsonArray bgeArray = bgeJson.getAsJsonArray();
+        for (int i = 0; i < bgeArray.size(); i++) {
+            JsonObject subObject = bgeArray.get(i).getAsJsonObject();
+            String bgeName = String.valueOf(subObject.get("analyte").getAsJsonObject().get("value")).replace('"', ' ').trim();
+            Integer bgeValue = Integer.valueOf(String.valueOf(subObject.get("concentration").getAsJsonObject().get("value")).replace('"', ' ').trim());
+            Analyte bge = new Analyte(bgeName, String.valueOf(bgeValue));
+            bges.add(bge);
+        }
+        labTest.setBge(bges);
+
+        labTest.setBgeUnit(String.valueOf(jsonObject.get("bgeUnit")).replace('"', ' ').trim());
+        labTest.setDescription(String.valueOf(jsonObject.get("description")).replace('"', ' ').trim());
+        labTest.setTestTime("00:00:23:231"); // Not important for method.
+        labTest.setTestData(new ArrayList()); // Not important for method.
+        return labTest;
     }
 
     public void postTest(LabTest labTest) {
@@ -170,17 +254,18 @@ public class DatabaseCommunicator {
 
     public static void main(String[] args) {
         DatabaseCommunicator test = new DatabaseCommunicator();
-        ArrayList<Integer> testData = test.fileReader();
+//        HashMap<String,LabTest> methods = test.getMethods();
+//        System.out.println(methods.get("mingi labTest").getMatrix());
         LabTest labTest = new LabTest();
-        testSendingToDatabase(test, labTest, testData);
-        test.fileReader();
+        ArrayList testData = test.fileReader();
+        DatabaseCommunicator.testSendingToDatabase(test, labTest, testData);
     }
 
     private static void testSendingToDatabase(DatabaseCommunicator test, LabTest labTest, ArrayList testData) {
         labTest.setNameOfTest("11 jaanuar");
         labTest.setNameOfUser("Aivar");
         labTest.setUserClass("1");
-        labTest.setNameOfMethod("mingi labTest");
+        labTest.setNameOfMethod("veel mingi labTest2");
         labTest.setMatrix("kraanivesi");
         labTest.setCapillary("50/150 mm");
         labTest.setCapillaryTotalLength("20 cm");
@@ -253,17 +338,5 @@ public class DatabaseCommunicator {
             System.out.println(e);
             return false;
         }
-    }
-
-    public boolean isDatabaseUp() {
-        boolean ret = false;
-        try {
-            Socket s = new Socket(databaseAddress,5432);
-            ret = true;
-            s.close();
-        } catch (Exception e) {
-            System.out.println(e);
-        }
-        return ret;
     }
 }

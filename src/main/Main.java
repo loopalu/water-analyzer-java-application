@@ -128,6 +128,7 @@ public class Main extends Application {
     private HashMap<String, Integer> users = new HashMap<String, Integer>() {{ put("Regular user", 3);put("Scientist", 2);put("Administrator", 1);}};
     private String hvValue = "";
     private int currentUserClass = 1;
+    private HashMap<String, LabTest> methods = new HashMap<>();
 
 
     @Override
@@ -215,6 +216,7 @@ public class Main extends Application {
                 users.put(user,newUsers.get(user));
             }
         }
+        methods = databaseCommunicator.getMethods();
     }
 
     private void makeTimer(Scene scene) {
@@ -246,7 +248,12 @@ public class Main extends Application {
     }
 
     private void makeOptions(Scene scene) {
-        List<String> methods = new ArrayList<>();
+        ArrayList<String> methodsList;
+        if (methods.size() > 0) {
+            methodsList = new ArrayList<String>(methods.keySet());
+        } else {
+            methodsList = new ArrayList<>();
+        }
 
         ComboBox comboBox1 = (ComboBox) scene.lookup("#comboBox1");
         ComboBox comboBox2 = (ComboBox) scene.lookup("#comboBox2");
@@ -299,7 +306,7 @@ public class Main extends Application {
         bgeButton.setMinWidth(145.0);
         bgeHBox.getChildren().addAll(checkBgeComboBox);
 
-        makeComboBoxEditable(comboBox1, methods);
+        makeComboBoxEditable(comboBox1, methodsList);
         makeComboBoxEditable(comboBox2, matrixes);
 
     }

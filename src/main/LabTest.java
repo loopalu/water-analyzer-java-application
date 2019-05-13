@@ -3,7 +3,6 @@ package main;
 import javafx.collections.ObservableList;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class LabTest {
     private String nameOfTest;
@@ -11,11 +10,9 @@ public class LabTest {
     private String nameOfUser;
     private String userClass;
     private ObservableList<Analyte> analytes;
-    //private HashMap<String,Integer> analyteConcentrations = new HashMap<>();
     private String analyteUnit;
     private String matrix;
     private ObservableList<Analyte> bge;
-    //private HashMap<String, Integer> bgeConcentrations = new HashMap<>();
     private String bgeUnit;
     private String capillary;
     private String capillaryTotalLength;
