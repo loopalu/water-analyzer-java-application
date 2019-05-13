@@ -51,8 +51,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Main extends Application {
+    private static final int COUNTER_BLOCKING_NUMBER = 100;
     private String currentTime = "";
-    private String currentFrequency = "";
+    private String currentFrequency = "2 MHz";
     private String androidFrequency = "G9\n";
     private String currentUser = "Regular user";
     private String currentMethod = "";
@@ -334,6 +335,14 @@ public class Main extends Application {
             }
         });
 
+        comboBox.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                System.out.println("Mouse event");
+                System.out.println(comboBox.getEditor().getText());
+            }
+        });
+
         comboBox.getEditor().setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent ke) {
@@ -358,12 +367,11 @@ public class Main extends Application {
     }
 
     private void changeSettingsWithMethod(LabTest labTest) {
-        System.out.println(labTest.getMatrix());
         if (!currentMethod.equals("")) {
             changeAnalytes(labTest);
             //concentrations
             changeAnalytesUnit(labTest);
-//            //matrix
+            changeMatrix(labTest);
             changeBge(labTest);
 //            //concentrations
             changeBgeUnit(labTest);
@@ -379,6 +387,12 @@ public class Main extends Application {
             changeFrequency(labTest);
             changeHVValue(labTest);
         }
+    }
+
+    private void changeMatrix(LabTest labTest) {
+        ComboBox comboBox2 = (ComboBox) scene.lookup("#comboBox2");
+        comboBox2.getSelectionModel().select(labTest.getMatrix());
+        currentMatrix = labTest.getMatrix();
     }
 
     private void changeBge(LabTest labTest) {
@@ -1420,59 +1434,63 @@ public class Main extends Application {
             textField.setText(androidData);
         }
         if (isStarted) {
-            xSeriesData += 0.5;
+            if (counter > COUNTER_BLOCKING_NUMBER) {
+                xSeriesData += 0.5;
 
-            series10min.getData().add(new AreaChart.Data(xSeriesData, measurement));
-            series5min.getData().add(new AreaChart.Data(xSeriesData, measurement));
-            series3min.getData().add(new AreaChart.Data(xSeriesData, measurement));
-            series2min.getData().add(new AreaChart.Data(xSeriesData, measurement));
-            series1min.getData().add(new AreaChart.Data(xSeriesData, measurement));
-            series30sec.getData().add(new AreaChart.Data(xSeriesData, measurement));
+                series10min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+                series5min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+                series3min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+                series2min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+                series1min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+                series30sec.getData().add(new AreaChart.Data(xSeriesData, measurement));
 
-            current30sec.getData().add(new AreaChart.Data(xSeriesData, currentValue));
-            current10min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
-            current5min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
-            current3min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
-            current2min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
-            current1min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+                current30sec.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+                current10min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+                current5min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+                current3min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+                current2min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+                current1min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
 
-            if (series10min.getData().size() > 12000) {
-                series10min.getData().remove(0);
-                current10min.getData().remove(0);
+                if (series10min.getData().size() > 12000) {
+                    series10min.getData().remove(0);
+                    current10min.getData().remove(0);
+                }
+                if (series5min.getData().size() > 6000) {
+                    series5min.getData().remove(0);
+                    current5min.getData().remove(0);
+                }
+                if (series3min.getData().size() > 3600) {
+                    series3min.getData().remove(0);
+                    current3min.getData().remove(0);
+                }
+                if (series2min.getData().size() > 2400) {
+                    series2min.getData().remove(0);
+                    current2min.getData().remove(0);
+                }
+                if (series1min.getData().size() > 1200) {
+                    series1min.getData().remove(0);
+                    current1min.getData().remove(0);
+                }
+                if (series30sec.getData().size() > 600) {
+                    series30sec.getData().remove(0);
+                    current30sec.getData().remove(0);
+                }
+
+                series.getData().add(new AreaChart.Data(xSeriesData, measurement));
+                testData.add(measurement);
+
+                currentSeries.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+
+                xAxis.setUpperBound((int)(testData.size()/2.0));
+                xAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
+                xAxis.setTickUnit(upperBound/5);
+
+                xCurrentAxis.setUpperBound((int)(testData.size()/2.0));
+                xCurrentAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
+                xCurrentAxis.setTickUnit(upperBound/5);
+            } else {
+                counter += 1;
             }
-            if (series5min.getData().size() > 6000) {
-                series5min.getData().remove(0);
-                current5min.getData().remove(0);
-            }
-            if (series3min.getData().size() > 3600) {
-                series3min.getData().remove(0);
-                current3min.getData().remove(0);
-            }
-            if (series2min.getData().size() > 2400) {
-                series2min.getData().remove(0);
-                current2min.getData().remove(0);
-            }
-            if (series1min.getData().size() > 1200) {
-                series1min.getData().remove(0);
-                current1min.getData().remove(0);
-            }
-            if (series30sec.getData().size() > 600) {
-                series30sec.getData().remove(0);
-                current30sec.getData().remove(0);
-            }
-
-            series.getData().add(new AreaChart.Data(xSeriesData, measurement));
-            testData.add(measurement);
-
-            currentSeries.getData().add(new AreaChart.Data(xSeriesData, currentValue));
-
-            xAxis.setUpperBound((int)(testData.size()/2.0));
-            xAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
-            xAxis.setTickUnit(upperBound/5);
-
-            xCurrentAxis.setUpperBound((int)(testData.size()/2.0));
-            xCurrentAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
-            xCurrentAxis.setTickUnit(upperBound/5);
         }
     }
 
