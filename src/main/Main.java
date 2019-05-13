@@ -260,6 +260,7 @@ public class Main extends Application {
         ComboBox comboBox2 = (ComboBox) scene.lookup("#comboBox2");
 
         CheckComboBox<String> checkElementsComboBox = new CheckComboBox();
+        checkElementsComboBox.setId("elementsComboBoxId");
         GridPane elementsHBox = (GridPane) scene.lookup("#elementsHBox");
         checkElementsComboBox.getItems().addAll(analytes);
         checkElementsComboBox.setStyle("-fx-min-width: 192.0");
@@ -284,6 +285,7 @@ public class Main extends Application {
         elementsHBox.getChildren().addAll(checkElementsComboBox);
 
         CheckComboBox<String> checkBgeComboBox = new CheckComboBox();
+        checkBgeComboBox.setId("bgeComboBoxId");
         GridPane bgeHBox = (GridPane) scene.lookup("#bgeHBox");
         checkBgeComboBox.getItems().addAll(bges);
         checkBgeComboBox.setStyle("-fx-min-width: 192.0");
@@ -358,11 +360,11 @@ public class Main extends Application {
     private void changeSettingsWithMethod(LabTest labTest) {
         System.out.println(labTest.getMatrix());
         if (!currentMethod.equals("")) {
-//            changeAnalytes(labTest);
+            changeAnalytes(labTest);
             //concentrations
             changeAnalytesUnit(labTest);
 //            //matrix
-//            changeBge(labTest);
+            changeBge(labTest);
 //            //concentrations
             changeBgeUnit(labTest);
             changeCapillary(labTest);
@@ -377,6 +379,28 @@ public class Main extends Application {
             changeFrequency(labTest);
             changeHVValue(labTest);
         }
+    }
+
+    private void changeBge(LabTest labTest) {
+        CheckComboBox<String> checkBgeComboBox = (CheckComboBox<String>) scene.lookup("#bgeComboBoxId");
+        ObservableList<Analyte> bgeObservableList = labTest.getBge();
+        checkBgeComboBox.getCheckModel().clearChecks();
+        for (Analyte bge:bgeObservableList) {
+            checkBgeComboBox.getCheckModel().check(bges.indexOf(bge.getAnalyte()));
+        }
+        checkBgeComboBox.getCheckModel().getCheckedItems();
+        currentBge = checkBgeComboBox.getCheckModel().getCheckedItems();
+    }
+
+    private void changeAnalytes(LabTest labTest) {
+        CheckComboBox<String> checkElementsComboBox = (CheckComboBox<String>) scene.lookup("#elementsComboBoxId");
+        ObservableList<Analyte> analytesObservableList = labTest.getAnalytes();
+        checkElementsComboBox.getCheckModel().clearChecks();
+        for (Analyte analyte:analytesObservableList) {
+            checkElementsComboBox.getCheckModel().check(analytes.indexOf(analyte.getAnalyte()));
+        }
+        checkElementsComboBox.getCheckModel().getCheckedItems();
+        currentAnalytes = checkElementsComboBox.getCheckModel().getCheckedItems();
     }
 
     private void changeBgeUnit(LabTest labTest) {
