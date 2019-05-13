@@ -1297,6 +1297,10 @@ public class Main extends Application {
             testTime = "00:00:00:000";
             Button onOff = (Button) scene.lookup("#onOff");
             turnHighVoltageOff(onOff);
+            TextField field = (TextField) scene.lookup("#percentageField");
+            field.clear();
+            TextField field2 = (TextField) scene.lookup("#voltagePercentBox");
+            field2.clear();
 
         } catch (IOException e) {
             e.printStackTrace();
