@@ -50,9 +50,9 @@ import java.util.concurrent.ThreadFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Main extends Application {
+public class MainOld extends Application {
     private String currentTime = "";
-    private String currentFrequency = "";
+    private String currentFrequency = "2 MHz";
     private String androidFrequency = "G9\n";
     private String currentUser = "Regular user";
     private String currentMethod = "";
@@ -100,8 +100,8 @@ public class Main extends Application {
     private XYChart.Series current30sec;
     private final ObservableList<XYChart.Data> seriesData = FXCollections.observableArrayList();
     private final ObservableList<XYChart.Data> currentData = FXCollections.observableArrayList();
-    private ConcentrationTable concentrationTable;
-    private ConcentrationTable elementsConcentrationTable;
+    private ConcentrationTable concentrationTable = new ConcentrationTable(currentBge);
+    private ConcentrationTable elementsConcentrationTable = new ConcentrationTable(currentAnalytes);
     private String currentInjection = "Pressure";
     private String injectionTime = "0";
     private String currentDescription = "";
@@ -260,6 +260,7 @@ public class Main extends Application {
         ComboBox comboBox2 = (ComboBox) scene.lookup("#comboBox2");
 
         CheckComboBox<String> checkElementsComboBox = new CheckComboBox();
+        checkElementsComboBox.setId("elementsComboBoxId");
         GridPane elementsHBox = (GridPane) scene.lookup("#elementsHBox");
         checkElementsComboBox.getItems().addAll(analytes);
         checkElementsComboBox.setStyle("-fx-min-width: 192.0");
@@ -275,7 +276,7 @@ public class Main extends Application {
             @Override
             public void handle(ActionEvent event) {
                 final Stage elementWindow = new Stage();
-                elementsConcentrationTable = new ConcentrationTable(currentAnalytes);
+                //elementsConcentrationTable = new ConcentrationTable(currentAnalytes);
                 elementsConcentrationTable.start(elementWindow);
             }
         });
@@ -284,6 +285,7 @@ public class Main extends Application {
         elementsHBox.getChildren().addAll(checkElementsComboBox);
 
         CheckComboBox<String> checkBgeComboBox = new CheckComboBox();
+        checkBgeComboBox.setId("bgeComboBoxId");
         GridPane bgeHBox = (GridPane) scene.lookup("#bgeHBox");
         checkBgeComboBox.getItems().addAll(bges);
         checkBgeComboBox.setStyle("-fx-min-width: 192.0");
@@ -299,7 +301,7 @@ public class Main extends Application {
             @Override
             public void handle(ActionEvent event) {
                 final Stage bgeWindow = new Stage();
-                concentrationTable = new ConcentrationTable(currentBge);
+                //concentrationTable = new ConcentrationTable(currentBge);
                 concentrationTable.start(bgeWindow);
             }
         });
@@ -350,20 +352,20 @@ public class Main extends Application {
         comboBox.getEditor().setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
+                System.out.println(comboBox.getSelectionModel().getSelectedIndex());
                 System.out.println(comboBox.getEditor().getText());
             }
         });
     }
 
     private void changeSettingsWithMethod(LabTest labTest) {
-        System.out.println(labTest.getMatrix());
         if (!currentMethod.equals("")) {
-//            changeAnalytes(labTest);
+            changeAnalytes(labTest);
             //concentrations
             changeAnalytesUnit(labTest);
-//            //matrix
-//            changeBge(labTest);
-//            //concentrations
+            //matrix
+            changeBge(labTest);
+            //concentrations
             changeBgeUnit(labTest);
             changeCapillary(labTest);
             changeCapillaryTotalLength(labTest);
@@ -377,23 +379,6 @@ public class Main extends Application {
             changeFrequency(labTest);
             changeHVValue(labTest);
         }
-    }
-
-    private void changeBgeUnit(LabTest labTest) {
-        ChoiceBox bgeValueBox = (ChoiceBox) scene.lookup("#bgeValueBox");
-        bgeValueBox.getSelectionModel().select(labTest.getBgeUnit());
-        currentBgeValue = labTest.getBgeUnit();
-    }
-
-    private void changeAnalytesUnit(LabTest labTest) {
-        ChoiceBox elementsValueBox = (ChoiceBox) scene.lookup("#elementsValueBox");
-        elementsValueBox.getSelectionModel().select(labTest.getAnalyteUnit());
-        currentAnalyteValue = labTest.getAnalyteUnit();
-    }
-
-    private void changeHVValue(LabTest labTest) {
-        TextField field = (TextField) scene.lookup("#percentageField");
-        field.setText(labTest.getHvValue());
     }
 
     private void changeFrequency(LabTest labTest) {
@@ -433,6 +418,11 @@ public class Main extends Application {
                 androidFrequency = "G6\n";
                 break;
         }
+    }
+
+    private void changeHVValue(LabTest labTest) {
+        TextField field = (TextField) scene.lookup("#percentageField");
+        field.setText(labTest.getHvValue());
     }
 
     private void changeCommentary(LabTest labTest) {
@@ -497,6 +487,38 @@ public class Main extends Application {
         currentCapillary = labTest.getCapillary();
     }
 
+    private void changeBgeUnit(LabTest labTest) {
+        ChoiceBox bgeValueBox = (ChoiceBox) scene.lookup("#bgeValueBox");
+        bgeValueBox.getSelectionModel().select(labTest.getBgeUnit());
+        currentBgeValue = labTest.getBgeUnit();
+    }
+
+    private void changeAnalytesUnit(LabTest labTest) {
+        ChoiceBox elementsValueBox = (ChoiceBox) scene.lookup("#elementsValueBox");
+        elementsValueBox.getSelectionModel().select(labTest.getAnalyteUnit());
+        currentAnalyteValue = labTest.getAnalyteUnit();
+    }
+
+    private void changeBge(LabTest labTest) {
+        CheckComboBox<String> checkBgeComboBox = (CheckComboBox<String>) scene.lookup("#bgeComboBoxId");
+        ObservableList<Analyte> bgeObservableList = labTest.getBge();
+        for (Analyte bge:bgeObservableList) {
+            checkBgeComboBox.getCheckModel().check(bges.indexOf(bge.getAnalyte()));
+        }
+        checkBgeComboBox.getCheckModel().getCheckedItems();
+        currentBge = checkBgeComboBox.getCheckModel().getCheckedItems();
+    }
+
+    private void changeAnalytes(LabTest labTest) {
+        CheckComboBox<String> checkElementsComboBox = (CheckComboBox<String>) scene.lookup("#elementsComboBoxId");
+        ObservableList<Analyte> analytesObservableList = labTest.getAnalytes();
+        for (Analyte analyte:analytesObservableList) {
+            checkElementsComboBox.getCheckModel().check(analytes.indexOf(analyte.getAnalyte()));
+        }
+        checkElementsComboBox.getCheckModel().getCheckedItems();
+        currentAnalytes = checkElementsComboBox.getCheckModel().getCheckedItems();
+    }
+
     private void makeComboBoxes(Scene scene) {
 
         ChoiceBox timerBox = (ChoiceBox) scene.lookup("#timerBox");
@@ -518,7 +540,6 @@ public class Main extends Application {
             userBox.getItems().add(user);
         }
         userBox.getSelectionModel().select("Regular user");
-        //userBox.getSelectionModel().selectFirst();
         userBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
@@ -1396,59 +1417,63 @@ public class Main extends Application {
             textField.setText(androidData);
         }
         if (isStarted) {
-            xSeriesData += 0.5;
+            if (counter > 100) {
+                xSeriesData += 0.5;
 
-            series10min.getData().add(new AreaChart.Data(xSeriesData, measurement));
-            series5min.getData().add(new AreaChart.Data(xSeriesData, measurement));
-            series3min.getData().add(new AreaChart.Data(xSeriesData, measurement));
-            series2min.getData().add(new AreaChart.Data(xSeriesData, measurement));
-            series1min.getData().add(new AreaChart.Data(xSeriesData, measurement));
-            series30sec.getData().add(new AreaChart.Data(xSeriesData, measurement));
+                series10min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+                series5min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+                series3min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+                series2min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+                series1min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+                series30sec.getData().add(new AreaChart.Data(xSeriesData, measurement));
 
-            current30sec.getData().add(new AreaChart.Data(xSeriesData, currentValue));
-            current10min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
-            current5min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
-            current3min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
-            current2min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
-            current1min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+                current30sec.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+                current10min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+                current5min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+                current3min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+                current2min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+                current1min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
 
-            if (series10min.getData().size() > 12000) {
-                series10min.getData().remove(0);
-                current10min.getData().remove(0);
+                if (series10min.getData().size() > 12000) {
+                    series10min.getData().remove(0);
+                    current10min.getData().remove(0);
+                }
+                if (series5min.getData().size() > 6000) {
+                    series5min.getData().remove(0);
+                    current5min.getData().remove(0);
+                }
+                if (series3min.getData().size() > 3600) {
+                    series3min.getData().remove(0);
+                    current3min.getData().remove(0);
+                }
+                if (series2min.getData().size() > 2400) {
+                    series2min.getData().remove(0);
+                    current2min.getData().remove(0);
+                }
+                if (series1min.getData().size() > 1200) {
+                    series1min.getData().remove(0);
+                    current1min.getData().remove(0);
+                }
+                if (series30sec.getData().size() > 600) {
+                    series30sec.getData().remove(0);
+                    current30sec.getData().remove(0);
+                }
+
+                series.getData().add(new AreaChart.Data(xSeriesData, measurement));
+                testData.add(measurement);
+
+                currentSeries.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+
+                xAxis.setUpperBound((int)(testData.size()/2.0));
+                xAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
+                xAxis.setTickUnit(upperBound/5);
+
+                xCurrentAxis.setUpperBound((int)(testData.size()/2.0));
+                xCurrentAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
+                xCurrentAxis.setTickUnit(upperBound/5);
+            } else {
+                counter += 1;
             }
-            if (series5min.getData().size() > 6000) {
-                series5min.getData().remove(0);
-                current5min.getData().remove(0);
-            }
-            if (series3min.getData().size() > 3600) {
-                series3min.getData().remove(0);
-                current3min.getData().remove(0);
-            }
-            if (series2min.getData().size() > 2400) {
-                series2min.getData().remove(0);
-                current2min.getData().remove(0);
-            }
-            if (series1min.getData().size() > 1200) {
-                series1min.getData().remove(0);
-                current1min.getData().remove(0);
-            }
-            if (series30sec.getData().size() > 600) {
-                series30sec.getData().remove(0);
-                current30sec.getData().remove(0);
-            }
-
-            series.getData().add(new AreaChart.Data(xSeriesData, measurement));
-            testData.add(measurement);
-
-            currentSeries.getData().add(new AreaChart.Data(xSeriesData, currentValue));
-
-            xAxis.setUpperBound((int)(testData.size()/2.0));
-            xAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
-            xAxis.setTickUnit(upperBound/5);
-
-            xCurrentAxis.setUpperBound((int)(testData.size()/2.0));
-            xCurrentAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
-            xCurrentAxis.setTickUnit(upperBound/5);
         }
     }
 
