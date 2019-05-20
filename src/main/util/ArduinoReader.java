@@ -2,14 +2,11 @@ package main.util;
 
 import jssc.*;
 
-import java.util.ArrayList;
 import java.util.Stack;
 
 public class ArduinoReader implements SerialPortEventListener {
     private SerialPort serialPort;
     private Stack<String> data = new Stack<>();
-    private ArrayList<String> output = new ArrayList<>();
-    private StringBuilder message = new StringBuilder();
     private String out2 = "";
 
     public synchronized void serialEvent (SerialPortEvent event){
@@ -76,6 +73,5 @@ public class ArduinoReader implements SerialPortEventListener {
             }
         };
         t.start();
-        //System.out.println("Started");
     }
 }

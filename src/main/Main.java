@@ -63,8 +63,8 @@ public class Main extends Application {
     private ObservableList<String> currentBge = FXCollections.observableArrayList();
     private String currentMatrix = "";
     private String currentCapillary = "50/150 μm";
-    private ConcurrentLinkedQueue<Number> dataQ = new ConcurrentLinkedQueue<Number>();
-    private ConcurrentLinkedQueue<Number> dataQ1 = new ConcurrentLinkedQueue<Number>();
+//    private ConcurrentLinkedQueue<Number> dataQ = new ConcurrentLinkedQueue<Number>();
+//    private ConcurrentLinkedQueue<Number> dataQ1 = new ConcurrentLinkedQueue<Number>();
     private XYChart.Series series1;
     private XYChart.Series currentSeries1;
     private double xSeriesData = 0;
@@ -72,8 +72,6 @@ public class Main extends Application {
     private NumberAxis xCurrentAxis = new NumberAxis();
     private final NumberAxis yAxis = new NumberAxis();
     private final NumberAxis yCurrentAxis = new NumberAxis();
-    private ExecutorService executor;
-    private AddToQueue addToQueue;
     private ArrayList testData = new ArrayList();
     private int counter = 0; // We don't need 100 first measurements.
     private LineChart<Number,Number> lineChart;
@@ -127,7 +125,7 @@ public class Main extends Application {
             "spring water", "aquarium water", "sea water", "canalization water", "saliva", "blood", "urine", "plant extract",
             "juice", "drink"));
     private HashMap<String, Integer> users = new HashMap<String, Integer>() {{ put("Regular user", 3);put("Scientist", 2);put("Administrator", 1);}};
-    private String hvValue = "";
+    private String hvValue = "0";
     private int currentUserClass = 1;
     private HashMap<String, LabTest> methods = new HashMap<>();
     private ToggleGroup group;
@@ -171,15 +169,6 @@ public class Main extends Application {
         reader.initialize();
         arduinoData = reader.getData();
         serialPort = reader.getSerialPort();
-        executor = Executors.newCachedThreadPool(new ThreadFactory() {
-            @Override public Thread newThread(Runnable r) {
-                Thread thread = new Thread(r);
-                thread.setDaemon(true);
-                return thread;
-            }
-        });
-        addToQueue = new AddToQueue();
-        executor.execute(addToQueue);
         //-- Prepare Timeline
         prepareTimeline();
     }
@@ -234,19 +223,6 @@ public class Main extends Application {
             }
         }));
         stopWatchTimeline.setCycleCount(Timeline.INDEFINITE);
-    }
-
-    private void readFile() throws IOException {
-        BufferedReader reader = new BufferedReader(new FileReader("andmed.txt"));
-        String voltage = reader.readLine();
-        while (voltage != null) {
-            testData.add(voltage);
-            Integer data = Integer.parseInt(voltage);
-            dataQ.add(data);
-            // read next line
-            voltage = reader.readLine();
-        }
-        reader.close();
     }
 
     private void makeOptions(Scene scene) {
@@ -1214,7 +1190,7 @@ public class Main extends Application {
             System.out.println(testData.size());
             System.out.println("done");
             dataWriter.close();
-            ImageSaver.saveImage(testData, current+"/" + timeStamp + File.separator + timeStamp + "_image.png");
+//            ImageSaver.saveImage(testData, current+"/" + timeStamp + File.separator + timeStamp + "_image.png");
 
             if (concentrationTable != null) {
                 LabTest labTest = new LabTest();
@@ -1281,6 +1257,7 @@ public class Main extends Application {
                 writer.write(currentDescription);
                 writer.newLine();
                 labTest.setTestTime(testTime);
+                System.out.println("TestData size: " + testData.size());
                 labTest.setTestData(testData);
                 writer.write("Test duration: " + testTime);
                 writer.newLine();
@@ -1290,10 +1267,13 @@ public class Main extends Application {
                 writer.newLine();
                 writer.close();
                 DatabaseCommunicator communicator = new DatabaseCommunicator();
-                if (communicator.isApiAvailable("postTest")) {
+                if (communicator.isApiAvailable("getUsers")) {
                     communicator.postTest(labTest);
+                } else {
+                    System.out.println("api is not available");
                 }
             }
+            ImageSaver.saveImage(testData, current+"/" + timeStamp + File.separator + timeStamp + "_image.png");
             testTime = "00:00:00:000";
             Button onOff = (Button) scene.lookup("#onOff");
             turnHighVoltageOff(onOff);
@@ -1385,23 +1365,6 @@ public class Main extends Application {
         GridPane mainPane = (GridPane) scene.lookup("#chartPane");
         mainPane.getChildren().addAll(lineChart, currentLineChart);
 
-    }
-
-    private class AddToQueue implements Runnable {
-        @Override
-        public void run() {
-            try {
-                // add a item of random data to queue
-                //dataQ1.add(Math.random());
-                dataQ1.add(dataQ.remove());
-
-                Thread.sleep(1);
-                executor.execute(this);
-
-            } catch (InterruptedException ex) {
-                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
     }
 
     //-- Timeline gets called in the JavaFX Main thread

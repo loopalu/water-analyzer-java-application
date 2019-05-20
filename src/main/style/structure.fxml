@@ -34,7 +34,7 @@
                 <RowConstraints maxHeight="163.99999923706054" minHeight="10.0" prefHeight="163.99999923706054" vgrow="SOMETIMES" />
             </rowConstraints>
             <children>
-                <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Description of the test" wrappingWidth="449.33673095703125" GridPane.columnIndex="1" />
+                <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Description of the method" wrappingWidth="449.33673095703125" GridPane.columnIndex="1" />
                 <TextArea fx:id="textArea" prefHeight="164.0" prefWidth="410.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
             </children>
         </GridPane>

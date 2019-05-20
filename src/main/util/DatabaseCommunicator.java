@@ -262,7 +262,7 @@ public class DatabaseCommunicator {
     }
 
     private static void testSendingToDatabase(DatabaseCommunicator test, LabTest labTest, ArrayList testData) {
-        labTest.setNameOfTest("11 jaanuar");
+        labTest.setNameOfTest("2222");
         labTest.setNameOfUser("Aivar");
         labTest.setUserClass("1");
         labTest.setNameOfMethod("veel mingi labTest2");
