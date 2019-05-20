@@ -126,6 +126,7 @@ public class Main extends Application {
             "juice", "drink"));
     private HashMap<String, Integer> users = new HashMap<String, Integer>() {{ put("Regular user", 3);put("Scientist", 2);put("Administrator", 1);}};
     private String hvValue = "0";
+    private int out = 0;
     private int currentUserClass = 1;
     private HashMap<String, LabTest> methods = new HashMap<>();
     private ToggleGroup group;
@@ -1042,7 +1043,7 @@ public class Main extends Application {
                 });
                 String fieldData = field.getText();
                 try {
-                    int out = Integer.parseInt(fieldData);
+                    out = Integer.parseInt(fieldData);
                     if (out < 0 || out > 100) {
                         field.setStyle("-fx-text-inner-color: red;");
                         field.setText("ERROR");
@@ -1209,7 +1210,7 @@ public class Main extends Application {
                 labTest.setInjectionChoiceUnit(currentInjectionChoiceUnit);
                 labTest.setInjectionTime(injectionTime + " s");
                 labTest.setCurrent(currentValueString + " µA");
-                labTest.setHvValue(hvValue + " %");
+                labTest.setHvValue(out + " %");
                 writer = new BufferedWriter(new FileWriter((current+"/" + timeStamp + File.separator + timeStamp + "_settings.txt")));
                 writer.write("User: "+ currentUser);
                 writer.newLine();
@@ -1229,7 +1230,7 @@ public class Main extends Application {
                 writer.newLine();
                 writer.write("Current: "+ currentValueString + " µA");
                 writer.newLine();
-                writer.write("HV value: " + hvValue + " %");
+                writer.write("HV value: " + out + " %");
                 writer.newLine();
                 writer.write("Analytes:");
                 writer.newLine();
