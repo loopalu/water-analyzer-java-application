@@ -8,28 +8,38 @@ import main.LabTest;
 
 import java.io.*;
 import java.net.*;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Scanner;
-
 import main.User;
 import org.json.JSONArray;
 
+/**
+ * Makes connection to the REST API that deals with data and database.
+ */
 public class DatabaseCommunicator {
     private String apiAddress = "http://localhost:8080/";
     private String databaseAddress = "localhost";
     private JSONArray jsonArray;
     private HttpURLConnection con;
 
+    /**
+     * Gets users from REST API.
+     *
+     * @return HashMap of users.
+     */
     public HashMap<String, Integer> getUsers() {
         HashMap<String, Integer> users = new HashMap<>();
         getData(users, "getUsers");
         return users;
     }
 
+    /**
+     * Gets methods from REST API.
+     *
+     * @return HashMap of methods (LabTest objects).
+     */
     public HashMap<String, LabTest> getMethods() {
         HashMap<String, LabTest> methods = new HashMap<>();
         if (isApiAvailable("getMethods")) {
@@ -69,6 +79,12 @@ public class DatabaseCommunicator {
         return methods;
     }
 
+    /**
+     * Makes LabTest object with test data based on the JSON received from REST API.
+     *
+     * @param jsonObject JSON received from REST API.
+     * @return LabTest object with test data.
+     */
     private LabTest makeMethod(JsonObject jsonObject) {
         LabTest labTest = new LabTest();
         labTest.setNameOfTest(""); // Not important for method.
@@ -121,6 +137,11 @@ public class DatabaseCommunicator {
         return labTest;
     }
 
+    /**
+     * Sends data to the REST API.
+     *
+     * @param labTest All the data of test in the form of LabTest object.
+     */
     public void postTest(LabTest labTest) {
         URL url = null;
         try {
@@ -150,12 +171,23 @@ public class DatabaseCommunicator {
         }
     }
 
+    /**
+     * Gets analytes from REST API.
+     *
+     * @return Resturns list of analytes.
+     */
     public ArrayList<String> getAnalytes() {
         ArrayList<String> analytes = new ArrayList<>();
         getData(analytes, "getAnalytes");
         return analytes;
     }
 
+    /**
+     * Asks for data from REST API.
+     *
+     * @param users Users of the desktop application.
+     * @param string Name of the REST API address for database.
+     */
     private void getData(HashMap<String, Integer> users, String string) {
         if (isApiAvailable(string)) {
             makeConnection(string);
@@ -192,6 +224,12 @@ public class DatabaseCommunicator {
         }
     }
 
+    /**
+     * Asks for data from REST API.
+     *
+     * @param elements List of the asked elements.
+     * @param string Name of the REST API address for database.
+     */
     private void getData(ArrayList<String> elements, String string) {
         if (isApiAvailable(string)) {
             makeConnection(string);
@@ -226,18 +264,33 @@ public class DatabaseCommunicator {
         }
     }
 
+    /**
+     * Asks for matrixes from REST API.
+     *
+     * @return List of matrixes.
+     */
     public ArrayList<String> getMatrixes() {
         ArrayList<String> matrixes = new ArrayList<>();
         getData(matrixes, "getMatrixes");
         return matrixes;
     }
 
+    /**
+     * Asks for BGE-s from REST API.
+     *
+     * @return List of BGE-s.
+     */
     public ArrayList<String> getBges() {
         ArrayList<String> bges = new ArrayList<>();
         getData(bges, "getBges");
         return bges;
     }
 
+    /**
+     * Reads integers from the list. Used for testing the database connection.
+     *
+     * @return List of integers used for testing the database connection.
+     */
     private ArrayList<Integer> fileReader() {
         ArrayList<Integer> data = new ArrayList<>();
         try {
@@ -252,6 +305,11 @@ public class DatabaseCommunicator {
         return data;
     }
 
+    /**
+     * Tests the database connection.
+     *
+     * @param args Given arguments.
+     */
     public static void main(String[] args) {
         DatabaseCommunicator test = new DatabaseCommunicator();
 //        HashMap<String,LabTest> methods = test.getMethods();
@@ -261,7 +319,14 @@ public class DatabaseCommunicator {
         DatabaseCommunicator.testSendingToDatabase(test, labTest, testData);
     }
 
-    private static void testSendingToDatabase(DatabaseCommunicator test, LabTest labTest, ArrayList testData) {
+    /**
+     * Fakes the test, makes LabTest object and sends it to REST API.
+     *
+     * @param databaseCommunicator Communicator with REST API.
+     * @param labTest Fake lab test data in the form of LabTest object.
+     * @param testData Fake list of integers.
+     */
+    private static void testSendingToDatabase(DatabaseCommunicator databaseCommunicator, LabTest labTest, ArrayList testData) {
         labTest.setNameOfTest("2222");
         labTest.setNameOfUser("Aivar");
         labTest.setUserClass("1");
@@ -294,9 +359,14 @@ public class DatabaseCommunicator {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String json = gson.toJson(labTest);
         System.out.println(json);
-        test.postTest(labTest);
+        databaseCommunicator.postTest(labTest);
     }
 
+    /**
+     * Makes connection to the REST API on given address.
+     *
+     * @param string REST API address.
+     */
     private void makeConnection(String string) {
         URL url = null;
         try {
@@ -312,7 +382,13 @@ public class DatabaseCommunicator {
         }
     }
 
-    public boolean isApiAvailable(String string) { //sama asi läheb API sisse, et vaadata, kas andmebaas on üleval
+    /**
+     * Checks if REST API is available.
+     *
+     * @param string Address of the REST API.
+     * @return The boolean if API is available or not.
+     */
+    public boolean isApiAvailable(String string) {
         URL url;
         try {
             url = new URL(apiAddress + string);

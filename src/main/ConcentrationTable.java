@@ -23,6 +23,9 @@ import javafx.stage.Stage;
 
 import java.util.List;
 
+/**
+ * Class for the concentrations of analytes and BGE-s
+ */
 public class ConcentrationTable extends Application {
     private List<String> elements;
     private TableView<Analyte> table = new TableView<>();
@@ -41,6 +44,11 @@ public class ConcentrationTable extends Application {
         launch(args);
     }
 
+    /**
+     * Makes the window for table.
+     *
+     * @param stage Window for table.
+     */
     @Override
     public void start(Stage stage) {
 

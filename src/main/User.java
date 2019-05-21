@@ -1,5 +1,8 @@
 package main;
 
+/**
+ * Class for User object. User is the user of desktop application.
+ */
 public class User {
     private String name;
     private int userClass;

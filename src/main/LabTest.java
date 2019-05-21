@@ -4,6 +4,9 @@ import javafx.collections.ObservableList;
 
 import java.util.ArrayList;
 
+/**
+ * Class for all the data from the test. It is used for sending it to database.
+ */
 public class LabTest {
     private String nameOfTest;
     private String nameOfMethod;
@@ -45,13 +48,6 @@ public class LabTest {
         this.analytes = analytes;
     }
 
-//    public HashMap<String, Integer> getAnalyteConcentrations() {
-//        return analyteConcentrations;
-//    }
-//
-//    public void setAnalyteConcentrations(HashMap<String, Integer> analyteConcentrations) {
-//        this.analyteConcentrations = analyteConcentrations;
-//    }
 
     public String getAnalyteUnit() {
         return analyteUnit;
@@ -77,13 +73,6 @@ public class LabTest {
         this.bge = bge;
     }
 
-//    public HashMap<String, Integer> getBgeConcentrations() {
-//        return bgeConcentrations;
-//    }
-//
-//    public void setBgeConcentrations(HashMap<String, Integer> bgeConcentrations) {
-//        this.bgeConcentrations = bgeConcentrations;
-//    }
 
     public String getBgeUnit() {
         return bgeUnit;

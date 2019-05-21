@@ -50,6 +50,9 @@ import java.util.concurrent.ThreadFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Makes the graphical interface and runs all the methods.
+ */
 public class Main extends Application {
     private static final int COUNTER_BLOCKING_NUMBER = 100;
     private String currentTime = "";
@@ -63,8 +66,6 @@ public class Main extends Application {
     private ObservableList<String> currentBge = FXCollections.observableArrayList();
     private String currentMatrix = "";
     private String currentCapillary = "50/150 μm";
-//    private ConcurrentLinkedQueue<Number> dataQ = new ConcurrentLinkedQueue<Number>();
-//    private ConcurrentLinkedQueue<Number> dataQ1 = new ConcurrentLinkedQueue<Number>();
     private XYChart.Series series1;
     private XYChart.Series currentSeries1;
     private double xSeriesData = 0;
@@ -83,8 +84,6 @@ public class Main extends Application {
     private boolean isHighVoltage = false;
     private String highVoltage = "h";
     private double upperBound = 300.0;
-    private XYChart.Series series;
-    private XYChart.Series currentSeries;
     private XYChart.Series series10min;
     private XYChart.Series series5min;
     private XYChart.Series series3min;
@@ -97,8 +96,6 @@ public class Main extends Application {
     private XYChart.Series current2min;
     private XYChart.Series current1min;
     private XYChart.Series current30sec;
-    private final ObservableList<XYChart.Data> seriesData = FXCollections.observableArrayList();
-    private final ObservableList<XYChart.Data> currentData = FXCollections.observableArrayList();
     private ConcentrationTable concentrationTable;
     private ConcentrationTable elementsConcentrationTable;
     private String currentInjection = "Pressure";
@@ -132,6 +129,12 @@ public class Main extends Application {
     private ToggleGroup group;
 
 
+    /**
+     * Starts the graphical interface.
+     *
+     * @param stage Canvas for the graphical interface.
+     * @throws Exception Possible exception that can be rise.
+     */
     @Override
     public void start(Stage stage) throws Exception{
         stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
@@ -174,6 +177,9 @@ public class Main extends Application {
         prepareTimeline();
     }
 
+    /**
+     * Gets data from database and implements it into graphical interface.
+     */
     private void getDataFromDatabase() {
         DatabaseCommunicator databaseCommunicator = new DatabaseCommunicator();
         ArrayList<String> tempAnalytes = databaseCommunicator.getAnalytes();
@@ -211,6 +217,11 @@ public class Main extends Application {
         methods = databaseCommunicator.getMethods();
     }
 
+    /**
+     * Makes timer for the graphical interface.
+     *
+     * @param scene Canvas for the graphical interface.
+     */
     private void makeTimer(Scene scene) {
         Text textField = (Text) scene.lookup("#timerData");
         textField.setText("00:00:00:000");
@@ -226,6 +237,11 @@ public class Main extends Application {
         stopWatchTimeline.setCycleCount(Timeline.INDEFINITE);
     }
 
+    /**
+     * Makes dropdown menus and buttons for test options.
+     *
+     * @param scene Canvas for the graphical interface.
+     */
     private void makeOptions(Scene scene) {
         ArrayList<String> methodsList;
         if (methods.size() > 0) {
@@ -292,6 +308,12 @@ public class Main extends Application {
 
     }
 
+    /**
+     * Makes combobox (dropdown list) editable.
+     *
+     * @param comboBox Given dropdown list..
+     * @param dropDownList Given list of elements for the dropdown list.
+     */
     private void makeComboBoxEditable(ComboBox comboBox, List<String> dropDownList) {
         comboBox.getItems().addAll(dropDownList);
 
@@ -343,6 +365,11 @@ public class Main extends Application {
         });
     }
 
+    /**
+     * Receives LabTest object and changes the settings of the interface by using the information from LabTest object.
+     *
+     * @param labTest LabTest object with the data received from the database.
+     */
     private void changeSettingsWithMethod(LabTest labTest) {
         if (!currentMethod.equals("")) {
             changeAnalytes(labTest);
@@ -366,12 +393,22 @@ public class Main extends Application {
         }
     }
 
+    /**
+     * Changes the matrix on interface.
+     *
+     * @param labTest LabTest object with the data received from the database.
+     */
     private void changeMatrix(LabTest labTest) {
         ComboBox comboBox2 = (ComboBox) scene.lookup("#comboBox2");
         comboBox2.getSelectionModel().select(labTest.getMatrix());
         currentMatrix = labTest.getMatrix();
     }
 
+    /**
+     * Changes the BGE on interface.
+     *
+     * @param labTest LabTest object with the data received from the database.
+     */
     private void changeBge(LabTest labTest) {
         CheckComboBox<String> checkBgeComboBox = (CheckComboBox<String>) scene.lookup("#bgeComboBoxId");
         ObservableList<Analyte> bgeObservableList = labTest.getBge();
@@ -383,6 +420,11 @@ public class Main extends Application {
         currentBge = checkBgeComboBox.getCheckModel().getCheckedItems();
     }
 
+    /**
+     * Changes the analytes on the interface.
+     *
+     * @param labTest LabTest object with the data received from the database.
+     */
     private void changeAnalytes(LabTest labTest) {
         CheckComboBox<String> checkElementsComboBox = (CheckComboBox<String>) scene.lookup("#elementsComboBoxId");
         ObservableList<Analyte> analytesObservableList = labTest.getAnalytes();
@@ -394,23 +436,43 @@ public class Main extends Application {
         currentAnalytes = checkElementsComboBox.getCheckModel().getCheckedItems();
     }
 
+    /**
+     * Changes the unit of BGE on the interface.
+     *
+     * @param labTest LabTest object with the data received from the database.
+     */
     private void changeBgeUnit(LabTest labTest) {
         ChoiceBox bgeValueBox = (ChoiceBox) scene.lookup("#bgeValueBox");
         bgeValueBox.getSelectionModel().select(labTest.getBgeUnit());
         currentBgeValue = labTest.getBgeUnit();
     }
 
+    /**
+     * Changes the unit of analytes on the interface.
+     *
+     * @param labTest LabTest object with the data received from the database.
+     */
     private void changeAnalytesUnit(LabTest labTest) {
         ChoiceBox elementsValueBox = (ChoiceBox) scene.lookup("#elementsValueBox");
         elementsValueBox.getSelectionModel().select(labTest.getAnalyteUnit());
         currentAnalyteValue = labTest.getAnalyteUnit();
     }
 
+    /**
+     * Changes the the value of high voltage percentage on the interface.
+     *
+     * @param labTest LabTest object with the data received from the database.
+     */
     private void changeHVValue(LabTest labTest) {
         TextField field = (TextField) scene.lookup("#percentageField");
         field.setText(labTest.getHvValue());
     }
 
+    /**
+     * Changes the frequency on the interface.
+     *
+     * @param labTest LabTest object with the data received from the database.
+     */
     private void changeFrequency(LabTest labTest) {
         ToggleButton button = (ToggleButton) scene.lookup(("#"+labTest.getFrequency().split(" ")[0]));
         button.setToggleGroup(group);
@@ -450,30 +512,53 @@ public class Main extends Application {
         }
     }
 
+    /**
+     * Changes the commentary of the method on the interface.
+     *
+     * @param labTest LabTest object with the data received from the database.
+     */
     private void changeCommentary(LabTest labTest) {
         TextArea commentaryField = (TextArea) scene.lookup("#textArea");
         commentaryField.setText(labTest.getDescription());
         currentDescription = labTest.getDescription();
     }
 
+    /**
+     * Changes the duration of the injection on the interface.
+     *
+     * @param labTest LabTest object with the data received from the database.
+     */
     private void changeInjectionDuration(LabTest labTest) {
         TextField durationField = (TextField) scene.lookup("#durationField");
         durationField.setText(labTest.getInjectionTime());
         injectionTime = labTest.getInjectionTime();
     }
 
+    /**
+     * Changes the value of injection measurement.
+     *
+     * @param labTest LabTest object with the data received from the database.
+     */
     private void changeInjectionValue(LabTest labTest) {
         TextField injectionChoiceValueField = (TextField) scene.lookup("#injectionChoiceValue");
         injectionChoiceValueField.setText(labTest.getInjectionChoiceValue());
         injectionChoiceValue = labTest.getInjectionChoiceValue();
     }
 
+    /**
+     * Changes the unit of the injection type.
+     *
+     * @param labTest LabTest object with the data received from the database.
+     */
     private void changeInjectionUnit(LabTest labTest) {
         ChoiceBox injectionChoiceUnitBox = (ChoiceBox) scene.lookup("#injectionChoiceUnitBox");
         injectionChoiceUnitBox.getSelectionModel().select(labTest.getInjectionChoiceUnit());
         currentInjectionChoiceUnit = labTest.getInjectionChoiceUnit();
     }
 
+    /**
+     * Sets the target of injection measurement.
+     */
     private void changeInjectionMethodChoice() {
         Text injectionChoiceText = (Text) scene.lookup("#injectionChoiceText");
         if (currentInjection.equals("Vacuum")) {
@@ -488,30 +573,55 @@ public class Main extends Application {
         }
     }
 
+    /**
+     * Changes the type of injection (a.la. electricity/pressure/vacuum).
+     *
+     * @param labTest LabTest object with the data received from the database.
+     */
     private void changeInjectionMethod(LabTest labTest) {
         ChoiceBox injectionBox = (ChoiceBox) scene.lookup("#injectionBox");
         injectionBox.getSelectionModel().select(labTest.getInjectionMethod());
         currentInjection = labTest.getInjectionMethod();
     }
 
+    /**
+     * Changes the effective length of capillary on interface.
+     *
+     * @param labTest LabTest object with the data received from the database.
+     */
     private void changeCapillaryEffectiveLength(LabTest labTest) {
         ChoiceBox capillaryEffectiveBox = (ChoiceBox) scene.lookup("#capillaryEffectiveBox");
         capillaryEffectiveBox.getSelectionModel().select(labTest.getCapillaryEffectiveLength());
         currentCapillaryEffective = labTest.getCapillaryEffectiveLength();
     }
 
+    /**
+     * Changes the total length of capillary on interface.
+     *
+     * @param labTest LabTest object with the data received from the database.
+     */
     private void changeCapillaryTotalLength(LabTest labTest) {
         ChoiceBox capillaryTotalBox = (ChoiceBox) scene.lookup("#capillaryTotalBox");
         capillaryTotalBox.getSelectionModel().select(labTest.getCapillaryTotalLength());
         currentCapillaryTotal = labTest.getCapillaryTotalLength();
     }
 
+    /**
+     * Changes the capillary on the interface.
+     *
+     * @param labTest LabTest object with the data received from the database.
+     */
     private void changeCapillary(LabTest labTest) {
         ChoiceBox capillaryBox = (ChoiceBox) scene.lookup("#capillaryBox");
         capillaryBox.getSelectionModel().select(labTest.getCapillary());
         currentCapillary = labTest.getCapillary();
     }
 
+    /**
+     * Makes dropdown lists.
+     *
+     * @param scene Canvas for the graphical interface.
+     */
     private void makeComboBoxes(Scene scene) {
 
         ChoiceBox timerBox = (ChoiceBox) scene.lookup("#timerBox");
@@ -697,6 +807,11 @@ public class Main extends Application {
         });
     }
 
+    /**
+     * Makes the time scale buttons for the chart.
+     *
+     * @param scene Canvas for the graphical interface.
+     */
     private void makeTimeButtons(Scene scene) {
         final ToggleButton button1 = new ToggleButton("10 min");
         final ToggleButton button2 = new ToggleButton("5 min");
@@ -854,6 +969,11 @@ public class Main extends Application {
         grid.getChildren().addAll(box1, box2, box3, box4, box5, box6);
     }
 
+    /**
+     * Makes frequency buttons.
+     *
+     * @param scene Canvas for the graphical interface.
+     */
     private void makeFrequencyButtons(Scene scene) {
         ToggleButton button1 = new ToggleButton("2 MHz"); //2 MHz
         button1.setId("2");
@@ -950,7 +1070,7 @@ public class Main extends Application {
                     } catch (SerialPortException e) {
                         e.printStackTrace();
                     }
-                    System.out.println(series.getData().size());
+                    //System.out.println(series.getData().size());
                 }
                 else {
                 }
@@ -974,6 +1094,12 @@ public class Main extends Application {
         grid.getChildren().addAll(box1, box2, box3, box4, box5, box6, box7, box8, box9, box10);
     }
 
+    /**
+     * Makes buttons related to the test state (Start/Stop/Save/etc)
+     *
+     * @param scene Canvas for the graphical interface.
+     * @param stage Canvas for the graphical interface.
+     */
     private void makeStartStopButtons(Scene scene, Stage stage) {
         Button startButton = new Button("Start");
         Button stopButton = new Button("Stop");
@@ -1097,6 +1223,11 @@ public class Main extends Application {
         grid.getChildren().addAll(box1, box2, box3, box4);
     }
 
+    /**
+     * Turns high voltage on.
+     *
+     * @param onOff Button for turning high voltage on.
+     */
     private void turnHighVoltageOn(Button onOff) {
         isHighVoltage = true;
         onOff.setStyle("-fx-background-color: lawngreen;");
@@ -1110,6 +1241,11 @@ public class Main extends Application {
         }
     }
 
+    /**
+     * Turns high voltage off.
+     *
+     * @param onOff Button for turning high voltge off.
+     */
     private void turnHighVoltageOff(Button onOff) {
         isHighVoltage = false;
         onOff.setStyle("-fx-background-color: red;");
@@ -1123,6 +1259,11 @@ public class Main extends Application {
         }
     }
 
+    /**
+     * Clears the chart and everything that is related to the test.
+     *
+     * @param scene Canvas for graphical interface.
+     */
     private void clear(Scene scene) {
         System.out.println("clear");
         testData = new ArrayList();
@@ -1150,6 +1291,9 @@ public class Main extends Application {
         timerText.setText("00:00:00:000");
     }
 
+    /**
+     * Saves the data that is related to the test.
+     */
     private void saveTest() {
         isTimerOn = false;
         isStarted = false;
@@ -1188,7 +1332,6 @@ public class Main extends Application {
             for (int i = 0; i < testData.size(); i++) {
                 dataWriter.println(testData.get(i));
             }
-            System.out.println(testData.size());
             System.out.println("done");
             dataWriter.close();
 //            ImageSaver.saveImage(testData, current+"/" + timeStamp + File.separator + timeStamp + "_image.png");
@@ -1288,6 +1431,11 @@ public class Main extends Application {
         }
     }
 
+    /**
+     * Makes moving chart.
+     *
+     * @param scene Canvas for graphical interface.
+     */
     private void makeMovingChart(Scene scene) {
         NumberAxis yAxis = new NumberAxis();
         NumberAxis yCurrentAxis = new NumberAxis();
@@ -1309,7 +1457,7 @@ public class Main extends Application {
         xAxis.setMinorTickVisible(false);
         xAxis.setTickUnit(upperBound/5);
         lineChart = new LineChart<>(xAxis, yAxis); //Siis on palju kitsam graafik
-        series = new XYChart.Series(seriesData);
+        //series = new XYChart.Series(seriesData);
 
         xCurrentAxis = new NumberAxis(0, upperBound, 1);
         xCurrentAxis.setForceZeroInRange(false);
@@ -1319,33 +1467,21 @@ public class Main extends Application {
         xCurrentAxis.setMinorTickVisible(false);
         xCurrentAxis.setTickUnit(upperBound/5);
         currentLineChart = new LineChart<>(xCurrentAxis, yCurrentAxis); //Siis on palju kitsam graafik
-        currentSeries = new XYChart.Series(currentData);
+        //currentSeries = new XYChart.Series(currentData);
 
-        ObservableList<XYChart.Data> seriesData10min = FXCollections.observableArrayList();
-        ObservableList<XYChart.Data> seriesData5min = FXCollections.observableArrayList();
-        ObservableList<XYChart.Data> seriesData3min = FXCollections.observableArrayList();
-        ObservableList<XYChart.Data> seriesData2min = FXCollections.observableArrayList();
-        ObservableList<XYChart.Data> seriesData1min = FXCollections.observableArrayList();
-        ObservableList<XYChart.Data> seriesData30sec = FXCollections.observableArrayList();
-        series10min = new XYChart.Series(seriesData10min);
-        series5min = new XYChart.Series(seriesData5min);
-        series3min = new XYChart.Series(seriesData3min);
-        series2min = new XYChart.Series(seriesData2min);
-        series1min = new XYChart.Series(seriesData1min);
-        series30sec = new XYChart.Series(seriesData30sec);
+        series10min = new XYChart.Series(FXCollections.observableArrayList());
+        series5min = new XYChart.Series(FXCollections.observableArrayList());
+        series3min = new XYChart.Series(FXCollections.observableArrayList());
+        series2min = new XYChart.Series(FXCollections.observableArrayList());
+        series1min = new XYChart.Series(FXCollections.observableArrayList());
+        series30sec = new XYChart.Series(FXCollections.observableArrayList());
 
-        ObservableList<XYChart.Data> currentData10min = FXCollections.observableArrayList();
-        ObservableList<XYChart.Data> currentData5min = FXCollections.observableArrayList();
-        ObservableList<XYChart.Data> currentData3min = FXCollections.observableArrayList();
-        ObservableList<XYChart.Data> currentData2min = FXCollections.observableArrayList();
-        ObservableList<XYChart.Data> currentData1min = FXCollections.observableArrayList();
-        ObservableList<XYChart.Data> currentData30sec = FXCollections.observableArrayList();
-        current10min = new XYChart.Series(currentData10min);
-        current5min = new XYChart.Series(currentData5min);
-        current3min = new XYChart.Series(currentData3min);
-        current2min = new XYChart.Series(currentData2min);
-        current1min = new XYChart.Series(currentData1min);
-        current30sec = new XYChart.Series(currentData30sec);
+        current10min = new XYChart.Series(FXCollections.observableArrayList());
+        current5min = new XYChart.Series(FXCollections.observableArrayList());
+        current3min = new XYChart.Series(FXCollections.observableArrayList());
+        current2min = new XYChart.Series(FXCollections.observableArrayList());
+        current1min = new XYChart.Series(FXCollections.observableArrayList());
+        current30sec = new XYChart.Series(FXCollections.observableArrayList());
 
         lineChart.getData().addAll(series30sec);
         lineChart.setCreateSymbols(false);
@@ -1378,6 +1514,9 @@ public class Main extends Application {
         }.start();
     }
 
+    /**
+     * Adds Arduino data to the chart.
+     */
     private void addDataToSeries() {
         //JÄRGMINE ON ARDUINO KOOD
         if (arduinoData.isEmpty()) {
@@ -1444,10 +1583,10 @@ public class Main extends Application {
                     current30sec.getData().remove(0);
                 }
 
-                series.getData().add(new AreaChart.Data(xSeriesData, measurement));
+                //series.getData().add(new AreaChart.Data(xSeriesData, measurement));
                 testData.add(measurement);
 
-                currentSeries.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+                //currentSeries.getData().add(new AreaChart.Data(xSeriesData, currentValue));
 
                 xAxis.setUpperBound((int)(testData.size()/2.0));
                 xAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));

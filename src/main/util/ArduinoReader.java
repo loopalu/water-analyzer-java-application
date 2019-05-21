@@ -4,11 +4,19 @@ import jssc.*;
 
 import java.util.Stack;
 
+/**
+ * Class for reading data from Arduino and also sending commands to Arduino.
+ */
 public class ArduinoReader implements SerialPortEventListener {
     private SerialPort serialPort;
     private Stack<String> data = new Stack<>();
     private String out2 = "";
 
+    /**
+     * Acts on the event from Arduino.
+     *
+     * @param event Event from Arduino.
+     */
     public synchronized void serialEvent (SerialPortEvent event){
         if (event.isRXCHAR()) {
             //System.out.println("rxchar");
@@ -17,8 +25,8 @@ public class ArduinoReader implements SerialPortEventListener {
                 if (out != null) {
                     if (out.indexOf("\n") > 0) {
                         out2 += out;
-                        this.data.push(out2.trim());
-                        //System.out.println(out2.trim());
+                        String string = out2.trim();
+                        this.data.push(string);
                         out2 = "";
                     } else {
                         out2 += out;
@@ -30,6 +38,9 @@ public class ArduinoReader implements SerialPortEventListener {
         }
     }
 
+    /**
+     * Makes the connection to Arduino.
+     */
     public void initialize() {
         String[] portNames = SerialPortList.getPortNames();
         for (String port : portNames) {
