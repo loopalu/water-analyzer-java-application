@@ -41,6 +41,9 @@ import org.controlsfx.control.CheckComboBox;
 import org.controlsfx.control.textfield.TextFields;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -66,8 +69,6 @@ public class Main extends Application {
     private ObservableList<String> currentBge = FXCollections.observableArrayList();
     private String currentMatrix = "";
     private String currentCapillary = "50/150 μm";
-    private XYChart.Series series1;
-    private XYChart.Series currentSeries1;
     private double xSeriesData = 0;
     private NumberAxis xAxis = new NumberAxis();
     private NumberAxis xCurrentAxis = new NumberAxis();
@@ -127,6 +128,34 @@ public class Main extends Application {
     private int currentUserClass = 1;
     private HashMap<String, LabTest> methods = new HashMap<>();
     private ToggleGroup group;
+    private PrintWriter debugWriter;
+    private int size = 0;
+    {
+        try {
+            debugWriter = new PrintWriter("debug.txt");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Reads integers from the list. Used for testing the database connection.
+     *
+     * @return List of integers used for testing the database connection.
+     */
+    private ArrayList<Integer> fileReader() {
+        ArrayList<Integer> data = new ArrayList<>();
+        try {
+            Scanner scanner = new Scanner(new File("debug.txt"));
+            while (scanner.hasNextLine()) {
+                data.add(Integer.valueOf(scanner.nextLine()));
+            }
+            scanner.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return data;
+    }
 
 
     /**
@@ -849,14 +878,14 @@ public class Main extends Application {
                             oldUpperBound = upperBound;
                             upperBound = 6000;
                             System.out.println(oldUpperBound + " " + upperBound);
-                            xAxis.setUpperBound((int)(testData.size()/2.0));
-                            xAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
+                            xAxis.setUpperBound((int)(size/2.0));
+                            xAxis.setLowerBound((int)(size/2.0 - upperBound));
                             xAxis.setTickUnit(upperBound/5);
                             lineChart.getData().clear();
                             lineChart.getData().addAll(series10min);
 
-                            xCurrentAxis.setUpperBound((int)(testData.size()/2.0));
-                            xCurrentAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
+                            xCurrentAxis.setUpperBound((int)(size/2.0));
+                            xCurrentAxis.setLowerBound((int)(size/2.0 - upperBound));
                             xCurrentAxis.setTickUnit(upperBound/5);
                             currentLineChart.getData().clear();
                             currentLineChart.getData().addAll(current10min);
@@ -866,14 +895,14 @@ public class Main extends Application {
                             oldUpperBound = upperBound;
                             upperBound = 3000;
                             System.out.println(oldUpperBound + " " + upperBound);
-                            xAxis.setUpperBound((int)(testData.size()/2.0));
-                            xAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
+                            xAxis.setUpperBound((int)(size/2.0));
+                            xAxis.setLowerBound((int)(size/2.0 - upperBound));
                             xAxis.setTickUnit(upperBound/5);
                             lineChart.getData().clear();
                             lineChart.getData().addAll(series5min);
 
-                            xCurrentAxis.setUpperBound((int)(testData.size()/2.0));
-                            xCurrentAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
+                            xCurrentAxis.setUpperBound((int)(size/2.0));
+                            xCurrentAxis.setLowerBound((int)(size/2.0 - upperBound));
                             xCurrentAxis.setTickUnit(upperBound/5);
                             currentLineChart.getData().clear();
                             currentLineChart.getData().addAll(current5min);
@@ -883,14 +912,14 @@ public class Main extends Application {
                             oldUpperBound = upperBound;
                             upperBound = 1800;
                             System.out.println(oldUpperBound + " " + upperBound);
-                            xAxis.setUpperBound((int)(testData.size()/2.0));
-                            xAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
+                            xAxis.setUpperBound((int)(size/2.0));
+                            xAxis.setLowerBound((int)(size/2.0 - upperBound));
                             xAxis.setTickUnit(upperBound/5);
                             lineChart.getData().clear();
                             lineChart.getData().addAll(series3min);
 
-                            xCurrentAxis.setUpperBound((int)(testData.size()/2.0));
-                            xCurrentAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
+                            xCurrentAxis.setUpperBound((int)(size/2.0));
+                            xCurrentAxis.setLowerBound((int)(size/2.0 - upperBound));
                             xCurrentAxis.setTickUnit(upperBound/5);
                             currentLineChart.getData().clear();
                             currentLineChart.getData().addAll(current3min);
@@ -900,14 +929,14 @@ public class Main extends Application {
                             oldUpperBound = upperBound;
                             upperBound = 1200;
                             System.out.println(oldUpperBound + " " + upperBound);
-                            xAxis.setUpperBound((int)(testData.size()/2.0));
-                            xAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
+                            xAxis.setUpperBound((int)(size/2.0));
+                            xAxis.setLowerBound((int)(size/2.0 - upperBound));
                             xAxis.setTickUnit(upperBound/5);
                             lineChart.getData().clear();
                             lineChart.getData().addAll(series2min);
 
-                            xCurrentAxis.setUpperBound((int)(testData.size()/2.0));
-                            xCurrentAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
+                            xCurrentAxis.setUpperBound((int)(size/2.0));
+                            xCurrentAxis.setLowerBound((int)(size/2.0 - upperBound));
                             xCurrentAxis.setTickUnit(upperBound/5);
                             currentLineChart.getData().clear();
                             currentLineChart.getData().addAll(current2min);
@@ -917,14 +946,14 @@ public class Main extends Application {
                             oldUpperBound = upperBound;
                             upperBound = 600;
                             System.out.println(oldUpperBound + " " + upperBound);
-                            xAxis.setUpperBound((int)(testData.size()/2.0));
-                            xAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
+                            xAxis.setUpperBound((int)(size/2.0));
+                            xAxis.setLowerBound((int)(size/2.0 - upperBound));
                             xAxis.setTickUnit(upperBound/5);
                             lineChart.getData().clear();
                             lineChart.getData().addAll(series1min);
 
-                            xCurrentAxis.setUpperBound((int)(testData.size()/2.0));
-                            xCurrentAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
+                            xCurrentAxis.setUpperBound((int)(size/2.0));
+                            xCurrentAxis.setLowerBound((int)(size/2.0 - upperBound));
                             xCurrentAxis.setTickUnit(upperBound/5);
                             currentLineChart.getData().clear();
                             currentLineChart.getData().addAll(current1min);
@@ -934,14 +963,14 @@ public class Main extends Application {
                             oldUpperBound = upperBound;
                             upperBound = 300;
                             System.out.println(oldUpperBound + " " + upperBound);
-                            xAxis.setUpperBound((int)(testData.size()/2.0));
-                            xAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
+                            xAxis.setUpperBound((int)(size/2.0));
+                            xAxis.setLowerBound((int)(size/2.0 - upperBound));
                             xAxis.setTickUnit(upperBound/5);
                             lineChart.getData().clear();
                             lineChart.getData().addAll(series30sec);
 
-                            xCurrentAxis.setUpperBound((int)(testData.size()/2.0));
-                            xCurrentAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
+                            xCurrentAxis.setUpperBound((int)(size/2.0));
+                            xCurrentAxis.setLowerBound((int)(size/2.0 - upperBound));
                             xCurrentAxis.setTickUnit(upperBound/5);
                             currentLineChart.getData().clear();
                             currentLineChart.getData().addAll(current30sec);
@@ -1267,6 +1296,7 @@ public class Main extends Application {
     private void clear(Scene scene) {
         System.out.println("clear");
         testData = new ArrayList();
+        counter = 0;
         series10min.getData().clear();
         series5min.getData().clear();
         series3min.getData().clear();
@@ -1301,6 +1331,7 @@ public class Main extends Application {
         stopWatchTimeline.stop();
         Text textField = (Text) scene.lookup("#timerData");
         textField.setText("00:00:00:000");
+        counter = 0;
         Button timerButton = (Button) scene.lookup("#timerButton");
         timerButton.setStyle("-fx-background-color: red;");
         timerButton.setText("TIMER OFF");
@@ -1311,6 +1342,7 @@ public class Main extends Application {
         Date resultdate = new Date(time);
         String timeStamp = sdf.format(resultdate);
         String current;
+        debugWriter.close();
         try {
             current = new File( "." ).getCanonicalPath();
             File newDirectory = new File(current + "/" + timeStamp);
@@ -1327,14 +1359,15 @@ public class Main extends Application {
             }
 
             BufferedWriter writer;
-            PrintWriter dataWriter;
-            dataWriter = new PrintWriter(current+"/" + timeStamp + File.separator + timeStamp + "_data.txt");
-            for (int i = 0; i < testData.size(); i++) {
-                dataWriter.println(testData.get(i));
-            }
+//            PrintWriter dataWriter;
+//            dataWriter = new PrintWriter(current+"/" + timeStamp + File.separator + timeStamp + "_data.txt");
+//            for (int i = 0; i < testData.size(); i++) {
+//                dataWriter.println(testData.get(i));
+//            }
             System.out.println("done");
-            dataWriter.close();
+//            dataWriter.close();
 //            ImageSaver.saveImage(testData, current+"/" + timeStamp + File.separator + timeStamp + "_image.png");
+            testData = fileReader();
 
             if (concentrationTable != null) {
                 LabTest labTest = new LabTest();
@@ -1418,6 +1451,9 @@ public class Main extends Application {
                 }
             }
             ImageSaver.saveImage(testData, current+"/" + timeStamp + File.separator + timeStamp + "_image.png");
+            Path temp = Files.move(Paths.get("debug.txt"), Paths.get(current + "/" + timeStamp + File.separator + timeStamp + "_data.txt"));
+//            File file = new File("debug.txt");
+//            file.delete();
             testTime = "00:00:00:000";
             Button onOff = (Button) scene.lookup("#onOff");
             turnHighVoltageOff(onOff);
@@ -1445,9 +1481,6 @@ public class Main extends Application {
 
         yCurrentAxis.setAutoRanging(true);
         yCurrentAxis.setForceZeroInRange(false);
-
-        series1 = new XYChart.Series<Number, Number>();
-        currentSeries1 = new XYChart.Series<Number, Number>();
 
         xAxis = new NumberAxis(0, upperBound, 1);
         xAxis.setForceZeroInRange(false);
@@ -1497,7 +1530,7 @@ public class Main extends Application {
         currentLineChart.setVerticalGridLinesVisible(true);
         currentLineChart.setAnimated(false);
 
-        GridPane.setConstraints(currentLineChart, 1, 1); //column ja row vaja muuta !!!!!!!!!! @@@@@@@@@@@@@@@@@@
+        GridPane.setConstraints(currentLineChart, 1, 1);
         GridPane.setConstraints(lineChart, 1, 0);
         GridPane mainPane = (GridPane) scene.lookup("#chartPane");
         mainPane.getChildren().addAll(lineChart, currentLineChart);
@@ -1524,79 +1557,81 @@ public class Main extends Application {
         }
         String androidData = arduinoData.pop();
         Number measurement = Integer.parseInt(androidData.split(" ")[1]);
-        long current = Long.parseLong(androidData.split(" ")[2]);
-        if (current > 2147483647L) {
-            current = current - 4294967295L;
-        }
-        currentField = (TextField) scene.lookup("#currentAmper");
-        long currentValue = Math.round(current/256.0);
-        currentValueString = String.valueOf(currentValue);
-        currentField.setText(currentValueString);
-        double voltagePercent = Double.parseDouble(androidData.split(" ")[4]);
-        TextField percentageField = (TextField) scene.lookup("#voltagePercentBox");
-        percentageField.setText(String.valueOf(Math.round((127.0-voltagePercent)/1.27)));
-        //counter += 1;
-        TextField textField = (TextField) scene.lookup("#androidData");
-        if (androidData.length() - androidData.replace("C", "").length() == 1) {
-            textField.setText(androidData);
-        }
-        if (isStarted) {
-            if (counter > COUNTER_BLOCKING_NUMBER) {
-                xSeriesData += 0.5;
+        if (Integer.valueOf(String.valueOf(measurement)) > 40000 && Integer.valueOf(String.valueOf(measurement)) < 10000000) {
+            if (isHighVoltage) {
+                debugWriter.println(measurement);
+            }
+            long current = Long.parseLong(androidData.split(" ")[2]);
+            if (current > 2147483647L) {
+                current = current - 4294967295L;
+            }
+            currentField = (TextField) scene.lookup("#currentAmper");
+            long currentValue = Math.round(current/256.0);
+            currentValueString = String.valueOf(currentValue);
+            currentField.setText(currentValueString);
+            double voltagePercent = Double.parseDouble(androidData.split(" ")[4]);
+            TextField percentageField = (TextField) scene.lookup("#voltagePercentBox");
+            percentageField.setText(String.valueOf(Math.round((127.0-voltagePercent)/1.27)));
+            TextField textField = (TextField) scene.lookup("#androidData");
+            if (androidData.length() - androidData.replace("C", "").length() == 1) {
+                textField.setText(androidData);
+            }
+            if (isStarted) {
+                if (counter > COUNTER_BLOCKING_NUMBER) {
+                    counter += 1;
+                    xSeriesData += 0.5;
+                    size = counter - COUNTER_BLOCKING_NUMBER;
+                    series10min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+                    series5min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+                    series3min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+                    series2min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+                    series1min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+                    series30sec.getData().add(new AreaChart.Data(xSeriesData, measurement));
 
-                series10min.getData().add(new AreaChart.Data(xSeriesData, measurement));
-                series5min.getData().add(new AreaChart.Data(xSeriesData, measurement));
-                series3min.getData().add(new AreaChart.Data(xSeriesData, measurement));
-                series2min.getData().add(new AreaChart.Data(xSeriesData, measurement));
-                series1min.getData().add(new AreaChart.Data(xSeriesData, measurement));
-                series30sec.getData().add(new AreaChart.Data(xSeriesData, measurement));
+                    current30sec.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+                    current10min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+                    current5min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+                    current3min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+                    current2min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+                    current1min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
 
-                current30sec.getData().add(new AreaChart.Data(xSeriesData, currentValue));
-                current10min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
-                current5min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
-                current3min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
-                current2min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
-                current1min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+                    if (series10min.getData().size() > 12000) {
+                        series10min.getData().remove(0);
+                        current10min.getData().remove(0);
+                    }
+                    if (series5min.getData().size() > 6000) {
+                        series5min.getData().remove(0);
+                        current5min.getData().remove(0);
+                    }
+                    if (series3min.getData().size() > 3600) {
+                        series3min.getData().remove(0);
+                        current3min.getData().remove(0);
+                    }
+                    if (series2min.getData().size() > 2400) {
+                        series2min.getData().remove(0);
+                        current2min.getData().remove(0);
+                    }
+                    if (series1min.getData().size() > 1200) {
+                        series1min.getData().remove(0);
+                        current1min.getData().remove(0);
+                    }
+                    if (series30sec.getData().size() > 600) {
+                        series30sec.getData().remove(0);
+                        current30sec.getData().remove(0);
+                    }
 
-                if (series10min.getData().size() > 12000) {
-                    series10min.getData().remove(0);
-                    current10min.getData().remove(0);
+//                testData.add(measurement);
+
+                    xAxis.setUpperBound((int)(size/2.0));
+                    xAxis.setLowerBound((int)(size/2.0 - upperBound));
+                    xAxis.setTickUnit(upperBound/5);
+
+                    xCurrentAxis.setUpperBound((int)(size/2.0));
+                    xCurrentAxis.setLowerBound((int)(size/2.0 - upperBound));
+                    xCurrentAxis.setTickUnit(upperBound/5);
+                } else {
+                    counter += 1;
                 }
-                if (series5min.getData().size() > 6000) {
-                    series5min.getData().remove(0);
-                    current5min.getData().remove(0);
-                }
-                if (series3min.getData().size() > 3600) {
-                    series3min.getData().remove(0);
-                    current3min.getData().remove(0);
-                }
-                if (series2min.getData().size() > 2400) {
-                    series2min.getData().remove(0);
-                    current2min.getData().remove(0);
-                }
-                if (series1min.getData().size() > 1200) {
-                    series1min.getData().remove(0);
-                    current1min.getData().remove(0);
-                }
-                if (series30sec.getData().size() > 600) {
-                    series30sec.getData().remove(0);
-                    current30sec.getData().remove(0);
-                }
-
-                //series.getData().add(new AreaChart.Data(xSeriesData, measurement));
-                testData.add(measurement);
-
-                //currentSeries.getData().add(new AreaChart.Data(xSeriesData, currentValue));
-
-                xAxis.setUpperBound((int)(testData.size()/2.0));
-                xAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
-                xAxis.setTickUnit(upperBound/5);
-
-                xCurrentAxis.setUpperBound((int)(testData.size()/2.0));
-                xCurrentAxis.setLowerBound((int)(testData.size()/2.0 - upperBound));
-                xCurrentAxis.setTickUnit(upperBound/5);
-            } else {
-                counter += 1;
             }
         }
     }

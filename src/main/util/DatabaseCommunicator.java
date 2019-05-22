@@ -8,10 +8,9 @@ import main.LabTest;
 
 import java.io.*;
 import java.net.*;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Scanner;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
 import main.User;
 import org.json.JSONArray;
 
@@ -327,10 +326,14 @@ public class DatabaseCommunicator {
      * @param testData Fake list of integers.
      */
     private static void testSendingToDatabase(DatabaseCommunicator databaseCommunicator, LabTest labTest, ArrayList testData) {
-        labTest.setNameOfTest("2222");
+        long time = System.currentTimeMillis();
+        SimpleDateFormat sdf = new SimpleDateFormat("dd_MMMM_yyyy_HH_mm");
+        Date resultdate = new Date(time);
+        String timeStamp = sdf.format(resultdate);
+        labTest.setNameOfTest(timeStamp);
         labTest.setNameOfUser("Aivar");
         labTest.setUserClass("1");
-        labTest.setNameOfMethod("veel mingi labTest2");
+        labTest.setNameOfMethod("333");
         labTest.setMatrix("kraanivesi");
         labTest.setCapillary("50/150 mm");
         labTest.setCapillaryTotalLength("20 cm");
@@ -344,12 +347,12 @@ public class DatabaseCommunicator {
         labTest.setCurrent("-15 µA");
         labTest.setHvValue("87 %");
         labTest.setAnalyteUnit("cm");
-        Analyte analyte1 = new Analyte("uraan", "11");
-        Analyte analyte2 = new Analyte("plaatinum", "100");
+        Analyte analyte1 = new Analyte("K", "11");
+        Analyte analyte2 = new Analyte("Nicotinamide", "50");
         ObservableList<Analyte> analytes = FXCollections.observableArrayList(analyte1, analyte2);
         labTest.setAnalytes(analytes);
         labTest.setAnalyteUnit("mol");
-        Analyte analyte3 = new Analyte("MisMos", "100");
+        Analyte analyte3 = new Analyte("His", "50");
         ObservableList<Analyte> bge = FXCollections.observableArrayList(analyte3);
         labTest.setBge(bge);
         labTest.setBgeUnit("ppb");
