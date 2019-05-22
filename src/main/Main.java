@@ -402,11 +402,12 @@ public class Main extends Application {
     private void changeSettingsWithMethod(LabTest labTest) {
         if (!currentMethod.equals("")) {
             changeAnalytes(labTest);
-            //concentrations
+            changeCommentary(labTest);
+            changeAnalytesConcentrations(labTest);
             changeAnalytesUnit(labTest);
             changeMatrix(labTest);
             changeBge(labTest);
-//            //concentrations
+            changeBgesConcentrations(labTest);
             changeBgeUnit(labTest);
             changeCapillary(labTest);
             changeCapillaryTotalLength(labTest);
@@ -416,10 +417,44 @@ public class Main extends Application {
             changeInjectionValue(labTest);
             changeInjectionUnit(labTest);
             changeInjectionDuration(labTest);
-            changeCommentary(labTest);
             changeFrequency(labTest);
             changeHVValue(labTest);
         }
+    }
+
+    /**
+     * Changes the concentrations of BGE-s on interface.
+     *
+     * @param labTest LabTest object with the data received from the database.
+     */
+    private void changeBgesConcentrations(LabTest labTest) {
+        TextArea commentaryField = (TextArea) scene.lookup("#textArea");
+        String commentary = commentaryField.getText();
+        ObservableList<Analyte> bges = labTest.getBge();
+        commentary += "--------------------------------\n";
+        commentary += "BGE concentrations:\n";
+        for (Analyte bge:bges) {
+            commentary += bge.getAnalyte()+ " " + bge.getConcentration() + " " + labTest.getBgeUnit() + "\n";
+        }
+        commentaryField.setText(commentary);
+    }
+
+    /**
+     * Changes the concentrations of analytes on interface.
+     *
+     * @param labTest LabTest object with the data received from the database.
+     */
+    private void changeAnalytesConcentrations(LabTest labTest) {
+        TextArea commentaryField = (TextArea) scene.lookup("#textArea");
+        String commentary = commentaryField.getText();
+        ObservableList<Analyte> analytes = labTest.getAnalytes();
+        commentary += "\n";
+        commentary += "--------------------------------\n";
+        commentary += "Analyte concentrations:\n";
+        for (Analyte analyte:analytes) {
+            commentary += analyte.getAnalyte()+ " " + analyte.getConcentration() + " " + labTest.getAnalyteUnit() + "\n";
+        }
+        commentaryField.setText(commentary);
     }
 
     /**
