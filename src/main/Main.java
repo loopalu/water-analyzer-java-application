@@ -130,6 +130,7 @@ public class Main extends Application {
     private ToggleGroup group;
     private PrintWriter debugWriter;
     private int size = 0;
+    private HBox box1, box2, box3, box4, box5, box6, box7, box8, box9, box10;
     {
         try {
             debugWriter = new PrintWriter("debug.txt");
@@ -195,8 +196,8 @@ public class Main extends Application {
         makeTimer(scene);
         TextArea textArea = (TextArea) scene.lookup("#textArea");
         textArea.setPrefWidth(Screen.getPrimary().getVisualBounds().getWidth()/5);
-
         stage.show();
+        switchObjectPermissions(scene, currentUserClass);
         //JÄRGMINE ON ARDUINO KOOD
         ArduinoReader reader = new ArduinoReader();
         reader.initialize();
@@ -204,6 +205,117 @@ public class Main extends Application {
         serialPort = reader.getSerialPort();
         //-- Prepare Timeline
         prepareTimeline();
+    }
+
+    /**
+     * Based on user class (administrator/scientist/regular user) this method turns on/off the ability
+     * to change elements on graphical interface.
+     *
+     * @param scene Canvas for the graphical interface.
+     * @param userClass The class of user.
+     */
+    private void switchObjectPermissions(Scene scene, int userClass) {
+        TextArea commentaryField = (TextArea) scene.lookup("#textArea");
+        CheckComboBox<String> checkElementsComboBox = (CheckComboBox<String>) scene.lookup("#elementsComboBoxId");
+        ChoiceBox elementsValueBox = (ChoiceBox) scene.lookup("#elementsValueBox");
+        CheckComboBox<String> checkBgeComboBox = (CheckComboBox<String>) scene.lookup("#bgeComboBoxId");
+        ChoiceBox bgeValueBox = (ChoiceBox) scene.lookup("#bgeValueBox");
+        ChoiceBox capillaryBox = (ChoiceBox) scene.lookup("#capillaryBox");
+        ChoiceBox capillaryTotalBox = (ChoiceBox) scene.lookup("#capillaryTotalBox");
+        ChoiceBox capillaryEffectiveBox = (ChoiceBox) scene.lookup("#capillaryEffectiveBox");
+        ChoiceBox injectionBox = (ChoiceBox) scene.lookup("#injectionBox");
+        ChoiceBox injectionChoiceUnitBox = (ChoiceBox) scene.lookup("#injectionChoiceUnitBox");
+        TextField injectionChoiceValueField = (TextField) scene.lookup("#injectionChoiceValue");
+        TextField durationField = (TextField) scene.lookup("#durationField");
+        ComboBox comboBox = (ComboBox) scene.lookup("#comboBox2");
+        TextField field = (TextField) scene.lookup("#percentageField");
+        ComboBox methodBox = (ComboBox) scene.lookup("#comboBox1");
+        switch (userClass) {
+            case 1:
+                box1.setMouseTransparent(false);
+                box2.setMouseTransparent(false);
+                box3.setMouseTransparent(false);
+                box4.setMouseTransparent(false);
+                box5.setMouseTransparent(false);
+                box6.setMouseTransparent(false);
+                box7.setMouseTransparent(false);
+                box8.setMouseTransparent(false);
+                box9.setMouseTransparent(false);
+                box10.setMouseTransparent(false);
+                methodBox.setEditable(true);
+                field.setEditable(true);
+                comboBox.setMouseTransparent(false);
+                durationField.setEditable(true);
+                injectionChoiceValueField.setEditable(true);
+                injectionChoiceUnitBox.setMouseTransparent(false);
+                injectionBox.setMouseTransparent(false);
+                capillaryEffectiveBox.setMouseTransparent(false);
+                capillaryTotalBox.setMouseTransparent(false);
+                capillaryBox.setMouseTransparent(false);
+                bgeValueBox.setMouseTransparent(false);
+                checkBgeComboBox.setMouseTransparent(false);
+                elementsValueBox.setMouseTransparent(false);
+                commentaryField.setEditable(true);
+                checkElementsComboBox.setMouseTransparent(false);
+                System.out.println("admin");
+                break;
+            case 2:
+                box1.setMouseTransparent(false);
+                box2.setMouseTransparent(false);
+                box3.setMouseTransparent(false);
+                box4.setMouseTransparent(false);
+                box5.setMouseTransparent(false);
+                box6.setMouseTransparent(false);
+                box7.setMouseTransparent(false);
+                box8.setMouseTransparent(false);
+                box9.setMouseTransparent(false);
+                box10.setMouseTransparent(false);
+                methodBox.setEditable(false);
+                field.setEditable(true);
+                comboBox.setMouseTransparent(false);
+                durationField.setEditable(true);
+                injectionChoiceValueField.setEditable(true);
+                injectionChoiceUnitBox.setMouseTransparent(false);
+                injectionBox.setMouseTransparent(false);
+                capillaryEffectiveBox.setMouseTransparent(false);
+                capillaryTotalBox.setMouseTransparent(false);
+                capillaryBox.setMouseTransparent(false);
+                bgeValueBox.setMouseTransparent(false);
+                checkBgeComboBox.setMouseTransparent(false);
+                elementsValueBox.setMouseTransparent(false);
+                commentaryField.setEditable(true);
+                checkElementsComboBox.setMouseTransparent(false);
+                System.out.println("scientist");
+                break;
+            case 3:
+                box1.setMouseTransparent(true);
+                box2.setMouseTransparent(true);
+                box3.setMouseTransparent(true);
+                box4.setMouseTransparent(true);
+                box5.setMouseTransparent(true);
+                box6.setMouseTransparent(true);
+                box7.setMouseTransparent(true);
+                box8.setMouseTransparent(true);
+                box9.setMouseTransparent(true);
+                box10.setMouseTransparent(true);
+                methodBox.setEditable(false);
+                field.setEditable(false);
+                comboBox.setMouseTransparent(true);
+                durationField.setEditable(false);
+                injectionChoiceValueField.setEditable(false);
+                injectionChoiceUnitBox.setMouseTransparent(true);
+                injectionBox.setMouseTransparent(true);
+                capillaryEffectiveBox.setMouseTransparent(true);
+                capillaryTotalBox.setMouseTransparent(true);
+                capillaryBox.setMouseTransparent(true);
+                bgeValueBox.setMouseTransparent(true);
+                checkBgeComboBox.setMouseTransparent(true);
+                elementsValueBox.setMouseTransparent(true);
+                commentaryField.setEditable(false);
+                checkElementsComboBox.setMouseTransparent(true);
+                System.out.println("user");
+                break;
+        }
     }
 
     /**
@@ -706,13 +818,14 @@ public class Main extends Application {
         for (String user:userList) {
             userBox.getItems().add(user);
         }
-        userBox.getSelectionModel().select("Regular user");
+        userBox.getSelectionModel().select("Administrator");
         //userBox.getSelectionModel().selectFirst();
         userBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
                 currentUser = (String) userBox.getItems().get((Integer) number2);
                 currentUserClass = users.get(currentUser);
+                switchObjectPermissions(scene, currentUserClass);
                 System.out.println(currentUser + " " + users.get(currentUser));
             }
         });
@@ -1059,25 +1172,25 @@ public class Main extends Application {
         button9.setId("400");
         ToggleButton button10 = new ToggleButton("300 kHz"); // 300 kHz
         button10.setId("300");
-        HBox box1 = new HBox(button1);
+        box1 = new HBox(button1);
         box1.setId("hbox");
-        HBox box2 = new HBox(button2);
+        box2 = new HBox(button2);
         box2.setId("hbox");
-        HBox box3 = new HBox(button3);
+        box3 = new HBox(button3);
         box3.setId("hbox");
-        HBox box4 = new HBox(button4);
+        box4 = new HBox(button4);
         box4.setId("hbox");
-        HBox box5 = new HBox(button5);
+        box5 = new HBox(button5);
         box5.setId("hbox");
-        HBox box6 = new HBox(button6);
+        box6 = new HBox(button6);
         box6.setId("hbox");
-        HBox box7 = new HBox(button7);
+        box7 = new HBox(button7);
         box7.setId("hbox");
-        HBox box8 = new HBox(button8);
+        box8 = new HBox(button8);
         box8.setId("hbox");
-        HBox box9 = new HBox(button9);
+        box9 = new HBox(button9);
         box9.setId("hbox");
-        HBox box10 = new HBox(button10);
+        box10 = new HBox(button10);
         box10.setId("hbox");
 
         group = new ToggleGroup();
@@ -1590,84 +1703,89 @@ public class Main extends Application {
         if (arduinoData.isEmpty()) {
             return;
         }
-        String androidData = arduinoData.pop();
-        Number measurement = Integer.parseInt(androidData.split(" ")[1]);
-        if (Integer.valueOf(String.valueOf(measurement)) > 40000 && Integer.valueOf(String.valueOf(measurement)) < 10000000) {
-            if (isHighVoltage) {
-                debugWriter.println(measurement);
-            }
-            long current = Long.parseLong(androidData.split(" ")[2]);
-            if (current > 2147483647L) {
-                current = current - 4294967295L;
-            }
-            currentField = (TextField) scene.lookup("#currentAmper");
-            long currentValue = Math.round(current/256.0);
-            currentValueString = String.valueOf(currentValue);
-            currentField.setText(currentValueString);
-            double voltagePercent = Double.parseDouble(androidData.split(" ")[4]);
-            TextField percentageField = (TextField) scene.lookup("#voltagePercentBox");
-            percentageField.setText(String.valueOf(Math.round((127.0-voltagePercent)/1.27)));
-            TextField textField = (TextField) scene.lookup("#androidData");
-            if (androidData.length() - androidData.replace("C", "").length() == 1) {
-                textField.setText(androidData);
-            }
-            if (isStarted) {
-                if (counter > COUNTER_BLOCKING_NUMBER) {
-                    counter += 1;
-                    xSeriesData += 0.5;
-                    size = counter - COUNTER_BLOCKING_NUMBER;
-                    series10min.getData().add(new AreaChart.Data(xSeriesData, measurement));
-                    series5min.getData().add(new AreaChart.Data(xSeriesData, measurement));
-                    series3min.getData().add(new AreaChart.Data(xSeriesData, measurement));
-                    series2min.getData().add(new AreaChart.Data(xSeriesData, measurement));
-                    series1min.getData().add(new AreaChart.Data(xSeriesData, measurement));
-                    series30sec.getData().add(new AreaChart.Data(xSeriesData, measurement));
+        while (!arduinoData.isEmpty()) {
+            String androidData = arduinoData.pop();
+            Number measurement = Integer.parseInt(androidData.split(" ")[1]);
+            if (Integer.valueOf(String.valueOf(measurement)) > 40000 && Integer.valueOf(String.valueOf(measurement)) < 10000000) {
+                if (isHighVoltage) {
+                    debugWriter.println(measurement);
+                }
+                long current = Long.parseLong(androidData.split(" ")[2]);
+                if (current > 2147483647L) {
+                    current = current - 4294967295L;
+                }
+                currentField = (TextField) scene.lookup("#currentAmper");
+                long currentValue = Math.round(current/256.0);
+                currentValueString = String.valueOf(currentValue);
+                currentField.setText(currentValueString);
+                double voltagePercent = Double.parseDouble(androidData.split(" ")[4]);
+                TextField percentageField = (TextField) scene.lookup("#voltagePercentBox");
+                percentageField.setText(String.valueOf(Math.round((127.0-voltagePercent)/1.27)));
+                TextField textField = (TextField) scene.lookup("#androidData");
+                if (androidData.length() - androidData.replace("C", "").length() == 1) {
+                    textField.setText(androidData);
+                }
+                if (isStarted) {
+                    if (counter > COUNTER_BLOCKING_NUMBER) {
+                        counter += 1;
+                        xSeriesData += 0.5;
+                        size = counter - COUNTER_BLOCKING_NUMBER;
+                        series10min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+                        series5min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+                        series3min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+                        series2min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+                        series1min.getData().add(new AreaChart.Data(xSeriesData, measurement));
+                        series30sec.getData().add(new AreaChart.Data(xSeriesData, measurement));
 
-                    current30sec.getData().add(new AreaChart.Data(xSeriesData, currentValue));
-                    current10min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
-                    current5min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
-                    current3min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
-                    current2min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
-                    current1min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+                        current30sec.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+                        current10min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+                        current5min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+                        current3min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+                        current2min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
+                        current1min.getData().add(new AreaChart.Data(xSeriesData, currentValue));
 
-                    if (series10min.getData().size() > 12000) {
-                        series10min.getData().remove(0);
-                        current10min.getData().remove(0);
-                    }
-                    if (series5min.getData().size() > 6000) {
-                        series5min.getData().remove(0);
-                        current5min.getData().remove(0);
-                    }
-                    if (series3min.getData().size() > 3600) {
-                        series3min.getData().remove(0);
-                        current3min.getData().remove(0);
-                    }
-                    if (series2min.getData().size() > 2400) {
-                        series2min.getData().remove(0);
-                        current2min.getData().remove(0);
-                    }
-                    if (series1min.getData().size() > 1200) {
-                        series1min.getData().remove(0);
-                        current1min.getData().remove(0);
-                    }
-                    if (series30sec.getData().size() > 600) {
-                        series30sec.getData().remove(0);
-                        current30sec.getData().remove(0);
-                    }
+                        if (series10min.getData().size() > 12000) {
+                            series10min.getData().remove(0);
+                            current10min.getData().remove(0);
+                        }
+                        if (series5min.getData().size() > 6000) {
+                            series5min.getData().remove(0);
+                            current5min.getData().remove(0);
+                        }
+                        if (series3min.getData().size() > 3600) {
+                            series3min.getData().remove(0);
+                            current3min.getData().remove(0);
+                        }
+                        if (series2min.getData().size() > 2400) {
+                            series2min.getData().remove(0);
+                            current2min.getData().remove(0);
+                        }
+                        if (series1min.getData().size() > 1200) {
+                            series1min.getData().remove(0);
+                            current1min.getData().remove(0);
+                        }
+                        if (series30sec.getData().size() > 600) {
+                            series30sec.getData().remove(0);
+                            current30sec.getData().remove(0);
+                        }
 
 //                testData.add(measurement);
 
-                    xAxis.setUpperBound((int)(size/2.0));
-                    xAxis.setLowerBound((int)(size/2.0 - upperBound));
-                    xAxis.setTickUnit(upperBound/5);
+                        xAxis.setUpperBound((int)(size/2.0));
+                        xAxis.setLowerBound((int)(size/2.0 - upperBound));
+                        xAxis.setTickUnit(upperBound/5);
 
-                    xCurrentAxis.setUpperBound((int)(size/2.0));
-                    xCurrentAxis.setLowerBound((int)(size/2.0 - upperBound));
-                    xCurrentAxis.setTickUnit(upperBound/5);
-                } else {
-                    counter += 1;
+                        xCurrentAxis.setUpperBound((int)(size/2.0));
+                        xCurrentAxis.setLowerBound((int)(size/2.0 - upperBound));
+                        xCurrentAxis.setTickUnit(upperBound/5);
+                    } else {
+                        counter += 1;
+                    }
                 }
             }
+        }
+        if (arduinoData.isEmpty()) {
+            return;
         }
     }
 
