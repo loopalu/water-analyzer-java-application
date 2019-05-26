@@ -102,7 +102,6 @@ public class Main extends Application {
     private String currentInjection = "Pressure";
     private String injectionTime = "0";
     private String currentDescription = "";
-    private TextField currentField;
     private int millisecond = 0;
     private Timeline stopWatchTimeline;
     private String currentAnalyteValue = "mol";
@@ -131,6 +130,10 @@ public class Main extends Application {
     private PrintWriter debugWriter;
     private int size = 0;
     private HBox box1, box2, box3, box4, box5, box6, box7, box8, box9, box10;
+    private ArrayList<String> tempAnalytes = new ArrayList<>();
+    private ArrayList<String> tempBges = new ArrayList<>();
+    private ArrayList<String> tempMatrixes = new ArrayList<>();
+
     {
         try {
             debugWriter = new PrintWriter("debug.txt");
@@ -138,26 +141,6 @@ public class Main extends Application {
             e.printStackTrace();
         }
     }
-
-    /**
-     * Reads integers from the list. Used for testing the database connection.
-     *
-     * @return List of integers used for testing the database connection.
-     */
-    private ArrayList<Integer> fileReader() {
-        ArrayList<Integer> data = new ArrayList<>();
-        try {
-            Scanner scanner = new Scanner(new File("debug.txt"));
-            while (scanner.hasNextLine()) {
-                data.add(Integer.valueOf(scanner.nextLine()));
-            }
-            scanner.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        return data;
-    }
-
 
     /**
      * Starts the graphical interface.
@@ -205,6 +188,88 @@ public class Main extends Application {
         serialPort = reader.getSerialPort();
         //-- Prepare Timeline
         prepareTimeline();
+    }
+
+    /**
+     * Reads integers from the list. Used for testing the database connection.
+     *
+     * @return List of integers used for testing the database connection.
+     */
+    private ArrayList<Integer> fileReader() {
+        ArrayList<Integer> data = new ArrayList<>();
+        try {
+            Scanner scanner = new Scanner(new File("debug.txt"));
+            while (scanner.hasNextLine()) {
+                data.add(Integer.valueOf(scanner.nextLine()));
+            }
+            scanner.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("No debug.txt file.");
+        }
+        return data;
+    }
+
+    /**
+     * Resumes saved data from txt file.
+     *
+     * @return String of saved data.
+     */
+    private String resumeOffline() {
+        StringBuilder data = new StringBuilder();
+        try {
+            Scanner scanner = new Scanner(new File("offlineData.txt"));
+            while (scanner.hasNextLine()) {
+                data.append(scanner.nextLine());
+            }
+            scanner.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("No offlineData.txt file.");
+        }
+        return data.toString();
+    }
+
+    /**
+     * In the case of no internet, all new analytes/bges/matrixes will be saved to txt file.
+     */
+    private void saveOffline() {
+        DatabaseCommunicator communicator = new DatabaseCommunicator();
+        if (!communicator.isApiAvailable("getUsers")) {
+            BufferedWriter writer = null;
+            ArrayList<String> savedAnalytes = new ArrayList<>();
+            ArrayList<String> savedBges = new ArrayList<>();
+            ArrayList<String> savedMatrixes = new ArrayList<>();
+            for (String string : currentAnalytes) {
+                if (!analytes.contains(string)) {
+                    savedAnalytes.add(string);
+                }
+            }
+            for (String string : currentBge) {
+                if (!bges.contains(string)) {
+                    savedBges.add(string);
+                }
+            }
+            if (!matrixes.contains(currentMatrix)) {
+                savedMatrixes.add(currentMatrix);
+            }
+
+            try {
+                writer = new BufferedWriter(new FileWriter(("offlineData.txt")));
+                OfflineData offlineData = new OfflineData();
+                savedAnalytes.addAll(tempAnalytes);
+                savedBges.addAll(tempBges);
+                savedMatrixes.addAll(tempMatrixes);
+                offlineData.setAnalytes(savedAnalytes);
+                offlineData.setBges(savedBges);
+                offlineData.setMatrixes(savedMatrixes);
+                Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                String json = gson.toJson(offlineData);
+                writer.write(json);
+                writer.newLine();
+                writer.close();
+            } catch (IOException e) {
+                System.out.println("No offlineData.txt file where to save.");
+            }
+        }
     }
 
     /**
@@ -322,26 +387,50 @@ public class Main extends Application {
      * Gets data from database and implements it into graphical interface.
      */
     private void getDataFromDatabase() {
+        String offlineData = resumeOffline();
+        OfflineData dataObject;
+        if (offlineData.contains("analytes") || offlineData.contains("bges") || offlineData.contains("matrixes")) {
+            Gson gson = new Gson();
+            dataObject = gson.fromJson(offlineData, OfflineData.class);
+            tempAnalytes = dataObject.getAnalytes();
+            tempBges = dataObject.getBges();
+            tempMatrixes = dataObject.getMatrixes();
+            for (String string: tempAnalytes) {
+                if (!analytes.contains(string)) {
+                    analytes.add(string);
+                }
+            }
+            for (String string: tempBges) {
+                if (!bges.contains(string)) {
+                    bges.add(string);
+                }
+            }
+            for (String string: tempMatrixes) {
+                if (!matrixes.contains(string)) {
+                    matrixes.add(string);
+                }
+            }
+        }
         DatabaseCommunicator databaseCommunicator = new DatabaseCommunicator();
-        ArrayList<String> tempAnalytes = databaseCommunicator.getAnalytes();
-        if (tempAnalytes != null) {
-            for (String analyte:tempAnalytes) {
+        ArrayList<String> tempAnalytes2 = databaseCommunicator.getAnalytes();
+        if (tempAnalytes2 != null) {
+            for (String analyte:tempAnalytes2) {
                 if (!analytes.contains(analyte)) {
                     analytes.add(analyte);
                 }
             }
         }
-        ArrayList<String> tempBges = databaseCommunicator.getBges();
-        if (tempBges != null) {
-            for (String bge:tempBges) {
+        ArrayList<String> tempBges2 = databaseCommunicator.getBges();
+        if (tempBges2 != null) {
+            for (String bge:tempBges2) {
                 if (!bges.contains(bge)) {
                     bges.add(bge);
                 }
             }
         }
-        ArrayList<String> tempMatrixes = databaseCommunicator.getMatrixes();
-        if (tempMatrixes != null) {
-            for (String matrix:tempMatrixes) {
+        ArrayList<String> tempMatrixes2 = databaseCommunicator.getMatrixes();
+        if (tempMatrixes2 != null) {
+            for (String matrix:tempMatrixes2) {
                 if (!matrixes.contains(matrix)) {
                     matrixes.add(matrix);
                 }
@@ -1563,7 +1652,11 @@ public class Main extends Application {
                 labTest.setAnalytes(observableAnalytesList);
                 labTest.setAnalyteUnit(currentAnalyteValue);
                 for (Analyte analyte:observableAnalytesList) {
-                    writer.write(analyte.getAnalyte()+": "+analyte.getConcentration()+" " + currentAnalyteValue);
+                    String string = analyte.getAnalyte();
+                    if (!analytes.contains(string)) {
+                        tempAnalytes.add(string);
+                    }
+                    writer.write(string+": "+analyte.getConcentration()+" " + currentAnalyteValue);
                     writer.newLine();
                 }
                 writer.write("BGE:");
@@ -1573,7 +1666,11 @@ public class Main extends Application {
                 labTest.setBge(observableBgeList);
                 labTest.setBgeUnit(currentBgeValue);
                 for (Analyte analyte:observableBgeList) {
-                    writer.write(analyte.getAnalyte()+": "+analyte.getConcentration()+" " + currentBgeValue);
+                    String string = analyte.getAnalyte();
+                    if (!bges.contains(string)) {
+                        tempBges.add(string);
+                    }
+                    writer.write(string+": "+analyte.getConcentration()+" " + currentBgeValue);
                     writer.newLine();
                 }
                 labTest.setDescription(currentDescription);
@@ -1595,6 +1692,7 @@ public class Main extends Application {
                 if (communicator.isApiAvailable("getUsers")) {
                     communicator.postTest(labTest);
                 } else {
+                    saveOffline();
                     System.out.println("api is not available");
                 }
             }
@@ -1714,7 +1812,7 @@ public class Main extends Application {
                 if (current > 2147483647L) {
                     current = current - 4294967295L;
                 }
-                currentField = (TextField) scene.lookup("#currentAmper");
+                TextField currentField = (TextField) scene.lookup("#currentAmper");
                 long currentValue = Math.round(current/256.0);
                 currentValueString = String.valueOf(currentValue);
                 currentField.setText(currentValueString);
