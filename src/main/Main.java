@@ -2,6 +2,7 @@ package main;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import javafx.animation.AnimationTimer;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -36,6 +37,7 @@ import jssc.SerialPort;
 import jssc.SerialPortException;
 import main.util.ArduinoReader;
 import main.util.DatabaseCommunicator;
+import main.util.FileManager;
 import main.util.ImageSaver;
 import org.controlsfx.control.CheckComboBox;
 import org.controlsfx.control.textfield.TextFields;
@@ -163,6 +165,7 @@ public class Main extends Application {
         stage.setScene(scene);
         stage.setResizable(false);
 
+        sendUnsentData();
         getDataFromDatabase();
 
         makeFrequencyButtons(scene);
@@ -186,50 +189,69 @@ public class Main extends Application {
     }
 
     /**
-     * Reads integers from the list. Used for testing the database connection.
-     *
-     * @return List of integers used for testing the database connection.
+     * Sends unsent test results to REST API.
      */
-    private ArrayList<Integer> fileReader() {
-        ArrayList<Integer> data = new ArrayList<>();
-        try {
-            Scanner scanner = new Scanner(new File("debug.txt"));
-            while (scanner.hasNextLine()) {
-                data.add(Integer.valueOf(scanner.nextLine()));
+    private void sendUnsentData() {
+        DatabaseCommunicator communicator = new DatabaseCommunicator();
+        if (communicator.isApiAvailable("getUsers")) {
+            String current;
+            ArrayList<String> tests = getUnsentTests();
+            while (tests.size() > 0) {
+                try {
+                    current = new File( "." ).getCanonicalPath();
+                    String data = FileManager.readFile(current+"/" + tests.get(0) + File.separator + tests.get(0) + "unsent.txt");
+                    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                    JsonObject jsonObject = gson.fromJson(data, JsonObject.class);
+                    LabTest labTest = communicator.makeMethod(jsonObject);
+                    communicator.postTest(labTest);
+                    tests.remove(0);
+                    Files.deleteIfExists(Paths.get(current+"/" + tests.get(0) + File.separator + tests.get(0) + "unsent.txt"));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-            scanner.close();
-        } catch (FileNotFoundException e) {
-            System.out.println("No debug.txt file.");
+            try {
+                BufferedWriter writer = new BufferedWriter(new FileWriter(("unsentTests.txt")));
+                writer.write("");
+                writer.newLine();
+                writer.close();
+                FileManager.hide("unsentTests.txt");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-        return data;
     }
 
     /**
-     * Resumes saved data from txt file.
+     * Returns unsent tests from txt file.
      *
-     * @return String of saved data.
+     * @return Arraylist of unsent tests.
      */
-    private String resumeOffline() {
-        StringBuilder data = new StringBuilder();
+    private ArrayList<String > getUnsentTests() {
+        ArrayList<String> strings = new ArrayList<>();
         try {
-            Scanner scanner = new Scanner(new File("offlineData.txt"));
+            Scanner scanner = new Scanner(new File("unsentTests.txt"));
             while (scanner.hasNextLine()) {
-                data.append(scanner.nextLine());
+                strings.add(scanner.nextLine());
             }
             scanner.close();
         } catch (FileNotFoundException e) {
-            System.out.println("No offlineData.txt file.");
+            System.out.println("No unsentTests.txt file.");
         }
-        return data.toString();
+        return strings;
     }
 
     /**
      * In the case of no internet, all new analytes/bges/matrixes will be saved to txt file.
+     *
+     * @param current Current folder.
+     * @param timeStamp Timestamp of the test.
+     * @param labTest LabTest object with the data of test.
      */
-    private void saveOffline() {
+    private void saveOffline(String current, String timeStamp, LabTest labTest) {
         DatabaseCommunicator communicator = new DatabaseCommunicator();
         if (!communicator.isApiAvailable("getUsers")) {
-            BufferedWriter writer = null;
+            BufferedWriter writer;
             ArrayList<String> savedAnalytes = new ArrayList<>();
             ArrayList<String> savedBges = new ArrayList<>();
             ArrayList<String> savedMatrixes = new ArrayList<>();
@@ -249,12 +271,7 @@ public class Main extends Application {
 
             try {
                 writer = new BufferedWriter(new FileWriter(("offlineData.txt")));
-                Path offlineFile = Paths.get("offlineData.txt");
-                try {
-                    Files.setAttribute(offlineFile, "dos:hidden", Boolean.TRUE, LinkOption.NOFOLLOW_LINKS); //< set hidden attribute
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                FileManager.hide("offlineData.txt");
                 OfflineData offlineData = new OfflineData();
                 savedAnalytes.addAll(tempAnalytes);
                 savedBges.addAll(tempBges);
@@ -270,6 +287,33 @@ public class Main extends Application {
             } catch (IOException e) {
                 System.out.println("No offlineData.txt file where to save.");
             }
+            BufferedWriter writer2;
+            try {
+                writer2 = new BufferedWriter(new FileWriter((current+"/" + timeStamp + File.separator + timeStamp + "unsent.txt")));
+                Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                String json = gson.toJson(labTest);
+                writer2.write(json);
+                writer2.newLine();
+                writer2.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            FileManager.hide(current+"/" + timeStamp + File.separator + timeStamp + "unsent.txt");
+
+            ArrayList<String> tests = getUnsentTests();
+            tests.add(timeStamp);
+            BufferedWriter writer3;
+            try {
+                writer3 = new BufferedWriter(new FileWriter(("unsentTests.txt")));
+                for (String test : tests) {
+                    writer3.write(test);
+                    writer3.newLine();
+                }
+                writer3.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            FileManager.hide("unsentTests.txt");
         }
     }
 
@@ -388,7 +432,7 @@ public class Main extends Application {
      * Gets data from database and implements it into graphical interface.
      */
     private void getDataFromDatabase() {
-        String offlineData = resumeOffline();
+        String offlineData = FileManager.readFile("offlineData.txt");
         OfflineData dataObject;
         if (offlineData.contains("analytes") || offlineData.contains("bges") || offlineData.contains("matrixes")) {
             Gson gson = new Gson();
@@ -1605,7 +1649,7 @@ public class Main extends Application {
             System.out.println("done");
 //            dataWriter.close();
 //            ImageSaver.saveImage(testData, current+"/" + timeStamp + File.separator + timeStamp + "_image.png");
-            testData = fileReader();
+            testData = FileManager.readIntegers();
 
             if (concentrationTable != null) {
                 LabTest labTest = new LabTest();
@@ -1693,7 +1737,7 @@ public class Main extends Application {
                 if (communicator.isApiAvailable("getUsers")) {
                     communicator.postTest(labTest);
                 } else {
-                    saveOffline();
+                    saveOffline(current, timeStamp, labTest);
                     System.out.println("api is not available");
                 }
             }

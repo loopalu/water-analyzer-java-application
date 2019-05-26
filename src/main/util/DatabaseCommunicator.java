@@ -84,11 +84,11 @@ public class DatabaseCommunicator {
      * @param jsonObject JSON received from REST API.
      * @return LabTest object with test data.
      */
-    private LabTest makeMethod(JsonObject jsonObject) {
+    public LabTest makeMethod(JsonObject jsonObject) {
         LabTest labTest = new LabTest();
-        labTest.setNameOfTest(""); // Not important for method.
-        labTest.setNameOfUser(""); // Not important for method.
-        labTest.setUserClass(""); // Not important for method.
+        labTest.setNameOfTest(String.valueOf(jsonObject.get("nameOfTest")).replace('"', ' ').trim());
+        labTest.setNameOfUser(String.valueOf(jsonObject.get("nameOfUser")).replace('"', ' ').trim());
+        labTest.setUserClass(String.valueOf(jsonObject.get("userClass")).replace('"', ' ').trim());
         labTest.setNameOfMethod(String.valueOf(jsonObject.get("nameOfMethod")).replace('"', ' ').trim());
         labTest.setMatrix(String.valueOf(jsonObject.get("matrix")).replace('"', ' ').trim());
         labTest.setCapillary(String.valueOf(jsonObject.get("capillary")).replace('"', ' ').trim());
@@ -131,8 +131,16 @@ public class DatabaseCommunicator {
 
         labTest.setBgeUnit(String.valueOf(jsonObject.get("bgeUnit")).replace('"', ' ').trim());
         labTest.setDescription(String.valueOf(jsonObject.get("description")).replace('"', ' ').trim());
-        labTest.setTestTime("00:00:23:231"); // Not important for method.
-        labTest.setTestData(new ArrayList()); // Not important for method.
+        labTest.setTestTime(String.valueOf(jsonObject.get("testTime")).replace('"', ' ').trim());
+        JsonArray testArray = jsonObject.get("testData").getAsJsonArray();
+        ArrayList<String> testData = new ArrayList<String>();
+        if (testArray.size() > 0) {
+            for (int i = 0; i < testArray.size(); i++) {
+                String string = String.valueOf(testArray.get(i));
+                testData.add(string);
+            }
+        }
+        labTest.setTestData(testData);
         return labTest;
     }
 
