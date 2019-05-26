@@ -211,7 +211,7 @@ public class Main extends Application {
                 }
             }
             try {
-                BufferedWriter writer = new BufferedWriter(new FileWriter(("unsentTests.txt")));
+                BufferedWriter writer = new BufferedWriter(new FileWriter("unsentTests.txt"));
                 writer.write("");
                 writer.newLine();
                 writer.close();
@@ -270,7 +270,7 @@ public class Main extends Application {
             }
 
             try {
-                writer = new BufferedWriter(new FileWriter(("offlineData.txt")));
+                writer = new BufferedWriter(new FileWriter("offlineData.txt"));
                 FileManager.hide("offlineData.txt");
                 OfflineData offlineData = new OfflineData();
                 savedAnalytes.addAll(tempAnalytes);
@@ -304,7 +304,7 @@ public class Main extends Application {
             tests.add(timeStamp);
             BufferedWriter writer3;
             try {
-                writer3 = new BufferedWriter(new FileWriter(("unsentTests.txt")));
+                writer3 = new BufferedWriter(new FileWriter("unsentTests.txt"));
                 for (String test : tests) {
                     writer3.write(test);
                     writer3.newLine();
