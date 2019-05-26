@@ -42,16 +42,11 @@ import org.controlsfx.control.textfield.TextFields;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Makes the graphical interface and runs all the methods.
@@ -254,6 +249,12 @@ public class Main extends Application {
 
             try {
                 writer = new BufferedWriter(new FileWriter(("offlineData.txt")));
+                Path offlineFile = Paths.get("offlineData.txt");
+                try {
+                    Files.setAttribute(offlineFile, "dos:hidden", Boolean.TRUE, LinkOption.NOFOLLOW_LINKS); //< set hidden attribute
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 OfflineData offlineData = new OfflineData();
                 savedAnalytes.addAll(tempAnalytes);
                 savedBges.addAll(tempBges);
