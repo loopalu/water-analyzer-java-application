@@ -44,7 +44,6 @@ import org.controlsfx.control.textfield.TextFields;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -67,21 +66,15 @@ public class Main extends Application {
     private String currentMatrix = "";
     private String currentCapillary = "50/150 μm";
     private double xSeriesData = 0;
-    private NumberAxis xAxis = new NumberAxis();
-    private NumberAxis xCurrentAxis = new NumberAxis();
-    private final NumberAxis yAxis = new NumberAxis();
-    private final NumberAxis yCurrentAxis = new NumberAxis();
     private ArrayList testData = new ArrayList();
     private int counter = 0; // We don't need 100 first measurements.
-    private LineChart<Number,Number> lineChart;
-    private LineChart<Number,Number> currentLineChart;
+    private LineChart<Number,Number> lineChart10, lineChart5, lineChart3, lineChart2, lineChart1, lineChart30, currentLineChart10, currentLineChart5, currentLineChart3, currentLineChart2, currentLineChart1, currentLineChart30;
     private Stack<String> arduinoData;
     private Scene scene;
     private SerialPort serialPort;
     private boolean isStarted = false;
     private boolean isHighVoltage = false;
     private String highVoltage = "h";
-    private double upperBound = 300.0;
     private XYChart.Series series10min;
     private XYChart.Series series5min;
     private XYChart.Series series3min;
@@ -130,14 +123,7 @@ public class Main extends Application {
     private ArrayList<String> tempAnalytes = new ArrayList<>();
     private ArrayList<String> tempBges = new ArrayList<>();
     private ArrayList<String> tempMatrixes = new ArrayList<>();
-
-    {
-        try {
-            debugWriter = new PrintWriter("debug.txt");
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
+    private NumberAxis xAxis10, xAxis5, xAxis3, xAxis2, xAxis1, xAxis30, xCurrentAxis10, xCurrentAxis5, xCurrentAxis3, xCurrentAxis2, xCurrentAxis1, xCurrentAxis30;
 
     /**
      * Starts the graphical interface.
@@ -199,15 +185,18 @@ public class Main extends Application {
             while (tests.size() > 0) {
                 try {
                     current = new File( "." ).getCanonicalPath();
-                    String data = FileManager.readFile(current+"/" + tests.get(0) + File.separator + tests.get(0) + "unsent.txt");
+                    String data = FileManager.readFile(current+"/" + tests.get(0) + "/" + tests.get(0) + "unsent.txt");
                     Gson gson = new GsonBuilder().setPrettyPrinting().create();
                     JsonObject jsonObject = gson.fromJson(data, JsonObject.class);
                     LabTest labTest = communicator.makeMethod(jsonObject);
                     communicator.postTest(labTest);
                     tests.remove(0);
-                    Files.deleteIfExists(Paths.get(current+"/" + tests.get(0) + File.separator + tests.get(0) + "unsent.txt"));
+                    if (tests.size() > 0) {
+                        Files.deleteIfExists(Paths.get(current+"/" + tests.get(0) + "/" + tests.get(0) + "unsent.txt"));
+                    }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    System.out.println("No unsent.txt file.");
+                    return;
                 }
             }
             try {
@@ -232,7 +221,10 @@ public class Main extends Application {
         try {
             Scanner scanner = new Scanner(new File("unsentTests.txt"));
             while (scanner.hasNextLine()) {
-                strings.add(scanner.nextLine());
+                String string = scanner.nextLine();
+                if (!string.equals("")){
+                    strings.add(string);
+                }
             }
             scanner.close();
         } catch (FileNotFoundException e) {
@@ -302,10 +294,12 @@ public class Main extends Application {
 
             ArrayList<String> tests = getUnsentTests();
             tests.add(timeStamp);
+            System.out.println("302 timestamp " + tests);
             BufferedWriter writer3;
             try {
                 writer3 = new BufferedWriter(new FileWriter("unsentTests.txt"));
                 for (String test : tests) {
+                    System.out.println(test);
                     writer3.write(test);
                     writer3.newLine();
                 }
@@ -313,7 +307,7 @@ public class Main extends Application {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            FileManager.hide("unsentTests.txt");
+            //FileManager.hide("unsentTests.txt");
         }
     }
 
@@ -1154,109 +1148,26 @@ public class Main extends Application {
             @Override public void changed(ObservableValue<? extends Toggle> observable, Toggle oldValue, Toggle selectedToggle) {
                 if(selectedToggle!=null) {
                     currentTime = ((ToggleButton) selectedToggle).getText();
-                    double oldUpperBound = upperBound;
+                    GridPane mainPane = (GridPane) scene.lookup("#chartPane");
+                    mainPane.getChildren().clear();
                     switch (currentTime) {
                         case "10 min": // 6000 punkti 1200ste vahedega
-                            oldUpperBound = upperBound;
-                            upperBound = 6000;
-                            System.out.println(oldUpperBound + " " + upperBound);
-                            xAxis.setUpperBound((int)(size/2.0));
-                            xAxis.setLowerBound((int)(size/2.0 - upperBound));
-                            xAxis.setTickUnit(upperBound/5);
-                            lineChart.getData().clear();
-                            lineChart.getData().addAll(series10min);
-
-                            xCurrentAxis.setUpperBound((int)(size/2.0));
-                            xCurrentAxis.setLowerBound((int)(size/2.0 - upperBound));
-                            xCurrentAxis.setTickUnit(upperBound/5);
-                            currentLineChart.getData().clear();
-                            currentLineChart.getData().addAll(current10min);
-
+                            mainPane.getChildren().addAll(lineChart10, currentLineChart10);
                             break;
                         case "5 min": // 3000 punkti 500ste vahedega
-                            oldUpperBound = upperBound;
-                            upperBound = 3000;
-                            System.out.println(oldUpperBound + " " + upperBound);
-                            xAxis.setUpperBound((int)(size/2.0));
-                            xAxis.setLowerBound((int)(size/2.0 - upperBound));
-                            xAxis.setTickUnit(upperBound/5);
-                            lineChart.getData().clear();
-                            lineChart.getData().addAll(series5min);
-
-                            xCurrentAxis.setUpperBound((int)(size/2.0));
-                            xCurrentAxis.setLowerBound((int)(size/2.0 - upperBound));
-                            xCurrentAxis.setTickUnit(upperBound/5);
-                            currentLineChart.getData().clear();
-                            currentLineChart.getData().addAll(current5min);
-
+                            mainPane.getChildren().addAll(lineChart5, currentLineChart5);
                             break;
                         case "3 min": // 1800 punkti 360ste vahedega
-                            oldUpperBound = upperBound;
-                            upperBound = 1800;
-                            System.out.println(oldUpperBound + " " + upperBound);
-                            xAxis.setUpperBound((int)(size/2.0));
-                            xAxis.setLowerBound((int)(size/2.0 - upperBound));
-                            xAxis.setTickUnit(upperBound/5);
-                            lineChart.getData().clear();
-                            lineChart.getData().addAll(series3min);
-
-                            xCurrentAxis.setUpperBound((int)(size/2.0));
-                            xCurrentAxis.setLowerBound((int)(size/2.0 - upperBound));
-                            xCurrentAxis.setTickUnit(upperBound/5);
-                            currentLineChart.getData().clear();
-                            currentLineChart.getData().addAll(current3min);
-
+                            mainPane.getChildren().addAll(lineChart3, currentLineChart3);
                             break;
                         case "2 min": // 1200 punkti 240ste vahedega
-                            oldUpperBound = upperBound;
-                            upperBound = 1200;
-                            System.out.println(oldUpperBound + " " + upperBound);
-                            xAxis.setUpperBound((int)(size/2.0));
-                            xAxis.setLowerBound((int)(size/2.0 - upperBound));
-                            xAxis.setTickUnit(upperBound/5);
-                            lineChart.getData().clear();
-                            lineChart.getData().addAll(series2min);
-
-                            xCurrentAxis.setUpperBound((int)(size/2.0));
-                            xCurrentAxis.setLowerBound((int)(size/2.0 - upperBound));
-                            xCurrentAxis.setTickUnit(upperBound/5);
-                            currentLineChart.getData().clear();
-                            currentLineChart.getData().addAll(current2min);
-
+                            mainPane.getChildren().addAll(lineChart2, currentLineChart2);
                             break;
                         case "1 min": // 600 punkti 120ste vahedega
-                            oldUpperBound = upperBound;
-                            upperBound = 600;
-                            System.out.println(oldUpperBound + " " + upperBound);
-                            xAxis.setUpperBound((int)(size/2.0));
-                            xAxis.setLowerBound((int)(size/2.0 - upperBound));
-                            xAxis.setTickUnit(upperBound/5);
-                            lineChart.getData().clear();
-                            lineChart.getData().addAll(series1min);
-
-                            xCurrentAxis.setUpperBound((int)(size/2.0));
-                            xCurrentAxis.setLowerBound((int)(size/2.0 - upperBound));
-                            xCurrentAxis.setTickUnit(upperBound/5);
-                            currentLineChart.getData().clear();
-                            currentLineChart.getData().addAll(current1min);
-
+                            mainPane.getChildren().addAll(lineChart1, currentLineChart1);
                             break;
                         case "30 sec": // 300 punkti 60ste vahedega  Default start
-                            oldUpperBound = upperBound;
-                            upperBound = 300;
-                            System.out.println(oldUpperBound + " " + upperBound);
-                            xAxis.setUpperBound((int)(size/2.0));
-                            xAxis.setLowerBound((int)(size/2.0 - upperBound));
-                            xAxis.setTickUnit(upperBound/5);
-                            lineChart.getData().clear();
-                            lineChart.getData().addAll(series30sec);
-
-                            xCurrentAxis.setUpperBound((int)(size/2.0));
-                            xCurrentAxis.setLowerBound((int)(size/2.0 - upperBound));
-                            xCurrentAxis.setTickUnit(upperBound/5);
-                            currentLineChart.getData().clear();
-                            currentLineChart.getData().addAll(current30sec);
-
+                            mainPane.getChildren().addAll(lineChart30, currentLineChart30);
                             break;
                     }
                 }
@@ -1420,6 +1331,11 @@ public class Main extends Application {
             @Override
             public void handle(ActionEvent event) {
                 System.out.println("start");
+                try {
+                    debugWriter = new PrintWriter("debug.txt");
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
                 isStarted = true;
                 stopWatchTimeline.play();
                 try {
@@ -1592,15 +1508,29 @@ public class Main extends Application {
         current1min.getData().clear();
         current30sec.getData().clear();
         xSeriesData = 0;
-        xAxis.setLowerBound(0);
-        xAxis.setUpperBound(upperBound);
-        xCurrentAxis.setLowerBound(0);
-        xCurrentAxis.setUpperBound(upperBound);
+        resetXaxis(xAxis10, 6000);
+        resetXaxis(xAxis5, 3000);
+        resetXaxis(xAxis3, 1800);
+        resetXaxis(xAxis2, 1200);
+        resetXaxis(xAxis1, 600);
+        resetXaxis(xAxis30, 300);
+        resetXaxis(xCurrentAxis10, 6000);
+        resetXaxis(xCurrentAxis5, 3000);
+        resetXaxis(xCurrentAxis3, 1800);
+        resetXaxis(xCurrentAxis2, 1200);
+        resetXaxis(xCurrentAxis1, 600);
+        resetXaxis(xCurrentAxis30, 300);
+
         millisecond = 0;
         testTime = "00:00:00:000";
         stopWatchTimeline.stop();
         Text timerText = (Text) scene.lookup("#timerData");
         timerText.setText("00:00:00:000");
+    }
+
+    private void resetXaxis(NumberAxis xAxis, int bound) {
+        xAxis.setLowerBound(0);
+        xAxis.setUpperBound(bound);
     }
 
     /**
@@ -1730,8 +1660,8 @@ public class Main extends Application {
                 writer.newLine();
                 Gson gson = new GsonBuilder().setPrettyPrinting().create();
                 String json = gson.toJson(labTest);
-                writer.write(json);
-                writer.newLine();
+//                writer.write(json);
+//                writer.newLine();
                 writer.close();
                 DatabaseCommunicator communicator = new DatabaseCommunicator();
                 if (communicator.isApiAvailable("getUsers")) {
@@ -1758,40 +1688,101 @@ public class Main extends Application {
         }
     }
 
+    private void manageYaxis(NumberAxis yAxis) {
+        yAxis.setAutoRanging(true);
+        yAxis.setForceZeroInRange(false);
+    }
+
+    private void manageXaxis(NumberAxis xAxis, int bound) {
+        xAxis.setForceZeroInRange(false);
+        xAxis.setAutoRanging(false); // Peab olema false. Muidu muudab ise graafiku laiust.
+        xAxis.setTickLabelsVisible(true);
+        xAxis.setTickMarkVisible(true);
+        xAxis.setMinorTickVisible(false);
+        xAxis.setTickUnit(bound/5);
+    }
+
+    private void manageLinechart(LineChart lineChart, XYChart.Series series) {
+        lineChart.getData().addAll(series);
+        lineChart.setCreateSymbols(false);
+        lineChart.setLegendVisible(false);
+        lineChart.setHorizontalGridLinesVisible(true);
+        lineChart.setVerticalGridLinesVisible(true);
+        lineChart.setAnimated(false);
+    }
+
+
     /**
      * Makes moving chart.
      *
      * @param scene Canvas for graphical interface.
      */
     private void makeMovingChart(Scene scene) {
-        NumberAxis yAxis = new NumberAxis();
-        NumberAxis yCurrentAxis = new NumberAxis();
+        NumberAxis yAxis10 = new NumberAxis();
+        NumberAxis yCurrentAxis10 = new NumberAxis();
+        NumberAxis yAxis5 = new NumberAxis();
+        NumberAxis yCurrentAxis5 = new NumberAxis();
+        NumberAxis yAxis3 = new NumberAxis();
+        NumberAxis yCurrentAxis3 = new NumberAxis();
+        NumberAxis yAxis2 = new NumberAxis();
+        NumberAxis yCurrentAxis2 = new NumberAxis();
+        NumberAxis yAxis1 = new NumberAxis();
+        NumberAxis yCurrentAxis1 = new NumberAxis();
+        NumberAxis yAxis30 = new NumberAxis();
+        NumberAxis yCurrentAxis30 = new NumberAxis();
 
-        yAxis.setAutoRanging(true);
-        yAxis.setForceZeroInRange(false);
+        manageYaxis(yAxis10);
+        manageYaxis(yCurrentAxis10);
+        manageYaxis(yAxis5);
+        manageYaxis(yCurrentAxis5);
+        manageYaxis(yAxis3);
+        manageYaxis(yCurrentAxis3);
+        manageYaxis(yAxis2);
+        manageYaxis(yCurrentAxis2);
+        manageYaxis(yAxis1);
+        manageYaxis(yCurrentAxis1);
+        manageYaxis(yAxis30);
+        manageYaxis(yCurrentAxis30);
 
-        yCurrentAxis.setAutoRanging(true);
-        yCurrentAxis.setForceZeroInRange(false);
+        xAxis10 = new NumberAxis(0, 6000, 1);
+        xAxis5 = new NumberAxis(0, 3000, 1);
+        xAxis3 = new NumberAxis(0, 1800, 1);
+        xAxis2 = new NumberAxis(0, 1200, 1);
+        xAxis1 = new NumberAxis(0, 600, 1);
+        xAxis30 = new NumberAxis(0, 300, 1);
+        xCurrentAxis10 = new NumberAxis(0, 6000, 1);
+        xCurrentAxis5 = new NumberAxis(0, 3000, 1);
+        xCurrentAxis3 = new NumberAxis(0, 1800, 1);
+        xCurrentAxis2 = new NumberAxis(0, 1200, 1);
+        xCurrentAxis1 = new NumberAxis(0, 600, 1);
+        xCurrentAxis30 = new NumberAxis(0, 300, 1);
 
-        xAxis = new NumberAxis(0, upperBound, 1);
-        xAxis.setForceZeroInRange(false);
-        xAxis.setAutoRanging(false); // Peab olema false. Muidu muudab ise graafiku laiust.
-        xAxis.setTickLabelsVisible(true);
-        xAxis.setTickMarkVisible(true);
-        xAxis.setMinorTickVisible(false);
-        xAxis.setTickUnit(upperBound/5);
-        lineChart = new LineChart<>(xAxis, yAxis); //Siis on palju kitsam graafik
-        //series = new XYChart.Series(seriesData);
+        manageXaxis(xAxis10, 6000);
+        manageXaxis(xAxis5, 3000);
+        manageXaxis(xAxis3, 1800);
+        manageXaxis(xAxis2, 1200);
+        manageXaxis(xAxis1, 600);
+        manageXaxis(xAxis30, 300);
+        manageXaxis(xCurrentAxis10, 6000);
+        manageXaxis(xCurrentAxis5, 3000);
+        manageXaxis(xCurrentAxis3, 1800);
+        manageXaxis(xCurrentAxis2, 1200);
+        manageXaxis(xCurrentAxis1, 600);
+        manageXaxis(xCurrentAxis30, 300);
 
-        xCurrentAxis = new NumberAxis(0, upperBound, 1);
-        xCurrentAxis.setForceZeroInRange(false);
-        xCurrentAxis.setAutoRanging(false); // Peab olema false. Muidu muudab ise graafiku laiust.
-        xCurrentAxis.setTickLabelsVisible(true);
-        xCurrentAxis.setTickMarkVisible(true);
-        xCurrentAxis.setMinorTickVisible(false);
-        xCurrentAxis.setTickUnit(upperBound/5);
-        currentLineChart = new LineChart<>(xCurrentAxis, yCurrentAxis); //Siis on palju kitsam graafik
-        //currentSeries = new XYChart.Series(currentData);
+        lineChart10 = new LineChart<>(xAxis10, yAxis10);
+        lineChart5 = new LineChart<>(xAxis5, yAxis5);
+        lineChart3 = new LineChart<>(xAxis3, yAxis3);
+        lineChart2 = new LineChart<>(xAxis2, yAxis2);
+        lineChart1 = new LineChart<>(xAxis1, yAxis1);
+        lineChart30 = new LineChart<>(xAxis30, yAxis30);
+
+        currentLineChart10 = new LineChart<>(xCurrentAxis10, yCurrentAxis10);
+        currentLineChart5 = new LineChart<>(xCurrentAxis5, yCurrentAxis5);
+        currentLineChart3 = new LineChart<>(xCurrentAxis3, yCurrentAxis3);
+        currentLineChart2 = new LineChart<>(xCurrentAxis2, yCurrentAxis2);
+        currentLineChart1 = new LineChart<>(xCurrentAxis1, yCurrentAxis1);
+        currentLineChart30 = new LineChart<>(xCurrentAxis30, yCurrentAxis30);
 
         series10min = new XYChart.Series(FXCollections.observableArrayList());
         series5min = new XYChart.Series(FXCollections.observableArrayList());
@@ -1807,25 +1798,36 @@ public class Main extends Application {
         current1min = new XYChart.Series(FXCollections.observableArrayList());
         current30sec = new XYChart.Series(FXCollections.observableArrayList());
 
-        lineChart.getData().addAll(series30sec);
-        lineChart.setCreateSymbols(false);
-        lineChart.setLegendVisible(false);
-        lineChart.setHorizontalGridLinesVisible(true);
-        lineChart.setVerticalGridLinesVisible(true);
-        lineChart.setAnimated(false);
+        manageLinechart(lineChart10, series10min);
+        manageLinechart(lineChart5, series5min);
+        manageLinechart(lineChart3, series3min);
+        manageLinechart(lineChart2, series2min);
+        manageLinechart(lineChart1, series1min);
+        manageLinechart(lineChart30, series30sec);
+        manageLinechart(currentLineChart10, current10min);
+        manageLinechart(currentLineChart5, current5min);
+        manageLinechart(currentLineChart3, current3min);
+        manageLinechart(currentLineChart2, current2min);
+        manageLinechart(currentLineChart1, current1min);
+        manageLinechart(currentLineChart30, current30sec);
 
-        currentLineChart.getData().addAll(current30sec);
-        currentLineChart.setCreateSymbols(false);
-        currentLineChart.setLegendVisible(false);
-        currentLineChart.setHorizontalGridLinesVisible(true);
-        currentLineChart.setVerticalGridLinesVisible(true);
-        currentLineChart.setAnimated(false);
 
-        GridPane.setConstraints(currentLineChart, 1, 1);
-        GridPane.setConstraints(lineChart, 1, 0);
+        GridPane.setConstraints(currentLineChart10, 1, 1);
+        GridPane.setConstraints(currentLineChart5, 1, 1);
+        GridPane.setConstraints(currentLineChart3, 1, 1);
+        GridPane.setConstraints(currentLineChart2, 1, 1);
+        GridPane.setConstraints(currentLineChart1, 1, 1);
+        GridPane.setConstraints(currentLineChart30, 1, 1);
+
+        GridPane.setConstraints(lineChart10, 1, 0);
+        GridPane.setConstraints(lineChart5, 1, 0);
+        GridPane.setConstraints(lineChart3, 1, 0);
+        GridPane.setConstraints(lineChart2, 1, 0);
+        GridPane.setConstraints(lineChart1, 1, 0);
+        GridPane.setConstraints(lineChart30, 1, 0);
+
         GridPane mainPane = (GridPane) scene.lookup("#chartPane");
-        mainPane.getChildren().addAll(lineChart, currentLineChart);
-
+        mainPane.getChildren().addAll(lineChart30, currentLineChart30);
     }
 
     //-- Timeline gets called in the JavaFX Main thread
@@ -1911,16 +1913,18 @@ public class Main extends Application {
                             series30sec.getData().remove(0);
                             current30sec.getData().remove(0);
                         }
-
-//                testData.add(measurement);
-
-                        xAxis.setUpperBound((int)(size/2.0));
-                        xAxis.setLowerBound((int)(size/2.0 - upperBound));
-                        xAxis.setTickUnit(upperBound/5);
-
-                        xCurrentAxis.setUpperBound((int)(size/2.0));
-                        xCurrentAxis.setLowerBound((int)(size/2.0 - upperBound));
-                        xCurrentAxis.setTickUnit(upperBound/5);
+                        changeXaxis(xAxis10, 6000);
+                        changeXaxis(xAxis5, 3000);
+                        changeXaxis(xAxis3, 1800);
+                        changeXaxis(xAxis2, 1200);
+                        changeXaxis(xAxis1, 600);
+                        changeXaxis(xAxis30, 300);
+                        changeXaxis(xCurrentAxis10, 6000);
+                        changeXaxis(xCurrentAxis5, 3000);
+                        changeXaxis(xCurrentAxis3, 1800);
+                        changeXaxis(xCurrentAxis2, 1200);
+                        changeXaxis(xCurrentAxis1, 600);
+                        changeXaxis(xCurrentAxis30, 300);
                     } else {
                         counter += 1;
                     }
@@ -1930,6 +1934,12 @@ public class Main extends Application {
         if (arduinoData.isEmpty()) {
             return;
         }
+    }
+
+    private void changeXaxis(NumberAxis xAxis, int bound) {
+        xAxis.setUpperBound((int)(size/2.0));
+        xAxis.setLowerBound((int)(size/2.0 - bound));
+        xAxis.setTickUnit(bound/5);
     }
 
 

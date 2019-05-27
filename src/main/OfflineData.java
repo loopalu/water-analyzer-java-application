@@ -1,7 +1,5 @@
 package main;
 
-import javafx.collections.ObservableList;
-
 import java.util.ArrayList;
 
 public class OfflineData {

@@ -29,7 +29,8 @@ public class FileManager {
             }
             scanner.close();
         } catch (FileNotFoundException e) {
-            System.out.println("No offlineData.txt file.");
+            System.out.println("No offlineData.txt file. " + path);
+            return "";
         }
         return data.toString();
     }
