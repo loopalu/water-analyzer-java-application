@@ -16,7 +16,6 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.chart.AreaChart;
@@ -1778,12 +1777,6 @@ public class Main extends Application {
         lineChart2 = new LineChart<>(xAxis2, yAxis2);
         lineChart1 = new LineChart<>(xAxis1, yAxis1);
         lineChart30 = new LineChart<>(xAxis30, yAxis30);
-        lineChart10.setUserData("linechart");
-        lineChart5.setUserData("linechart");
-        lineChart3.setUserData("linechart");
-        lineChart2.setUserData("linechart");
-        lineChart1.setUserData("linechart");
-        lineChart30.setUserData("linechart");
 
         currentLineChart10 = new LineChart<>(xCurrentAxis10, yCurrentAxis10);
         currentLineChart5 = new LineChart<>(xCurrentAxis5, yCurrentAxis5);
@@ -1791,12 +1784,6 @@ public class Main extends Application {
         currentLineChart2 = new LineChart<>(xCurrentAxis2, yCurrentAxis2);
         currentLineChart1 = new LineChart<>(xCurrentAxis1, yCurrentAxis1);
         currentLineChart30 = new LineChart<>(xCurrentAxis30, yCurrentAxis30);
-        currentLineChart10.setUserData("currentLinechart");
-        currentLineChart5.setUserData("currentLinechart");
-        currentLineChart3.setUserData("currentLinechart");
-        currentLineChart2.setUserData("currentLinechart");
-        currentLineChart1.setUserData("currentLinechart");
-        currentLineChart30.setUserData("currentLinechart");
 
         series10min = new XYChart.Series(FXCollections.observableArrayList());
         series5min = new XYChart.Series(FXCollections.observableArrayList());
