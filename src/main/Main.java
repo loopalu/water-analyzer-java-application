@@ -185,24 +185,25 @@ public class Main extends Application {
             while (tests.size() > 0) {
                 try {
                     current = new File( "." ).getCanonicalPath();
-                    String data = FileManager.readFile(current+"/" + tests.get(0) + "/" + tests.get(0) + "unsent.txt");
-                    Gson gson = new GsonBuilder().setPrettyPrinting().create();
-                    JsonObject jsonObject = gson.fromJson(data, JsonObject.class);
-                    LabTest labTest = communicator.makeMethod(jsonObject);
-                    communicator.postTest(labTest);
-                    tests.remove(0);
-                    if (tests.size() > 0) {
-                        Files.deleteIfExists(Paths.get(current+"/" + tests.get(0) + "/" + tests.get(0) + "unsent.txt"));
+                    File tmpDir = new File("current" + tests.get(0));
+                    if (tmpDir.exists()) {
+                        String data = FileManager.readFile(current+"/" + tests.get(0) + "/" + tests.get(0) + "_unsent.txt");
+                        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                        JsonObject jsonObject = gson.fromJson(data, JsonObject.class);
+                        LabTest labTest = communicator.makeMethod(jsonObject);
+                        communicator.postTest(labTest);
+                        Files.deleteIfExists(Paths.get(current+"/" + tests.get(0) + "/" + tests.get(0) + "_unsent.txt"));
                     }
+                    tests.remove(0);
                 } catch (IOException e) {
                     System.out.println("No unsent.txt file.");
                     return;
                 }
             }
             try {
+                Files.deleteIfExists(Paths.get("unsentTests.txt"));
                 BufferedWriter writer = new BufferedWriter(new FileWriter("unsentTests.txt"));
                 writer.write("");
-                writer.newLine();
                 writer.close();
                 FileManager.hide("unsentTests.txt");
             } catch (IOException e) {
@@ -281,7 +282,7 @@ public class Main extends Application {
             }
             BufferedWriter writer2;
             try {
-                writer2 = new BufferedWriter(new FileWriter((current+"/" + timeStamp + File.separator + timeStamp + "unsent.txt")));
+                writer2 = new BufferedWriter(new FileWriter((current+"/" + timeStamp + File.separator + timeStamp + "_unsent.txt")));
                 Gson gson = new GsonBuilder().setPrettyPrinting().create();
                 String json = gson.toJson(labTest);
                 writer2.write(json);
@@ -290,7 +291,7 @@ public class Main extends Application {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            FileManager.hide(current+"/" + timeStamp + File.separator + timeStamp + "unsent.txt");
+            FileManager.hide(current+"/" + timeStamp + File.separator + timeStamp + "_unsent.txt");
 
             ArrayList<String> tests = getUnsentTests();
             tests.add(timeStamp);
