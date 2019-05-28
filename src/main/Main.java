@@ -1529,6 +1529,12 @@ public class Main extends Application {
         timerText.setText("00:00:00:000");
     }
 
+    /**
+     * Resets the xAxis.
+     *
+     * @param xAxis xAxis of the chart.
+     * @param bound Upperbound.
+     */
     private void resetXaxis(NumberAxis xAxis, int bound) {
         xAxis.setLowerBound(0);
         xAxis.setUpperBound(bound);
@@ -1689,11 +1695,22 @@ public class Main extends Application {
         }
     }
 
+    /**
+     * Sets options for yAxis.
+     *
+     * @param yAxis Given yAxis of the chart.
+     */
     private void manageYaxis(NumberAxis yAxis) {
         yAxis.setAutoRanging(true);
         yAxis.setForceZeroInRange(false);
     }
 
+    /**
+     * Sets options for the xAxis.
+     *
+     * @param xAxis Given xAxis of the chatr.
+     * @param bound Upperbound of the chart.
+     */
     private void manageXaxis(NumberAxis xAxis, int bound) {
         xAxis.setForceZeroInRange(false);
         xAxis.setAutoRanging(false); // Peab olema false. Muidu muudab ise graafiku laiust.
@@ -1703,6 +1720,12 @@ public class Main extends Application {
         xAxis.setTickUnit(bound/5);
     }
 
+    /**
+     * Sets options for given chart.
+     *
+     * @param lineChart Given linechart.
+     * @param series Series with data to be added to the chart.
+     */
     private void manageLinechart(LineChart lineChart, XYChart.Series series) {
         lineChart.getData().addAll(series);
         lineChart.setCreateSymbols(false);
@@ -1711,7 +1734,6 @@ public class Main extends Application {
         lineChart.setVerticalGridLinesVisible(true);
         lineChart.setAnimated(false);
     }
-
 
     /**
      * Makes moving chart.
@@ -1937,6 +1959,12 @@ public class Main extends Application {
         }
     }
 
+    /**
+     * Changes options of the chart.
+     *
+     * @param xAxis Given xAxis of the chart.
+     * @param bound Upperbound of the chart.
+     */
     private void changeXaxis(NumberAxis xAxis, int bound) {
         xAxis.setUpperBound((int)(size/2.0));
         xAxis.setLowerBound((int)(size/2.0 - bound));
